@@ -7,6 +7,7 @@ clean_venv:
 
 clean_compile:
 	@echo "Removing compiled C/C++ files..."
+	find python/ -type f -name "*.o" -delete
 	find python/ -type f -name "*.so" -delete
 	find python/ -type f -name "*.c" -delete
 	find python/ -type f -name "*.pyd" -delete

@@ -21,17 +21,16 @@ class ModelPersistence:
         """
         self.model_dir = model_dir
 
-    def save_model(self, model, model_name: str, file_name_suffix: str = None, fold: int = None):
+    def save_model(self, model, model_name: str, fold: int = None):
         """
         Saves a model to a file.
 
-        :param model:               The model to be persisted
-        :param model_name:          The name of the model to be persisted
-        :param file_name_suffix:    A suffix to be added to the name of the file
-        :param fold:                The fold, the model corresponds to, or None if no cross validation is used
+        :param model:       The model to be persisted
+        :param model_name:  The name of the model to be persisted
+        :param fold:        The fold, the model corresponds to, or None if no cross validation is used
         """
 
-        file_path = path.join(self.model_dir, ModelPersistence.__get_file_name(model_name, file_name_suffix, fold))
+        file_path = path.join(self.model_dir, ModelPersistence.__get_file_name(model_name, fold))
         log.debug('Saving model to file \"%s\"...', file_path)
 
         try:
@@ -41,20 +40,18 @@ class ModelPersistence:
         except IOError:
             log.exception('Failed to save model to file \"%s\"', file_path)
 
-    def load_model(self, model_name: str, file_name_suffix: str = None, fold: int = None,
-                   raise_exception: bool = False):
+    def load_model(self, model_name: str, fold: int = None, raise_exception: bool = False):
         """
         Loads a model from a file.
 
-        :param model_name:          The name of the model to be loaded
-        :param file_name_suffix:    The suffix that has been added to the name of the file
-        :param fold:                The fold, the model corresponds to, or None if no cross validation is used
-        :param raise_exception:     True, if an exception should be raised if an error occurs, False, if None should be
-                                    returned in such case
-        :return:                    The loaded model
+        :param model_name:      The name of the model to be loaded
+        :param fold:            The fold, the model corresponds to, or None if no cross validation is used
+        :param raise_exception: True, if an exception should be raised if an error occurs, False, if None should be
+                                returned in such case
+        :return:                The loaded model
         """
 
-        file_path = path.join(self.model_dir, ModelPersistence.__get_file_name(model_name, file_name_suffix, fold))
+        file_path = path.join(self.model_dir, ModelPersistence.__get_file_name(model_name, fold))
         log.debug("Loading model from file \"%s\"...", file_path)
 
         try:
@@ -71,19 +68,15 @@ class ModelPersistence:
                 return None
 
     @staticmethod
-    def __get_file_name(model_name: str, file_name_suffix: str, fold: int):
+    def __get_file_name(model_name: str, fold: int):
         """
         Returns the name of the file that is used to persist a model.
 
         :param model_name:          The name of the model to be persisted
-        :param file_name_suffix:    A suffix to be added to the name of the file
         :param fold:                The fold, the model corresponds to, or None if no cross validation is used
         :return:                    The name of the file
         """
         file_name = model_name
-
-        if file_name_suffix is not None:
-            file_name += ('_' + file_name_suffix)
 
         if fold is not None:
             file_name += ('_fold-' + str(fold + 1))

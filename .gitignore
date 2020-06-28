@@ -15,5 +15,4 @@ venv/
 # Experiments
 results/
 models/
-plots/
 parameters/
