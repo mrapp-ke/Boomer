@@ -1,0 +1,18 @@
+# Build files
+python/**/*.so
+python/**/*.pyd
+python/**/*.c
+python/**/*.cpp
+python/**/*.html
+python/build/
+
+# Virtual Environment
+venv/
+
+# IntelliJ
+.idea/
+
+# Experiments
+results/
+models/
+parameters/
