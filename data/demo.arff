@@ -1,0 +1,27 @@
+@relation demo
+
+@attribute education {Primary,Secondary,University}
+@attribute marital {Single,Married,Divorced}
+@attribute sex {Male,Female}
+@attribute children {Yes,No}
+@attribute quality {0,1}
+@attribute tabloid {0,1}
+@attribute fashion {0,1}
+@attribute sports {0,1}
+
+
+@data
+Primary,Single,Male,No,0,0,0,0
+Primary,Single,Male,Yes,0,0,0,0
+Primary,Married,Male,No,0,1,0,0
+University,Divorced,Female,No,1,0,1,0
+University,Married,Female,Yes,1,0,1,0
+Secondary,Single,Male,No,0,1,0,0
+University,Single,Male,No,1,1,0,0
+Secondary,Divorced,Female,No,1,0,0,1
+Secondary,Single,Female,Yes,0,1,1,0
+Secondary,Married,Male,Yes,1,1,0,0
+Primary,Married,Female,No,0,0,0,0
+Secondary,Divorced,Male,Yes,0,0,0,0
+University,Divorced,Male,Yes,1,1,0,0
+Secondary,Divorced,Male,No,1,0,0,1

@@ -1,0 +1,22 @@
+# Build files
+python/**/boosting/*.so
+python/**/common/*.so
+python/**/boosting/*.pyd
+python/**/common/*.pyd
+python/**/boosting/*.c
+python/**/common/*.c
+python/**/boosting/*.cpp
+python/**/common/*.cpp
+python/**/*.html
+python/build/
+
+# Virtual Environment
+venv/
+
+# IntelliJ
+.idea/
+
+# Experiments
+results/
+models/
+parameters/
