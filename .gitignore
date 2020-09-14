@@ -1,8 +1,12 @@
 # Build files
-python/**/*.so
-python/**/*.pyd
-python/**/*.c
-python/**/*.cpp
+python/**/boosting/*.so
+python/**/common/*.so
+python/**/boosting/*.pyd
+python/**/common/*.pyd
+python/**/boosting/*.c
+python/**/common/*.c
+python/**/boosting/*.cpp
+python/**/common/*.cpp
 python/**/*.html
 python/build/
 

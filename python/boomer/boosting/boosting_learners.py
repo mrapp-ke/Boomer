@@ -5,24 +5,26 @@
 
 Provides a scikit-learn implementations of boosting algorithms
 """
-from boomer.boosting.differentiable_losses import DifferentiableLoss, DecomposableDifferentiableLoss
 from boomer.boosting.example_wise_losses import ExampleWiseLogisticLoss
-from boomer.boosting.head_refinement import FullHeadRefinement
-from boomer.boosting.label_wise_losses import LabelWiseSquaredErrorLoss, LabelWiseLogisticLoss
-from boomer.common.head_refinement import SingleLabelHeadRefinement, HeadRefinement
-from boomer.common.losses import Loss
+from boomer.boosting.example_wise_rule_evaluation import RegularizedExampleWiseRuleEvaluation
+from boomer.boosting.example_wise_statistics import ExampleWiseStatisticsProviderFactory
+from boomer.boosting.label_wise_losses import LabelWiseLoss, LabelWiseLogisticLoss, LabelWiseSquaredErrorLoss
+from boomer.boosting.label_wise_rule_evaluation import RegularizedLabelWiseRuleEvaluation
+from boomer.boosting.label_wise_statistics import LabelWiseStatisticsProviderFactory
+from boomer.boosting.shrinkage import ConstantShrinkage, Shrinkage
+from boomer.common.head_refinement import HeadRefinement, SingleLabelHeadRefinement, FullHeadRefinement
 from boomer.common.prediction import Predictor, DensePredictor, SignFunction
 from boomer.common.rule_induction import ExactGreedyRuleInduction
 from boomer.common.rules import ModelBuilder, RuleListBuilder
 from boomer.common.sequential_rule_induction import SequentialRuleInduction
-from boomer.common.shrinkage import ConstantShrinkage, Shrinkage
+from boomer.common.statistics import StatisticsProviderFactory
 
 from boomer.common.rule_learners import INSTANCE_SUB_SAMPLING_BAGGING, FEATURE_SUB_SAMPLING_RANDOM, \
     HEAD_REFINEMENT_SINGLE
-from boomer.common.rule_learners import MLRuleLearner
+from boomer.common.rule_learners import MLRuleLearner, SparsePolicy
 from boomer.common.rule_learners import create_pruning, create_feature_sub_sampling, create_instance_sub_sampling, \
     create_label_sub_sampling, create_max_conditions, create_stopping_criteria, create_min_coverage, \
-    create_max_head_refinements
+    create_max_head_refinements, create_num_threads
 
 HEAD_REFINEMENT_FULL = 'full'
 
@@ -39,12 +41,13 @@ class Boomer(MLRuleLearner):
     classification rules.
     """
 
-    def __init__(self, random_state: int = 1, max_rules: int = 1000, time_limit: int = -1, head_refinement: str = None,
-                 loss: str = LOSS_LABEL_WISE_LOGISTIC, label_sub_sampling: str = None,
+    def __init__(self, random_state: int = 1, feature_format: str = SparsePolicy.AUTO.value,
+                 label_format: str = SparsePolicy.AUTO.value, max_rules: int = 1000, time_limit: int = -1,
+                 head_refinement: str = None, loss: str = LOSS_LABEL_WISE_LOGISTIC, label_sub_sampling: str = None,
                  instance_sub_sampling: str = INSTANCE_SUB_SAMPLING_BAGGING,
                  feature_sub_sampling: str = FEATURE_SUB_SAMPLING_RANDOM, pruning: str = None, shrinkage: float = 0.3,
                  l2_regularization_weight: float = 1.0, min_coverage: int = 1, max_conditions: int = -1,
-                 max_head_refinements: int = 1):
+                 max_head_refinements: int = 1, num_threads: int = -1):
         """
         :param max_rules:                           The maximum number of rules to be induced (including the default
                                                     rule)
@@ -86,8 +89,10 @@ class Boomer(MLRuleLearner):
         :param max_head_refinements:                The maximum number of times the head of a rule may be refined after
                                                     a new condition has been added to its body. Must be at least 1 or
                                                     -1, if the number of refinements should not be restricted
+        :param num_threads:                         The number of threads to be used for training or -1, if the number
+                                                    of cores available on the machine should be used
         """
-        super().__init__(random_state)
+        super().__init__(random_state, feature_format, label_format)
         self.max_rules = max_rules
         self.time_limit = time_limit
         self.head_refinement = head_refinement
@@ -101,6 +106,7 @@ class Boomer(MLRuleLearner):
         self.min_coverage = min_coverage
         self.max_conditions = max_conditions
         self.max_head_refinements = max_head_refinements
+        self.num_threads = num_threads
 
     def get_name(self) -> str:
         name = 'max-rules=' + str(self.max_rules)
@@ -136,10 +142,6 @@ class Boomer(MLRuleLearner):
         return RuleListBuilder()
 
     def _create_sequential_rule_induction(self, num_labels: int) -> SequentialRuleInduction:
-        rule_induction = ExactGreedyRuleInduction()
-        l2_regularization_weight = self.__create_l2_regularization_weight()
-        loss = self.__create_loss(l2_regularization_weight)
-        head_refinement = self.__create_head_refinement(loss)
         stopping_criteria = create_stopping_criteria(int(self.max_rules), int(self.time_limit))
         label_sub_sampling = create_label_sub_sampling(self.label_sub_sampling, num_labels)
         instance_sub_sampling = create_instance_sub_sampling(self.instance_sub_sampling)
@@ -149,9 +151,18 @@ class Boomer(MLRuleLearner):
         min_coverage = create_min_coverage(self.min_coverage)
         max_conditions = create_max_conditions(self.max_conditions)
         max_head_refinements = create_max_head_refinements(self.max_head_refinements)
-        return SequentialRuleInduction(rule_induction, head_refinement, loss, stopping_criteria, label_sub_sampling,
-                                       instance_sub_sampling, feature_sub_sampling, pruning, shrinkage, min_coverage,
-                                       max_conditions, max_head_refinements)
+        loss_function = self.__create_loss_function()
+        default_rule_head_refinement = FullHeadRefinement()
+        head_refinement = self.__create_head_refinement(loss_function)
+        l2_regularization_weight = self.__create_l2_regularization_weight()
+        rule_evaluation = self.__create_rule_evaluation(loss_function, l2_regularization_weight)
+        num_threads = create_num_threads(self.num_threads)
+        statistics_provider_factory = self.__create_statistics_provider_factory(loss_function, rule_evaluation)
+        rule_induction = ExactGreedyRuleInduction()
+        return SequentialRuleInduction(statistics_provider_factory, rule_induction, default_rule_head_refinement,
+                                       head_refinement, stopping_criteria, label_sub_sampling, instance_sub_sampling,
+                                       feature_sub_sampling, pruning, shrinkage, min_coverage, max_conditions,
+                                       max_head_refinements, num_threads)
 
     def __create_l2_regularization_weight(self) -> float:
         l2_regularization_weight = float(self.l2_regularization_weight)
@@ -162,22 +173,34 @@ class Boomer(MLRuleLearner):
 
         return l2_regularization_weight
 
-    def __create_loss(self, l2_regularization_weight: float) -> DifferentiableLoss:
+    def __create_loss_function(self):
         loss = self.loss
 
         if loss == LOSS_LABEL_WISE_SQUARED_ERROR:
-            return LabelWiseSquaredErrorLoss(l2_regularization_weight)
+            return LabelWiseSquaredErrorLoss()
         elif loss == LOSS_LABEL_WISE_LOGISTIC:
-            return LabelWiseLogisticLoss(l2_regularization_weight)
+            return LabelWiseLogisticLoss()
         elif loss == LOSS_EXAMPLE_WISE_LOGISTIC:
-            return ExampleWiseLogisticLoss(l2_regularization_weight)
+            return ExampleWiseLogisticLoss()
         raise ValueError('Invalid value given for parameter \'loss\': ' + str(loss))
 
-    def __create_head_refinement(self, loss: Loss) -> HeadRefinement:
+    def __create_rule_evaluation(self, loss_function, l2_regularization_weight: float):
+        if isinstance(loss_function, LabelWiseLoss):
+            return RegularizedLabelWiseRuleEvaluation(l2_regularization_weight)
+        else:
+            return RegularizedExampleWiseRuleEvaluation(l2_regularization_weight)
+
+    def __create_statistics_provider_factory(self, loss_function, rule_evaluation) -> StatisticsProviderFactory:
+        if isinstance(loss_function, LabelWiseLoss):
+            return LabelWiseStatisticsProviderFactory(loss_function, rule_evaluation, rule_evaluation)
+        else:
+            return ExampleWiseStatisticsProviderFactory(loss_function, rule_evaluation, rule_evaluation)
+
+    def __create_head_refinement(self, loss_function) -> HeadRefinement:
         head_refinement = self.head_refinement
 
         if head_refinement is None:
-            if isinstance(loss, DecomposableDifferentiableLoss):
+            if isinstance(loss_function, LabelWiseLoss):
                 return SingleLabelHeadRefinement()
             else:
                 return FullHeadRefinement()

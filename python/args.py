@@ -12,7 +12,6 @@ import sklearn.metrics as metrics
 
 from boomer.boosting.boosting_learners import LOSS_LABEL_WISE_LOGISTIC
 from boomer.common.rule_learners import INSTANCE_SUB_SAMPLING_BAGGING, FEATURE_SUB_SAMPLING_RANDOM
-from boomer.seco.seco_learners import HEURISTIC_PRECISION, LIFT_FUNCTION_PEAK, AVERAGING_LABEL_WISE
 
 
 def log_level(s):
@@ -127,6 +126,13 @@ class ArgumentParserBuilder:
         self.add_learner_arguments(**kwargs)
         self.add_random_state_argument(**kwargs)
         parser = self.parser
+        parser.add_argument('--feature-format', type=optional_string, default='auto',
+                            help='The format to be used for the feature matrix or \'auto\'')
+        parser.add_argument('--label-format', type=optional_string, default='auto',
+                            help='The format to be used for the label matrix or \'auto\'')
+        parser.add_argument('--num-threads', type=int,
+                            default=ArgumentParserBuilder.__get_or_default('num_threads', 1, **kwargs),
+                            help='The number of threads to be used for training or -1')
         parser.add_argument('--max-rules', type=int,
                             default=ArgumentParserBuilder.__get_or_default('max_rules', 500, **kwargs),
                             help='The maximum number of rules to be induced or -1')
@@ -177,18 +183,6 @@ class ArgumentParserBuilder:
         parser.add_argument('--shrinkage', type=float,
                             default=ArgumentParserBuilder.__get_or_default('shrinkage', 0.3, **kwargs),
                             help='The shrinkage parameter to be used')
-        return self
-
-    def add_seco_learner_arguments(self, **kwargs) -> 'ArgumentParserBuilder':
-        self.add_rule_learner_arguments(AVERAGING_LABEL_WISE, print_rules=True, **kwargs)
-        parser = self.parser
-        parser.add_argument('--heuristic', type=str,
-                            default=ArgumentParserBuilder.__get_or_default('heuristic', HEURISTIC_PRECISION, **kwargs),
-                            help='The name of the heuristic to be used')
-        parser.add_argument('--lift-function', type=optional_string,
-                            default=ArgumentParserBuilder.__get_or_default('lift_function', LIFT_FUNCTION_PEAK,
-                                                                           **kwargs),
-                            help='The lift function to be used')
         return self
 
     def build(self) -> ArgumentParser:

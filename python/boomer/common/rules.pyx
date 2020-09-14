@@ -3,7 +3,8 @@
 
 Provides model classes that are used to build rule-based models.
 """
-from boomer.common._arrays cimport array_uint32, array_intp, array_float32, c_matrix_uint8, c_matrix_float64
+from boomer.common._arrays cimport array_uint32, array_float32, array_float64
+from boomer.common._arrays cimport c_matrix_uint8, c_matrix_float64
 
 from cython.operator cimport dereference, postincrement
 
@@ -27,26 +28,26 @@ cdef class Body:
 
         The feature values of the example must be given as a dense C-contiguous array.
 
-        :param example: An array of dtype float, shape `(num_features)`, representing the features of an example
+        :param example: An array of type `float32`, shape `(num_features)`, representing the features of an example
         :return:        1, if the example is covered, 0 otherwise
         """
         pass
 
-    cdef bint covers_sparse(self, float32[::1] example_data, intp[::1] example_indices, float32[::1] tmp_array1,
+    cdef bint covers_sparse(self, float32[::1] example_data, uint32[::1] example_indices, float32[::1] tmp_array1,
                             uint32[::1] tmp_array2, uint32 n):
         """
         Returns whether a certain example is covered by the body, or not.
 
         The feature values of the example must be given as a sparse array.
 
-        :param example_data:    An array of dtype float, shape `(num_non_zero_feature_values), representing the non-zero
-                                feature values of the training examples
-        :param example_indices: An array of dtype int, shape `(num_non_zero_feature_values)`, representing the indices
+        :param example_data:    An array of type `float32`, shape `(num_non_zero_feature_values), representing the
+                                non-zero feature values of the training examples
+        :param example_indices: An array of type `uint32`, shape `(num_non_zero_feature_values)`, representing the indices
                                 of the features, the values in `example_data` correspond to
-        :param tmp_array1:      An array of dtype float, shape `(num_features)` that is used to temporarily store
+        :param tmp_array1:      An array of type `float32`, shape `(num_features)` that is used to temporarily store
                                 non-zero feature values. May contain arbitrary values
-        :param tmp_array2:      An array of dtype uint, shape `(num_features)` that is used to temporarily keep track of
-                                the feature indices with non-zero feature values. Must not contain any elements with
+        :param tmp_array2:      An array of type `uint32`, shape `(num_features)` that is used to temporarily keep track
+                                of the feature indices with non-zero feature values. Must not contain any elements with
                                 value `n`
         :param n:               An arbitrary number. If this function is called multiple times for different examples,
                                 but using the same `tmp_array2`, the number must be unique for each of the function
@@ -69,7 +70,7 @@ cdef class EmptyBody(Body):
     cdef bint covers(self, float32[::1] example):
         return True
 
-    cdef bint covers_sparse(self, float32[::1] example_data, intp[::1] example_indices, float32[::1] tmp_array1,
+    cdef bint covers_sparse(self, float32[::1] example_data, uint32[::1] example_indices, float32[::1] tmp_array1,
                             uint32[::1] tmp_array2, uint32 n):
         return True
 
@@ -80,35 +81,35 @@ cdef class ConjunctiveBody(Body):
     for nominal conditions, respectively.
     """
 
-    def __cinit__(self, intp[::1] leq_feature_indices = None, float32[::1] leq_thresholds = None,
-                  intp[::1] gr_feature_indices = None, float32[::1] gr_thresholds = None,
-                  intp[::1] eq_feature_indices = None, float32[::1] eq_thresholds = None,
-                  intp[::1] neq_feature_indices = None, float32[::1] neq_thresholds = None):
+    def __cinit__(self, uint32[::1] leq_feature_indices = None, float32[::1] leq_thresholds = None,
+                  uint32[::1] gr_feature_indices = None, float32[::1] gr_thresholds = None,
+                  uint32[::1] eq_feature_indices = None, float32[::1] eq_thresholds = None,
+                  uint32[::1] neq_feature_indices = None, float32[::1] neq_thresholds = None):
         """
-        :param leq_feature_indices: An array of dtype int, shape `(num_leq_conditions)`, representing the indices of the
-                                    features, the numerical conditions that use the <= operator correspond to or None,
+        :param leq_feature_indices: An array of type `uint32`, shape `(num_leq_conditions)`, representing the indices of
+                                    the features, the numerical conditions that use the <= operator correspond to or
+                                    None, if the body does not contain such a condition
+        :param leq_thresholds:      An array of type `float32`, shape `(num_leq_condition)`, representing the thresholds
+                                    of the numerical conditions that use the <= operator or None, if the body does not
+                                    contain such a condition
+        :param gr_feature_indices:  An array of type `uint32`, shape `(num_gr_conditions)`, representing the indices of
+                                    the features, the numerical conditions that use the > operator correspond to or
+                                    None, if the body does not contain such a condition
+        :param gr_thresholds:       An array of type `float32`, shape `(num_gr_conditions)`, representing the thresholds
+                                    of the numerical conditions that use the > operator or None, if the body does not
+                                    contain such a condition
+        :param eq_feature_indices:  An array of type `uint32`, shape `(num_eq_conditions)`, representing the indices of
+                                    the features, the nominal conditions that use the = operator correspond to or None,
                                     if the body does not contain such a condition
-        :param leq_thresholds:      An array of dtype float, shape `(num_leq_condition)`, representing the thresholds of
-                                    the numerical conditions that use the <= operator or None, if the body does not
+        :param eq_thresholds:       An array of type `float32`, shape `(num_eq_conditions)`, representing the thresholds
+                                    of the nominal conditions that use the = operator or None, if the body does not
                                     contain such a condition
-        :param gr_feature_indices:  An array of dtype int, shape `(num_gr_conditions)`, representing the indices of the
-                                    features, the numerical conditions that use the > operator correspond to or None, if
-                                    the body does not contain such a condition
-        :param gr_thresholds:       An array of dtype float, shape `(num_gr_conditions)`, representing the thresholds of
-                                    the numerical conditions that use the > operator or None, if the body does not
-                                    contain such a condition
-        :param eq_feature_indices:  An array of dtype int, shape `(num_eq_conditions)`, representing the indices of the
-                                    features, the nominal conditions that use the = operator correspond to or None, if
-                                    the body does not contain such a condition
-        :param eq_thresholds:       An array of dtype float, shape `(num_eq_conditions)`, representing the thresholds of
-                                    the nominal conditions that use the = operator or None, if the body does not contain
-                                    such a condition
-        :param neq_feature_indices: An array of dtype int, shape `(num_neq_conditions)`, representing the indices of the
-                                    features, the nominal conditions that use the != operator correspond to or None, if
-                                    the body does not contain such a condition
-        :param neq_thresholds:      An array of dtype float, shape `(num_neq_conditions)`, representing the thresholds
-                                    of the nominal conditions that use the != operator or None, if the body does not
-                                    contain such a condition
+        :param neq_feature_indices: An array of type `uint32`, shape `(num_neq_conditions)`, representing the indices of
+                                    the features, the nominal conditions that use the != operator correspond to or None,
+                                    if the body does not contain such a condition
+        :param neq_thresholds:      An array of type `float32`, shape `(num_neq_conditions)`, representing the
+                                    thresholds of the nominal conditions that use the != operator or None, if the body
+                                    does not contain such a condition
         """
         self.leq_feature_indices = leq_feature_indices
         self.leq_thresholds = leq_thresholds
@@ -140,10 +141,10 @@ cdef class ConjunctiveBody(Body):
         self.neq_thresholds = state[7]
 
     cdef bint covers(self, float32[::1] example):
-        cdef intp[::1] feature_indices = self.leq_feature_indices
+        cdef uint32[::1] feature_indices = self.leq_feature_indices
         cdef float32[::1] thresholds = self.leq_thresholds
-        cdef intp num_conditions = feature_indices.shape[0]
-        cdef intp i, c
+        cdef uint32 num_conditions = feature_indices.shape[0]
+        cdef uint32 i, c
 
         for i in range(num_conditions):
             c = feature_indices[i]
@@ -183,19 +184,19 @@ cdef class ConjunctiveBody(Body):
 
         return True
 
-    cdef bint covers_sparse(self, float32[::1] example_data, intp[::1] example_indices, float32[::1] tmp_array1,
+    cdef bint covers_sparse(self, float32[::1] example_data, uint32[::1] example_indices, float32[::1] tmp_array1,
                             uint32[::1] tmp_array2, uint32 n):
-        cdef intp num_non_zero_feature_values = example_data.shape[0]
-        cdef intp i, c
+        cdef uint32 num_non_zero_feature_values = example_data.shape[0]
+        cdef uint32 i, c
 
         for i in range(num_non_zero_feature_values):
             c = example_indices[i]
             tmp_array1[c] = example_data[i]
             tmp_array2[c] = n
 
-        cdef intp[::1] feature_indices = self.leq_feature_indices
+        cdef uint32[::1] feature_indices = self.leq_feature_indices
         cdef float32[::1] thresholds = self.leq_thresholds
-        cdef intp num_conditions = feature_indices.shape[0]
+        cdef uint32 num_conditions = feature_indices.shape[0]
         cdef float32 feature_value
 
         for i in range(num_conditions):
@@ -257,9 +258,9 @@ cdef class Head:
         Applies the head's prediction to a given vector of predictions. Optionally, the prediction can be restricted to
         certain labels.
 
-        :param mask:        An array of dtype uint, shape `(num_labels)`, indicating for which labels it is allowed to
+        :param predictions: An array of type `float64`, shape `(num_labels)`, representing a vector of predictions
+        :param mask:        An array of type `uint8`, shape `(num_labels)`, indicating for which labels it is allowed to
                             predict or None, if the prediction should not be restricted
-        :param predictions: An array of dtype float, shape `(num_labels)`, representing a vector of predictions
         """
         pass
 
@@ -271,8 +272,8 @@ cdef class FullHead(Head):
 
     def __cinit__(self, float64[::1] scores = None):
         """
-        :param scores:  An array of dtype float, shape `(num_labels)`, representing the scores that are predicted by the
-                        rule for each label
+        :param scores:  An array of type `float64`, shape `(num_labels)`, representing the scores that are predicted by
+                        the rule for each label
         """
         self.scores = scores
 
@@ -285,8 +286,8 @@ cdef class FullHead(Head):
 
     cdef void predict(self, float64[::1] predictions, uint8[::1] mask = None):
         cdef float64[::1] scores = self.scores
-        cdef intp num_cols = predictions.shape[0]
-        cdef intp c
+        cdef uint32 num_cols = predictions.shape[0]
+        cdef uint32 c
 
         for c in range(num_cols):
             if mask is not None:
@@ -302,11 +303,11 @@ cdef class PartialHead(Head):
     A partial head that assigns a numerical score to one or several labels.
     """
 
-    def __cinit__(self, intp[::1] label_indices = None, float64[::1] scores = None):
+    def __cinit__(self, uint32[::1] label_indices = None, float64[::1] scores = None):
         """
-        :param label_indices:   An array of dtype int, shape `(num_predicted_labels)`, representing the indices of the
-                                labels for which the rule predicts
-        :param scores:          An array of dtype float, shape `(num_predicted_labels)`, representing the scores that
+        :param label_indices:   An array of type `uint32`, shape `(num_predicted_labels)`, representing the indices of
+                                the labels for which the rule predicts
+        :param scores:          An array of type `float64`, shape `(num_predicted_labels)`, representing the scores that
                                 are predicted by the rule
         """
         self.scores = scores
@@ -321,10 +322,10 @@ cdef class PartialHead(Head):
         self.scores = scores
 
     cdef void predict(self, float64[::1] predictions, uint8[::1] mask = None):
-        cdef intp[::1] label_indices = self.label_indices
+        cdef uint32[::1] label_indices = self.label_indices
         cdef float64[::1] scores = self.scores
-        cdef intp num_labels = label_indices.shape[0]
-        cdef intp c, l
+        cdef uint32 num_labels = label_indices.shape[0]
+        cdef uint32 c, l
 
         for c in range(num_labels):
             l = label_indices[c]
@@ -365,63 +366,63 @@ cdef class Rule:
 
         The feature matrix must be given as a dense C-contiguous array.
 
-        :param x:               An array of dtype float, shape `(num_examples, num_features)`, representing the features
-                                of the examples to predict for
-        :param predictions:     An array of dtype float, shape `(num_examples, num_labels)`, representing the
+        :param x:               An array of type `float32`, shape `(num_examples, num_features)`, representing the
+                                features of the examples to predict for
+        :param predictions:     An array of type `float64`, shape `(num_examples, num_labels)`, representing the
                                 predictions for individual examples and labels
-        :param mask:            An array of dtype uint, shape `(num_examples, num_labels)`, indicating for which
+        :param mask:            An array of type `uint8`, shape `(num_examples, num_labels)`, indicating for which
                                 examples and labels it is allowed to predict or None, if the prediction should not be
                                 restricted
         """
         cdef Body body = self.body
         cdef Head head = self.head
-        cdef intp num_examples = x.shape[0]
+        cdef uint32 num_examples = x.shape[0]
         cdef uint8[::1] mask_row
-        cdef intp r
+        cdef uint32 r
 
         for r in range(num_examples):
             if body.covers(x[r, :]):
                 mask_row = None if mask is None else mask[r, :]
                 head.predict(predictions[r, :], mask_row)
 
-    cdef predict_csr(self, float32[::1] x_data, intp[::1] x_row_indices, intp[::1] x_col_indices, intp num_features,
-                     float32[::1] tmp_array1, uint32[::1] tmp_array2, uint32 n, float64[:, ::1] predictions,
-                     uint8[:, ::1] mask = None):
+    cdef predict_csr(self, float32[::1] x_data, uint32[::1] x_row_indices, uint32[::1] x_col_indices,
+                     uint32 num_features, float32[::1] tmp_array1, uint32[::1] tmp_array2, uint32 n,
+                     float64[:, ::1] predictions, uint8[:, ::1] mask = None):
         """
         Applies the rule's predictions to a matrix of predictions for all examples it covers. Optionally, the prediction
         can be restricted to certain examples and labels.
 
         The feature matrix must be given in compressed sparse row (CSR) format.
 
-        :param x_data:          An array of dtype float, shape `(num_non_zero_feature_values)`, representing the
+        :param x_data:          An array of type `float32`, shape `(num_non_zero_feature_values)`, representing the
                                 non-zero feature values of the examples to predict for
-        :param x_row_indices:   An array of dtype int, shape `(num_examples + 1)`, representing the indices of the first
-                                element in `x_data` and `x_col_indices` that corresponds to a certain examples. The
-                                index at the last position is equal to `num_non_zero_feature_values`
-        :param x_col_indices:   An array of dtype int, shape `(num_non_zero_feature_values)`, representing the
+        :param x_row_indices:   An array of type `uint32`, shape `(num_examples + 1)`, representing the indices of the
+                                first element in `x_data` and `x_col_indices` that corresponds to a certain examples.
+                                The index at the last position is equal to `num_non_zero_feature_values`
+        :param x_col_indices:   An array of type `uint32`, shape `(num_non_zero_feature_values)`, representing the
                                 column-indices of the examples, the values in `x_data` correspond to
         :param num_features:    The total number of features
-        :param tmp_array1:      An array of dtype float, shape `(num_features)` that is used to temporarily store
+        :param tmp_array1:      An array of type `float32`, shape `(num_features)` that is used to temporarily store
                                 non-zero feature values. May contain arbitrary values
-        :param tmp_array2:      An array of dtype uint, shape `(num_features)` that is used to temporarily keep track of
-                                the feature indices with non-zero feature values. Must not contain any elements with
+        :param tmp_array2:      An array of type `uint32`, shape `(num_features)` that is used to temporarily keep track
+                                of the feature indices with non-zero feature values. Must not contain any elements with
                                 value `n`
         :param n:               An arbitrary number. If this function is called multiple times on different rules, but
                                 using the same `tmp_array2`, the number must be unique for each of the function
                                 invocations and the numbers `n...n + num_examples` must not be used for any of the
                                 remaining invocations
-        :param predictions:     An array of dtype float, shape `(num_examples, num_labels)`, representing the
+        :param predictions:     An array of type `float64`, shape `(num_examples, num_labels)`, representing the
                                 predictions of individual examples and labels
-        :param mask:            An array of dtype uint, shape `(num_examples, num_labels)`, indicating for which
+        :param mask:            An array of type `uint8`, shape `(num_examples, num_labels)`, indicating for which
                                 examples and labels it is allowed to predict or None, if the prediction should not be
                                 restricted
         """
         cdef Body body = self.body
         cdef Head head = self.head
-        cdef intp num_examples = x_row_indices.shape[0] - 1
+        cdef uint32 num_examples = x_row_indices.shape[0] - 1
         cdef uint32 current_n = n
         cdef uint8[::1] mask_row
-        cdef intp r, start, end
+        cdef uint32 r, start, end
 
         for r in range(num_examples):
             start = x_row_indices[r]
@@ -453,37 +454,37 @@ cdef class RuleModel:
         """
         pass
 
-    cdef float64[:, ::1] predict(self, float32[:, ::1] x, intp num_labels):
+    cdef float64[:, ::1] predict(self, float32[:, ::1] x, uint32 num_labels):
         """
         Aggregates and returns the predictions provided by several rules.
 
         The feature matrix must be given as a dense C-contiguous array.
         
-        :param x:           An array of dtype float, shape `(num_examples, num_features)`, representing the features of
-                            the examples to predict for
+        :param x:           An array of type `float32`, shape `(num_examples, num_features)`, representing the features
+                            of the examples to predict for
         :param num_labels:  The total number of labels
-        :return:            An array of dtype float, shape `(num_examples, num_labels)`, representing the predictions
+        :return:            An array of type `float64`, shape `(num_examples, num_labels)`, representing the predictions
                             for individual examples and labels
         """
         pass
 
-    cdef float64[:, ::1] predict_csr(self, float32[::1] x_data, intp[::1] x_row_indices, intp[::1] x_col_indices,
-                                     intp num_features, intp num_labels):
+    cdef float64[:, ::1] predict_csr(self, float32[::1] x_data, uint32[::1] x_row_indices, uint32[::1] x_col_indices,
+                                     uint32 num_features, uint32 num_labels):
         """
         Aggregates and returns the predictions provided by several rules.
 
         The feature matrix must be given in compressed sparse row (CSR) format.
         
-        :param x_data:          An array of dtype float, shape `(num_non_zero_feature_values)`, representing the
+        :param x_data:          An array of type `float32`, shape `(num_non_zero_feature_values)`, representing the
                                 non-zero feature values of the training examples 
-        :param x_row_indices:   An array of dtype int, shape `(num_examples + 1)`, representing the indices of the first
-                                element in `x_data` and `x_col_indices` that corresponds to a certain examples. The
-                                index at the last position is equal to `num_non_zero_feature_values`
-        :param x_col_indices:   An array of dtype int, shape `(num_non_zero_feature_values)`, representing the
+        :param x_row_indices:   An array of type `uint32`, shape `(num_examples + 1)`, representing the indices of the
+                                first element in `x_data` and `x_col_indices` that corresponds to a certain examples.
+                                The index at the last position is equal to `num_non_zero_feature_values`
+        :param x_col_indices:   An array of type `uint32`, shape `(num_non_zero_feature_values)`, representing the
                                 column-indices of the examples, the values in `x_data` correspond to
         :param num_features:    The total number of features
         :param num_labels:      The total number of labels
-        :return:                An array of dtype float, shape `(num_examples, num_labels)`, representing the
+        :return:                An array of type `float64`, shape `(num_examples, num_labels)`, representing the
                                 predictions for individual examples and labels
         """
         pass
@@ -513,8 +514,8 @@ cdef class RuleList(RuleModel):
         cdef list rules = self.rules
         rules.append(rule)
 
-    cdef float64[:, ::1] predict(self, float32[:, ::1] x, intp num_labels):
-        cdef intp num_examples = x.shape[0]
+    cdef float64[:, ::1] predict(self, float32[:, ::1] x, uint32 num_labels):
+        cdef uint32 num_examples = x.shape[0]
         cdef float64[:, ::1] predictions = c_matrix_float64(num_examples, num_labels)
         predictions[:, :] = 0
         cdef bint use_mask = self.use_mask
@@ -534,9 +535,9 @@ cdef class RuleList(RuleModel):
 
         return predictions
 
-    cdef float64[:, ::1] predict_csr(self, float32[::1] x_data, intp[::1] x_row_indices, intp[::1] x_col_indices,
-                                     intp num_features, intp num_labels):
-        cdef intp num_examples = x_row_indices.shape[0] - 1
+    cdef float64[:, ::1] predict_csr(self, float32[::1] x_data, uint32[::1] x_row_indices, uint32[::1] x_col_indices,
+                                     uint32 num_features, uint32 num_labels):
+        cdef uint32 num_examples = x_row_indices.shape[0] - 1
         cdef float64[:, ::1] predictions = c_matrix_float64(num_examples, num_labels)
         predictions[:, :] = 0
         cdef bint use_mask = self.use_mask
@@ -568,27 +569,24 @@ cdef class ModelBuilder:
     A base class for all builders that allow to incrementally build a `RuleModel`.
     """
 
-    cdef void set_default_rule(self, float64[::1] scores):
+    cdef void set_default_rule(self, Prediction* default_prediction):
         """
         Initializes the model and sets its default rule.
 
-        :param scores: An array of dtype float, shape `(num_labels)`, representing the scores that are predicted by the
-                       default rule for each label
+        :param scores: A pointer to an object of type `Prediction` that represents the prediction of the default rule or
+                       NULL, if no default rule should be used
         """
         pass
 
-    cdef void add_rule(self, intp[::1] label_indices, float64[::1] scores, double_linked_list[Condition] conditions,
-                       intp[::1] num_conditions_per_comparator):
+    cdef void add_rule(self, Prediction* head, double_linked_list[Condition] conditions,
+                       uint32[::1] num_conditions_per_comparator):
         """
         Adds a new rule to the model.
 
-        :param label_indices:                   An array of dtype int, shape `(num_predicted_labels)`, representing the
-                                                indices of the labels for which the rule predicts or None, if the rule
-                                                predicts for all labels
-        :param scores:                          An array of dtype float, shape `(num_predicted_labels)`, representing
-                                                the scores that are predicted by the rule
+        :param head:                            A pointer to an object of type `Prediction`, representing the head of
+                                                the rule
         :param conditions:                      A list that contains the rule's conditions
-        :param num_conditions_per_comparator:   An array of dtype int, shape `(4)`, representing the number of
+        :param num_conditions_per_comparator:   An array of type `uint32`, shape `(4)`, representing the number of
                                                 conditions that use a specific operator
         """
         pass
@@ -613,40 +611,54 @@ cdef class RuleListBuilder(ModelBuilder):
         self.rule_list = None
         self.default_rule = None
 
-    cdef void set_default_rule(self, float64[::1] scores):
+    cdef void set_default_rule(self, Prediction* default_prediction):
         cdef bint use_mask = self.use_mask
         cdef bint default_rule_at_end = self.default_rule_at_end
         cdef RuleList rule_list = RuleList.__new__(RuleList, use_mask)
-        cdef FullHead head = FullHead.__new__(FullHead, scores)
-        cdef EmptyBody body = EmptyBody.__new__(EmptyBody)
-        cdef Rule default_rule = Rule.__new__(Rule, body, head)
-
-        if default_rule_at_end:
-            self.default_rule = default_rule
-        else:
-            rule_list.add_rule(default_rule)
-
         self.rule_list = rule_list
+        cdef uint32 num_predictions, c
+        cdef float64* predicted_scores
+        cdef float64[::1] head_scores
+        cdef FullHead head
+        cdef EmptyBody body
+        cdef Rule default_rule
 
-    cdef void add_rule(self, intp[::1] label_indices, float64[::1] scores, double_linked_list[Condition] conditions,
-                       intp[::1] num_conditions_per_comparator):
-        cdef intp num_conditions = num_conditions_per_comparator[<intp>Comparator.LEQ]
-        cdef intp[::1] leq_feature_indices = array_intp(num_conditions) if num_conditions > 0 else None
+        if default_prediction != NULL:
+            num_predictions = default_prediction.numPredictions_
+            predicted_scores = default_prediction.predictedScores_
+            head_scores = array_float64(num_predictions)
+
+            for c in range(num_predictions):
+                head_scores[c] = predicted_scores[c]
+
+            head = FullHead.__new__(FullHead, head_scores)
+            body = EmptyBody.__new__(EmptyBody)
+            default_rule = Rule.__new__(Rule, body, head)
+
+            if default_rule_at_end:
+                self.default_rule = default_rule
+            else:
+                rule_list.add_rule(default_rule)
+
+    cdef void add_rule(self, Prediction* head, double_linked_list[Condition] conditions,
+                       uint32[::1] num_conditions_per_comparator):
+        cdef uint32 num_conditions = num_conditions_per_comparator[<uint32>Comparator.LEQ]
+        cdef uint32[::1] leq_feature_indices = array_uint32(num_conditions) if num_conditions > 0 else None
         cdef float32[::1] leq_thresholds = array_float32(num_conditions) if num_conditions > 0 else None
-        num_conditions = num_conditions_per_comparator[<intp>Comparator.GR]
-        cdef intp[::1] gr_feature_indices = array_intp(num_conditions) if num_conditions > 0 else None
+        num_conditions = num_conditions_per_comparator[<uint32>Comparator.GR]
+        cdef uint32[::1] gr_feature_indices = array_uint32(num_conditions) if num_conditions > 0 else None
         cdef float32[::1] gr_thresholds = array_float32(num_conditions) if num_conditions > 0 else None
-        num_conditions = num_conditions_per_comparator[<intp>Comparator.EQ]
-        cdef intp[::1] eq_feature_indices = array_intp(num_conditions) if num_conditions > 0 else None
+        num_conditions = num_conditions_per_comparator[<uint32>Comparator.EQ]
+        cdef uint32[::1] eq_feature_indices = array_uint32(num_conditions) if num_conditions > 0 else None
         cdef float32[::1] eq_thresholds = array_float32(num_conditions) if num_conditions > 0 else None
-        num_conditions = num_conditions_per_comparator[<intp>Comparator.NEQ]
-        cdef intp[::1] neq_feature_indices = array_intp(num_conditions) if num_conditions > 0 else None
+        num_conditions = num_conditions_per_comparator[<uint32>Comparator.NEQ]
+        cdef uint32[::1] neq_feature_indices = array_uint32(num_conditions) if num_conditions > 0 else None
         cdef float32[::1] neq_thresholds = array_float32(num_conditions) if num_conditions > 0 else None
         cdef double_linked_list[Condition].iterator iterator = conditions.begin()
-        cdef intp leq_i = 0
-        cdef intp gr_i = 0
-        cdef intp eq_i = 0
-        cdef intp neq_i = 0
+        cdef uint32 leq_i = 0
+        cdef uint32 gr_i = 0
+        cdef uint32 eq_i = 0
+        cdef uint32 neq_i = 0
         cdef Condition condition
         cdef Comparator comparator
 
@@ -673,17 +685,32 @@ cdef class RuleListBuilder(ModelBuilder):
 
             postincrement(iterator)
 
-        cdef ConjunctiveBody body = ConjunctiveBody.__new__(ConjunctiveBody, leq_feature_indices, leq_thresholds,
-                                                            gr_feature_indices, gr_thresholds, eq_feature_indices,
-                                                            eq_thresholds, neq_feature_indices, neq_thresholds)
-        cdef Head head
+        cdef ConjunctiveBody rule_body = ConjunctiveBody.__new__(ConjunctiveBody, leq_feature_indices, leq_thresholds,
+                                                                 gr_feature_indices, gr_thresholds, eq_feature_indices,
+                                                                 eq_thresholds, neq_feature_indices, neq_thresholds)
 
-        if label_indices is None:
-            head = FullHead.__new__(FullHead, scores)
+        cdef uint32 num_predictions = head.numPredictions_
+        cdef float64* predicted_scores = head.predictedScores_
+        cdef uint32* label_indices = head.labelIndices_
+        cdef float64[::1] head_scores = array_float64(num_predictions)
+        cdef uint32[::1] head_label_indices
+        cdef Head rule_head
+        cdef uint32 c
+
+        for c in range(num_predictions):
+            head_scores[c] = predicted_scores[c]
+
+        if label_indices == NULL:
+            rule_head = FullHead.__new__(FullHead, head_scores)
         else:
-            head = PartialHead.__new__(PartialHead, label_indices, scores)
+            head_label_indices = array_uint32(num_predictions)
 
-        cdef rule = Rule.__new__(Rule, body, head)
+            for c in range(num_predictions):
+                head_label_indices[c] = label_indices[c]
+
+            rule_head = PartialHead.__new__(PartialHead, head_label_indices, head_scores)
+
+        cdef rule = Rule.__new__(Rule, rule_body, rule_head)
         cdef RuleList rule_list = self.rule_list
         rule_list.add_rule(rule)
 

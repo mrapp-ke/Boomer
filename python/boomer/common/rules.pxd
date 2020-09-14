@@ -1,5 +1,5 @@
-# distutils: language=c++
-from boomer.common._arrays cimport uint8, uint32, intp, float32, float64
+from boomer.common._arrays cimport uint8, uint32, float32, float64
+from boomer.common._predictions cimport Prediction
 
 from libcpp.list cimport list as double_linked_list
 
@@ -19,7 +19,7 @@ A struct that represents a condition of a rule. It consists of the index of the 
 the type of the operator that is used by the condition, as well as a threshold.
 """
 cdef struct Condition:
-    intp feature_index
+    uint32 feature_index
     Comparator comparator
     float32 threshold
 
@@ -30,7 +30,7 @@ cdef class Body:
 
     cdef bint covers(self, float32[::1] example)
 
-    cdef bint covers_sparse(self, float32[::1] example_data, intp[::1] example_indices, float32[::1] tmp_array1,
+    cdef bint covers_sparse(self, float32[::1] example_data, uint32[::1] example_indices, float32[::1] tmp_array1,
                             uint32[::1] tmp_array2, uint32 n)
 
 
@@ -40,7 +40,7 @@ cdef class EmptyBody(Body):
 
     cdef bint covers(self, float32[::1] example)
 
-    cdef bint covers_sparse(self, float32[::1] example_data, intp[::1] example_indices, float32[::1] tmp_array1,
+    cdef bint covers_sparse(self, float32[::1] example_data, uint32[::1] example_indices, float32[::1] tmp_array1,
                             uint32[::1] tmp_array2, uint32 n)
 
 
@@ -48,19 +48,19 @@ cdef class ConjunctiveBody(Body):
 
     # Attributes:
 
-    cdef readonly intp[::1] leq_feature_indices
+    cdef readonly uint32[::1] leq_feature_indices
 
     cdef readonly float32[::1] leq_thresholds
 
-    cdef readonly intp[::1] gr_feature_indices
+    cdef readonly uint32[::1] gr_feature_indices
 
     cdef readonly float32[::1] gr_thresholds
 
-    cdef readonly intp[::1] eq_feature_indices
+    cdef readonly uint32[::1] eq_feature_indices
 
     cdef readonly float32[::1] eq_thresholds
 
-    cdef readonly intp[::1] neq_feature_indices
+    cdef readonly uint32[::1] neq_feature_indices
 
     cdef readonly float32[::1] neq_thresholds
 
@@ -68,7 +68,7 @@ cdef class ConjunctiveBody(Body):
 
     cdef bint covers(self, float32[::1] example)
 
-    cdef bint covers_sparse(self, float32[::1] example_data, intp[::1] example_indices, float32[::1] tmp_array1,
+    cdef bint covers_sparse(self, float32[::1] example_data, uint32[::1] example_indices, float32[::1] tmp_array1,
                             uint32[::1] tmp_array2, uint32 n)
 
 
@@ -94,7 +94,7 @@ cdef class PartialHead(Head):
 
     # Attributes:
 
-    cdef readonly intp[::1] label_indices
+    cdef readonly uint32[::1] label_indices
 
     cdef readonly float64[::1] scores
 
@@ -115,9 +115,9 @@ cdef class Rule:
 
     cdef predict(self, float32[:, ::1] x, float64[:, ::1] predictions, uint8[:, ::1] mask=*)
 
-    cdef predict_csr(self, float32[::1] x_data, intp[::1] x_row_indices, intp[::1] x_col_indices, intp num_features,
-                     float32[::1] tmp_array1, uint32[::1] tmp_array2, uint32 n, float64[:, ::1] predictions,
-                     uint8[:, ::1] mask=*)
+    cdef predict_csr(self, float32[::1] x_data, uint32[::1] x_row_indices, uint32[::1] x_col_indices,
+                     uint32 num_features, float32[::1] tmp_array1, uint32[::1] tmp_array2, uint32 n,
+                     float64[:, ::1] predictions, uint8[:, ::1] mask=*)
 
 
 cdef class RuleModel:
@@ -126,10 +126,10 @@ cdef class RuleModel:
 
     cdef void add_rule(self, Rule rule)
 
-    cdef float64[:, ::1] predict(self, float32[:, ::1] x, intp num_labels)
+    cdef float64[:, ::1] predict(self, float32[:, ::1] x, uint32 num_labels)
 
-    cdef float64[:, ::1] predict_csr(self, float32[::1] x_data, intp[::1] x_row_indices, intp[::1] x_col_indices,
-                                     intp num_features, intp num_labels)
+    cdef float64[:, ::1] predict_csr(self, float32[::1] x_data, uint32[::1] x_row_indices, uint32[::1] x_col_indices,
+                                     uint32 num_features, uint32 num_labels)
 
 
 cdef class RuleList(RuleModel):
@@ -144,20 +144,20 @@ cdef class RuleList(RuleModel):
 
     cdef void add_rule(self, Rule rule)
 
-    cdef float64[:, ::1] predict(self, float32[:, ::1] x, intp num_labels)
+    cdef float64[:, ::1] predict(self, float32[:, ::1] x, uint32 num_labels)
 
-    cdef float64[:, ::1] predict_csr(self, float32[::1] x_data, intp[::1] x_row_indices, intp[::1] x_col_indices,
-                                     intp num_features, intp num_labels)
+    cdef float64[:, ::1] predict_csr(self, float32[::1] x_data, uint32[::1] x_row_indices, uint32[::1] x_col_indices,
+                                     uint32 num_features, uint32 num_labels)
 
 
 cdef class ModelBuilder:
 
     # Functions:
 
-    cdef void set_default_rule(self, float64[::1] scores)
+    cdef void set_default_rule(self, Prediction* default_prediction)
 
-    cdef void add_rule(self, intp[::1] label_indices, float64[::1] scores, double_linked_list[Condition] conditions,
-                       intp[::1] num_conditions_per_comparator)
+    cdef void add_rule(self, Prediction* head, double_linked_list[Condition] conditions,
+                       uint32[::1] num_conditions_per_comparator)
 
     cdef RuleModel build_model(self)
 
@@ -176,9 +176,9 @@ cdef class RuleListBuilder(ModelBuilder):
 
     # Functions:
 
-    cdef void set_default_rule(self, float64[::1] scores)
+    cdef void set_default_rule(self, Prediction* default_prediction)
 
-    cdef void add_rule(self, intp[::1] label_indices, float64[::1] scores, double_linked_list[Condition] conditions,
-                       intp[::1] num_conditions_per_comparator)
+    cdef void add_rule(self, Prediction* head, double_linked_list[Condition] conditions,
+                       uint32[::1] num_conditions_per_comparator)
 
     cdef RuleModel build_model(self)

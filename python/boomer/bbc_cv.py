@@ -14,7 +14,7 @@ import numpy as np
 from sklearn.base import clone
 from sklearn.utils import check_random_state
 
-from boomer.common.arrays import DTYPE_INTP, DTYPE_UINT8
+from boomer.common.arrays import DTYPE_UINT8, DTYPE_UINT32
 from boomer.common.learners import Learner
 from boomer.data import MetaData
 from boomer.evaluation import ClassificationEvaluation, EvaluationLogOutput, EvaluationCsvOutput
@@ -91,7 +91,7 @@ class BbcCvAdapter(CrossValidation):
 
         :param model:               The model that should be used to make predictions
         :param test_indices:        The indices of the test examples
-        :param test_x:              An array of dtype `float`, shape `(num_examples, num_features)`, representing the
+        :param test_x:              An array of type `float`, shape `(num_examples, num_features)`, representing the
                                     features of the test examples
         :param num_total_examples:  The total number of examples
         :param num_labels:          The number of labels
@@ -301,7 +301,7 @@ class DefaultBootstrapping(Bootstrapping):
         num_examples = prediction_matrix.shape[0]
         num_configurations = prediction_matrix.shape[1]
         log.info('%s configurations have been evaluated...', num_configurations)
-        bootstrapped_indices = np.empty(num_examples, dtype=DTYPE_INTP)
+        bootstrapped_indices = np.empty(num_examples, dtype=DTYPE_UINT32)
         mask_test = np.empty(num_examples, dtype=np.bool)
         rng = check_random_state(self.random_state)
         rng_randint = rng.randint

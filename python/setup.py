@@ -1,3 +1,5 @@
+import sys
+
 import numpy
 from Cython.Build import cythonize
 from setuptools import setup, Extension
@@ -8,8 +10,29 @@ ANNOTATE = True
 # True, if all Cython compiler optimizations should be disabled
 DEBUG = False
 
+# The compiler/linker argument to enable OpenMP support
+COMPILE_FLAG_OPEN_MP = '/openmp' if sys.platform.startswith('win') else '-fopenmp'
+
+sources = [
+    '**/*.pyx',
+    'boomer/common/cpp/sparse.cpp',
+    'boomer/common/cpp/predictions.cpp',
+    'boomer/common/cpp/input_data.cpp',
+    'boomer/common/cpp/statistics.cpp',
+    'boomer/boosting/cpp/blas.cpp',
+    'boomer/boosting/cpp/lapack.cpp',
+    'boomer/boosting/cpp/label_wise_losses.cpp',
+    'boomer/boosting/cpp/example_wise_losses.cpp',
+    'boomer/boosting/cpp/statistics.cpp',
+    'boomer/boosting/cpp/label_wise_statistics.cpp',
+    'boomer/boosting/cpp/example_wise_statistics.cpp',
+    'boomer/boosting/cpp/label_wise_rule_evaluation.cpp',
+    'boomer/boosting/cpp/example_wise_rule_evaluation.cpp'
+]
+
 extensions = [
-    Extension(name='*', sources=['**/*.pyx'], define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")])
+    Extension(name='*', sources=sources, language='c++', extra_compile_args=[COMPILE_FLAG_OPEN_MP],
+              extra_link_args=[COMPILE_FLAG_OPEN_MP], define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")])
 ]
 
 compiler_directives = {
@@ -36,7 +59,7 @@ setup(name='boomer',
           'liac-arff>=2.4.0',
           'requests>=2.23.0'
       ],
-      python_requires='>=3.7',
+      python_requires='>=3.8',
       ext_modules=cythonize(extensions, language_level='3', annotate=ANNOTATE, compiler_directives=compiler_directives),
       include_dirs=[numpy.get_include()],
       zip_safe=False)

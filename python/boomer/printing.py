@@ -238,9 +238,9 @@ def __format_conditions(meta_data: MetaData, feature_indices: np.ndarray, thresh
     Formats conditions that are contained by the body of a rule and the textual representation to an existing text.
 
     :param meta_data:           The meta data of the training data set
-    :param feature_indices:     An array of dtype int, shape `(num_conditions)`, representing the feature indices that
+    :param feature_indices:     An array of type `int`, shape `(num_conditions)`, representing the feature indices that
                                 correspond to the conditions
-    :param thresholds:          An array of dtype float, shape `(num_conditions)`, representing the thresholds used by
+    :param thresholds:          An array of type `float`, shape `(num_conditions)`, representing the thresholds used by
                                 the conditions
     :param operator:            A textual representation of the operator that is used by the conditions
     :param text:                The text, the textual representation of the conditions should be appended to

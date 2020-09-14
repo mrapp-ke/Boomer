@@ -1,10 +1,11 @@
 from boomer.common._arrays cimport uint8, uint32, intp
 from boomer.common.rules cimport RuleModel, ModelBuilder
-from boomer.common.rule_induction cimport FeatureMatrix, RuleInduction
+from boomer.common.rule_induction cimport RuleInduction
+from boomer.common.statistics cimport StatisticsProviderFactory
 from boomer.common.head_refinement cimport HeadRefinement
-from boomer.common.losses cimport Loss
+from boomer.common.input_data cimport LabelMatrix, FeatureMatrix
 from boomer.common.pruning cimport Pruning
-from boomer.common.shrinkage cimport Shrinkage
+from boomer.common.post_processing cimport PostProcessor
 from boomer.common.sub_sampling cimport InstanceSubSampling, FeatureSubSampling, LabelSubSampling
 
 
@@ -12,11 +13,13 @@ cdef class SequentialRuleInduction:
 
     # Attributes:
 
+    cdef StatisticsProviderFactory statistics_provider_factory
+
     cdef RuleInduction rule_induction
 
-    cdef HeadRefinement head_refinement
+    cdef HeadRefinement default_rule_head_refinement
 
-    cdef Loss loss
+    cdef HeadRefinement head_refinement
 
     cdef list stopping_criteria
 
@@ -28,15 +31,17 @@ cdef class SequentialRuleInduction:
 
     cdef Pruning pruning
 
-    cdef Shrinkage shrinkage
+    cdef PostProcessor post_processor
 
-    cdef intp min_coverage
+    cdef uint32 min_coverage
 
     cdef intp max_conditions
 
     cdef intp max_head_refinements
 
+    cdef int num_threads
+
     # Functions:
 
-    cpdef RuleModel induce_rules(self, intp[::1] nominal_attribute_indices, FeatureMatrix feature_matrix,
-                                 uint8[::1, :] y, uint32 random_state, ModelBuilder model_builder)
+    cpdef RuleModel induce_rules(self, uint8[::1] nominal_attribute_mask, FeatureMatrix feature_matrix,
+                                 LabelMatrix label_matrix, uint32 random_state, ModelBuilder model_builder)

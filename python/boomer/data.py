@@ -10,6 +10,7 @@ import os.path as path
 import xml.etree.ElementTree as XmlTree
 from enum import Enum, auto
 from typing import List
+from xml.dom import minidom
 
 import arff
 import numpy as np
@@ -17,7 +18,6 @@ from scipy.sparse import coo_matrix, lil_matrix, csc_matrix, csr_matrix, isspars
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
 from skmultilearn.dataset import save_to_arff
-from xml.dom import minidom
 
 from boomer.common.arrays import DTYPE_UINT8, DTYPE_FLOAT32
 from boomer.io import write_xml_file
@@ -83,10 +83,10 @@ def load_data_set_and_meta_data(data_dir: str, arff_file_name: str, xml_file_nam
     :param data_dir:        The path of the directory that contains the files
     :param arff_file_name:  The name of the ARFF file (including the suffix)
     :param xml_file_name:   The name of the XML file (including the suffix)
-    :param feature_dtype:   The requested dtype of the feature matrix
-    :param label_dtype:     The requested dtype of the label matrix
-    :return:                A `scipy.sparse.lil_matrix` of dtype `feature_dtype`, shape `(num_examples, num_features)`,
-                            representing the feature values of the examples, a `scipy.sparse.lil_matrix` of dtype
+    :param feature_dtype:   The requested type of the feature matrix
+    :param label_dtype:     The requested type of the label matrix
+    :return:                A `scipy.sparse.lil_matrix` of type `feature_dtype`, shape `(num_examples, num_features)`,
+                            representing the feature values of the examples, a `scipy.sparse.lil_matrix` of type
                             `label_dtype`, shape `(num_examples, num_labels)`, representing the corresponding label
                             vectors, as well as the data set's meta data
     """
@@ -111,9 +111,9 @@ def load_data_set(data_dir: str, arff_file_name: str, meta_data: MetaData, featu
     :param meta_data:       The meta data
     :param feature_dtype:   The requested dtype of the feature matrix
     :param label_dtype:     The requested dtype of the label matrix
-    :return:                A `scipy.sparse.lil_matrix` of dtype `feature_dtype`, shape `(num_examples, num_features)`,
+    :return:                A `scipy.sparse.lil_matrix` of type `feature_dtype`, shape `(num_examples, num_features)`,
                             representing the feature values of the examples, as well as a `scipy.sparse.lil_matrix` of
-                            dtype `label_dtype`, shape `(num_examples, num_labels)`, representing the corresponding
+                            type `label_dtype`, shape `(num_examples, num_labels)`, representing the corresponding
                             label vectors
     """
     arff_file = path.join(data_dir, arff_file_name)
@@ -132,9 +132,9 @@ def save_data_set_and_meta_data(output_dir: str, arff_file_name: str, xml_file_n
     :param output_dir:      The path of the directory where the ARFF file and the XML file should be saved
     :param arff_file_name:  The name of the ARFF file (including the suffix)
     :param xml_file_name:   The name of the XML file (including the suffix)
-    :param x:               An array of dtype float, shape `(num_examples, num_features)`, representing the features of
+    :param x:               An array of type `float`, shape `(num_examples, num_features)`, representing the features of
                             the examples that are contained in the data set
-    :param y:               An array of dtype float, shape `(num_examples, num_labels)`, representing the label vectors
+    :param y:               An array of type `float`, shape `(num_examples, num_labels)`, representing the label vectors
                             of the examples that are contained in the data set
     :return:                The meta data of the data set that has been saved
     """
@@ -149,9 +149,9 @@ def save_data_set(output_dir: str, arff_file_name: str, x: np.ndarray, y: np.nda
 
     :param output_dir:      The path of the directory where the ARFF file should be saved
     :param arff_file_name:  The name of the ARFF file (including the suffix)
-    :param x:               An array of dtype float, shape `(num_examples, num_features)`, representing the features of
+    :param x:               An array of type `float`, shape `(num_examples, num_features)`, representing the features of
                             the examples that are contained in the data set
-    :param y:               An array of dtype float, shape `(num_examples, num_labels)`, representing the label vectors
+    :param y:               An array of type `float`, shape `(num_examples, num_labels)`, representing the label vectors
                             of the examples that are contained in the data set
     :return:                The meta data of the data set that has been saved
     """
@@ -232,12 +232,12 @@ def __create_feature_and_label_matrix(matrix: csc_matrix, meta_data: MetaData, l
     """
     Creates and returns the feature and label matrix from a single matrix, representing the values in an ARFF file.
 
-    :param matrix:      A `scipy.sparse.csc_matrix` of dtype `feature_dtype`, shape
+    :param matrix:      A `scipy.sparse.csc_matrix` of type `feature_dtype`, shape
                         `(num_examples, num_features + num_labels)`, representing the values in an ARFF file
     :param meta_data:   The meta data of the data set
-    :param label_dtype: The requested dtype of the label matrix
-    :return:            A `scipy.sparse.lil_matrix` of dtype `feature_dtype`, shape `(num_examples, num_features)`,
-                        representing the feature matrix, as well as `scipy.sparse.lil_matrix` of dtype `label_dtype`,
+    :param label_dtype: The requested type of the label matrix
+    :return:            A `scipy.sparse.lil_matrix` of type `feature_dtype`, shape `(num_examples, num_features)`,
+                        representing the feature matrix, as well as `scipy.sparse.lil_matrix` of type `label_dtype`,
                         shape `(num_examples, num_labels)`, representing the label matrix
     """
     num_labels = len(meta_data.label_names)
@@ -259,9 +259,9 @@ def __load_arff(arff_file: str, feature_dtype) -> (csc_matrix, list):
     Loads the content of an ARFF file.
 
     :param arff_file:       The path of the ARFF file (including the suffix)
-    :param feature_dtype:   The dtype, the data should be converted to
-    :return:                A `np.sparse.csc_matrix` of dtype `feature_dtype`, containing the values in the ARFF file,
-                            as well as a list that contains a description of each attribute in the ARFF file
+    :param feature_dtype:   The type, the data should be converted to
+    :return:                A `np.sparse.csc_matrix` of type `feature_dtype`, containing the values in the ARFF file, as
+                            well as a list that contains a description of each attribute in the ARFF file
     """
     try:
         arff_dict = __load_arff_as_dict(arff_file, sparse=True)

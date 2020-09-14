@@ -1,33 +1,39 @@
-from boomer.common._arrays cimport intp, float64
-from boomer.common.losses cimport Loss, Prediction
-
-
-cdef class HeadCandidate:
-
-    # Attributes:
-
-    cdef readonly intp[::1] label_indices
-
-    cdef readonly float64[::1] predicted_scores
-
-    cdef readonly float64 quality_score
+from boomer.common._arrays cimport uint32
+from boomer.common._predictions cimport PredictionCandidate
+from boomer.common.statistics cimport AbstractRefinementSearch
 
 
 cdef class HeadRefinement:
 
     # Functions:
 
-    cdef HeadCandidate find_head(self, HeadCandidate best_head, intp[::1] label_indices, Loss loss, bint uncovered,
-                                 bint accumulated)
+    cdef PredictionCandidate* find_head(self, PredictionCandidate* best_head, PredictionCandidate* recyclable_head,
+                                        const uint32* label_indices, AbstractRefinementSearch* refinement_search,
+                                        bint uncovered, bint accumulated) nogil
 
-    cdef Prediction evaluate_predictions(self, Loss loss, bint uncovered, bint accumulated)
+    cdef PredictionCandidate* calculate_prediction(self, AbstractRefinementSearch* refinement_search, bint uncovered,
+                                                   bint accumulated) nogil
 
 
 cdef class SingleLabelHeadRefinement(HeadRefinement):
 
     # Functions:
 
-    cdef HeadCandidate find_head(self, HeadCandidate best_head, intp[::1] label_indices, Loss loss, bint uncovered,
-                                 bint accumulated)
+    cdef PredictionCandidate* find_head(self, PredictionCandidate* best_head, PredictionCandidate* recyclable_head,
+                                        const uint32* label_indices, AbstractRefinementSearch* refinement_search,
+                                        bint uncovered, bint accumulated) nogil
 
-    cdef Prediction evaluate_predictions(self, Loss loss, bint uncovered, bint accumulated)
+    cdef PredictionCandidate* calculate_prediction(self, AbstractRefinementSearch* refinement_search, bint uncovered,
+                                                   bint accumulated) nogil
+
+
+cdef class FullHeadRefinement(HeadRefinement):
+
+    # Functions:
+
+    cdef PredictionCandidate* find_head(self, PredictionCandidate* best_head, PredictionCandidate* recyclable_head,
+                                        const uint32* label_indices, AbstractRefinementSearch* refinement_search,
+                                        bint uncovered, bint accumulated) nogil
+
+    cdef PredictionCandidate* calculate_prediction(self, AbstractRefinementSearch* refinement_search, bint uncovered,
+                                                   bint accumulated) nogil
