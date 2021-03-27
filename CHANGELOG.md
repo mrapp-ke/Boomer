@@ -1,6 +1,6 @@
 # Changelog
 
-### Version 0.4.0 (Mar 27, 2021)
+### Version 0.4.0 (Mar 30, 2021)
 
 A major update to the BOOMER algorithm that introduces the following changes:
 
