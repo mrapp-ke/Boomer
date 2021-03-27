@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<labels xmlns="http://mulan.sourceforge.net/labels">
+<label name="comp.os_ms_windows_misc"> </label>
+<label name="religion.rmisc"> </label>
+<label name="rec.sport.baseball"> </label>
+<label name="sci.space"> </label>
+<label name="comp.sys.mac_hardware"> </label>
+<label name="sci.med"> </label>
+<label name="politics.pmisc"> </label>
+<label name="rec.autos"> </label>
+<label name="misc_forsale"> </label>
+<label name="politics.mideast"> </label>
+<label name="rec.motorcycles"> </label>
+<label name="politics.guns"> </label>
+<label name="rec.sport.hockey"> </label>
+<label name="comp.sys.ibm_pc_hardware"> </label>
+<label name="comp.graphics"> </label>
+<label name="sci.crypt"> </label>
+<label name="sci.electronics"> </label>
+<label name="religion.christian"> </label>
+<label name="religion.atheism"> </label>
+<label name="comp.windows_x"> </label>
+</labels>
