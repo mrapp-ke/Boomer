@@ -1,20 +1,23 @@
 # Build files
-python/**/boosting/*.so
-python/**/common/*.so
-python/**/boosting/*.pyd
-python/**/common/*.pyd
-python/**/boosting/*.c
-python/**/common/*.c
-python/**/boosting/*.cpp
-python/**/common/*.cpp
+python/**/*.o
+python/**/*.so
+python/**/*.c
+python/**/*.cpp
+python/**/*.pyd
+python/**/*.pyc
 python/**/*.html
 python/build/
+cpp/build/
+__pycache__/
 
 # Virtual Environment
 venv/
 
 # IntelliJ
 .idea/
+
+# Virtual Studio Code
+.vscode/
 
 # Experiments
 results/

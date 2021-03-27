@@ -52,7 +52,8 @@ import numpy as np
 from scipy.stats import bernoulli
 
 from args import boolean_string, ArgumentParserBuilder
-from boomer.data import save_data_set_and_meta_data
+from mlrl.testbed.data import save_data_set_and_meta_data
+from mlrl.testbed.io import SUFFIX_ARFF, SUFFIX_XML, get_file_name
 from runnables import Runnable
 
 
@@ -72,10 +73,11 @@ class GenerateSyntheticDataRunnable(Runnable):
         dataset_name = GenerateSyntheticDataRunnable.__get_dataset_name(
             num_examples=num_examples, num_labels=num_labels, tau=tau, p=p, dependent_error=dependent_error,
             one_error=one_error, marginal_independence=marginal_independence)
-        meta_data = save_data_set_and_meta_data(args.output_dir, arff_file_name=dataset_name + '.arff',
-                                                xml_file_name=dataset_name + '.xml', x=features, y=labels)
+        meta_data = save_data_set_and_meta_data(args.output_dir, x=features, y=labels,
+                                                arff_file_name=get_file_name(dataset_name, SUFFIX_ARFF),
+                                                xml_file_name=get_file_name(dataset_name, SUFFIX_XML))
         log.info('The generated data set contains %s examples, %s attributes and %s labels', features.shape[0],
-                 len(meta_data.attributes), len(meta_data.label_names))
+                 len(meta_data.attributes), len(meta_data.labels))
 
     @staticmethod
     def __generate_dataset(num_examples: int, num_labels: int, tau: float, p: float, marginal_independence: bool,
