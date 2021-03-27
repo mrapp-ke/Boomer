@@ -72,8 +72,10 @@ namespace boosting {
     void DenseLabelWiseStatisticVector::add(gradient_const_iterator gradientsBegin,
                                             gradient_const_iterator gradientsEnd, hessian_const_iterator hessiansBegin,
                                             hessian_const_iterator hessiansEnd) {
-        std::copy(gradientsBegin, gradientsEnd, gradients_);
-        std::copy(hessiansBegin, hessiansEnd, hessians_);
+        for (uint32 i = 0; i < numElements_; i++) {
+            gradients_[i] += gradientsBegin[i];
+            hessians_[i] += hessiansBegin[i];
+        }
     }
 
     void DenseLabelWiseStatisticVector::add(gradient_const_iterator gradientsBegin,

@@ -14,26 +14,22 @@ sources = [
 
 library_dirs = [
     '../cpp/build/subprojects/common',
-    '../cpp/build/subprojects/boosting',
-    '../cpp/build/subprojects/seco'
+    '../cpp/build/subprojects/boosting'
 ]
 
 runtime_library_dirs = [
     'cpp/build/subprojects/common',
-    'cpp/build/subprojects/boosting',
-    'cpp/build/subprojects/seco'
+    'cpp/build/subprojects/boosting'
 ]
 
 libraries = [
     'mlrlcommon',
-    'mlrlboosting',
-    'mlrlseco'
+    'mlrlboosting'
 ]
 
 include_dirs = [
     '../cpp/subprojects/common/include',
-    '../cpp/subprojects/boosting/include',
-    '../cpp/subprojects/seco/include'
+    '../cpp/subprojects/boosting/include'
 ]
 
 define_macros = [
@@ -61,7 +57,7 @@ setuptools.setup(
     author='Michael Rapp',
     author_email='mrapp@ke.tu-darmstadt.de',
     license='MIT',
-    packages=['mlrl.common', 'mlrl.boosting', 'mlrl.seco', 'mlrl.testbed'],
+    packages=['mlrl.common', 'mlrl.boosting', 'mlrl.testbed'],
     install_requires=[
         'numpy>=1.20.0',
         'scipy>=1.6.0',
