@@ -1,5 +1,11 @@
 # Changelog
 
+### Version 0.5.0 (Jun 27, 2021)
+
+A major update to the BOOMER algorithm that introduces the following changes:
+
+* Gradient-based label binning (GBLB) can be used to assign labels to a predefined number of bins.
+
 ### Version 0.4.0 (Mar 31, 2021)
 
 A major update to the BOOMER algorithm that introduces the following changes:

@@ -1,5 +1,5 @@
 default_target: compile
-.PHONY: clean_venv clean_cpp clean_cython clean_compile clean install
+.PHONY: clean_venv clean_cpp clean_cython clean_compile clean install doc
 
 clean_venv:
 	@echo "Removing virtual Python environment..."
@@ -38,6 +38,18 @@ venv:
 	venv/bin/pip install ninja
 	@echo "Installing compile-time dependency \"wheel\" into virtual environment..."
 	venv/bin/pip install wheel
+
+doc: venv
+	@echo "Installing dependency \"Sphinx\" into virtual environment..."
+	venv/bin/pip install Sphinx
+	@echo "Installing dependency \"sphinx_rtd_theme\" into virtual environment..."
+	venv/bin/pip install sphinx_rtd_theme
+	@echo "Installing dependency \"breathe\" into virtual environment..."
+	venv/bin/pip install breathe
+	@echo "Installing dependency \"exhale\" into virtual environment..."
+	venv/bin/pip install exhale
+	@echo "Generating Sphinx documentation..."
+	cd doc/ && PATH=$$PATH:../venv/bin/ make html
 
 compile: venv
 	@echo "Compiling C++ code..."

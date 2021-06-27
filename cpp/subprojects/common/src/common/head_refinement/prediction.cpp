@@ -35,3 +35,8 @@ void AbstractPrediction::set(AbstractPrediction::score_const_iterator begin,
                              AbstractPrediction::score_const_iterator end) {
     std::copy(begin, end, predictedScoreVector_.begin());
 }
+
+void AbstractPrediction::set(DenseBinnedVector<float64>::const_iterator begin,
+                             DenseBinnedVector<float64>::const_iterator end) {
+    std::copy(begin, end, predictedScoreVector_.begin());
+}

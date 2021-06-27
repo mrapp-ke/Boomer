@@ -15,8 +15,10 @@ from mlrl.boosting.cython.model import RuleListBuilder
 from mlrl.boosting.cython.output import LabelWiseClassificationPredictor, ExampleWiseClassificationPredictor, \
     LabelWiseProbabilityPredictor, LabelWiseTransformationFunction, LogisticFunction
 from mlrl.boosting.cython.post_processing import ConstantShrinkage
-from mlrl.boosting.cython.rule_evaluation_example_wise import RegularizedExampleWiseRuleEvaluationFactory
-from mlrl.boosting.cython.rule_evaluation_label_wise import RegularizedLabelWiseRuleEvaluationFactory
+from mlrl.boosting.cython.rule_evaluation_example_wise import RegularizedExampleWiseRuleEvaluationFactory, \
+    EqualWidthBinningExampleWiseRuleEvaluationFactory
+from mlrl.boosting.cython.rule_evaluation_label_wise import RegularizedLabelWiseRuleEvaluationFactory, \
+    EqualWidthBinningLabelWiseRuleEvaluationFactory
 from mlrl.boosting.cython.statistics_example_wise import ExampleWiseStatisticsProviderFactory
 from mlrl.boosting.cython.statistics_label_wise import LabelWiseStatisticsProviderFactory
 from mlrl.common.cython.head_refinement import HeadRefinementFactory, SingleLabelHeadRefinementFactory, \
@@ -31,7 +33,8 @@ from mlrl.common.cython.stopping import MeasureStoppingCriterion, AggregationFun
     ArithmeticMeanFunction
 from sklearn.base import ClassifierMixin
 
-from mlrl.common.rule_learners import INSTANCE_SUB_SAMPLING_BAGGING, FEATURE_SUB_SAMPLING_RANDOM, HEAD_REFINEMENT_SINGLE
+from mlrl.common.rule_learners import INSTANCE_SUB_SAMPLING_BAGGING, FEATURE_SUB_SAMPLING_RANDOM, \
+    HEAD_REFINEMENT_SINGLE, ARGUMENT_BIN_RATIO, ARGUMENT_MIN_BINS, ARGUMENT_MAX_BINS
 from mlrl.common.rule_learners import MLRuleLearner, SparsePolicy
 from mlrl.common.rule_learners import create_pruning, create_feature_sub_sampling, create_instance_sub_sampling, \
     create_label_sub_sampling, create_partition_sampling, create_max_conditions, create_stopping_criteria, \
@@ -78,6 +81,8 @@ PREDICTOR_LABEL_WISE = 'label-wise'
 
 PREDICTOR_EXAMPLE_WISE = 'example-wise'
 
+LABEL_BINNING_EQUAL_WIDTH = 'equal-width'
+
 
 class Boomer(MLRuleLearner, ClassifierMixin):
     """
@@ -91,7 +96,7 @@ class Boomer(MLRuleLearner, ClassifierMixin):
                  predictor: str = None, label_sub_sampling: str = None,
                  instance_sub_sampling: str = INSTANCE_SUB_SAMPLING_BAGGING,
                  feature_sub_sampling: str = FEATURE_SUB_SAMPLING_RANDOM, holdout_set_size: float = 0.0,
-                 feature_binning: str = None, pruning: str = None, shrinkage: float = 0.3,
+                 feature_binning: str = None, label_binning: str = None, pruning: str = None, shrinkage: float = 0.3,
                  l2_regularization_weight: float = 1.0, min_coverage: int = 1, max_conditions: int = -1,
                  max_head_refinements: int = 1, num_threads_refinement: int = 1, num_threads_update: int = 1,
                  num_threads_prediction: int = 1):
@@ -133,6 +138,10 @@ class Boomer(MLRuleLearner, ClassifierMixin):
                                                     their feature values. Must be `equal-width`, `equal-frequency` or
                                                     None, if no feature binning should be used. Additional arguments may
                                                     be provided as a dictionary, e.g. `equal-width{\"bin_ratio\":0.5}`
+        :param label_binning:                       The strategy that is used for assigning labels to bins. Must be
+                                                    `equal-width` or None, if no label binning should be used.
+                                                    Additional arguments may be provided as a dictionary, e.g.
+                                                    `equal-width{\"num_positive_bins\":8, \"num_negative_bins\":8}`
         :param pruning:                             The strategy that is used for pruning rules. Must be `irep` or None,
                                                     if no pruning should be used
         :param shrinkage:                           The shrinkage parameter that should be applied to the predictions of
@@ -168,6 +177,7 @@ class Boomer(MLRuleLearner, ClassifierMixin):
         self.feature_sub_sampling = feature_sub_sampling
         self.holdout_set_size = holdout_set_size
         self.feature_binning = feature_binning
+        self.label_binning = label_binning
         self.pruning = pruning
         self.shrinkage = shrinkage
         self.l2_regularization_weight = l2_regularization_weight
@@ -197,6 +207,8 @@ class Boomer(MLRuleLearner, ClassifierMixin):
             name += '_holdout=' + str(self.holdout_set_size)
         if self.feature_binning is not None:
             name += '_feature-binning=' + str(self.feature_binning)
+        if self.label_binning is not None:
+            name += '_label-binning=' + str(self.label_binning)
         if self.pruning is not None:
             name += '_pruning=' + str(self.pruning)
         if 0.0 < float(self.shrinkage) < 1.0:
@@ -381,10 +393,35 @@ class Boomer(MLRuleLearner, ClassifierMixin):
         raise ValueError('Invalid value given for parameter \'loss\': ' + str(loss))
 
     def __create_rule_evaluation_factory(self, loss_function, l2_regularization_weight: float):
+        label_binning, bin_ratio, min_bins, max_bins = self.__create_label_binning()
+
         if isinstance(loss_function, LabelWiseLoss):
-            return RegularizedLabelWiseRuleEvaluationFactory(l2_regularization_weight)
+            if label_binning == LABEL_BINNING_EQUAL_WIDTH:
+                return EqualWidthBinningLabelWiseRuleEvaluationFactory(l2_regularization_weight, bin_ratio, min_bins,
+                                                                       max_bins)
+            else:
+                return RegularizedLabelWiseRuleEvaluationFactory(l2_regularization_weight)
         else:
-            return RegularizedExampleWiseRuleEvaluationFactory(l2_regularization_weight)
+            if label_binning == LABEL_BINNING_EQUAL_WIDTH:
+                return EqualWidthBinningExampleWiseRuleEvaluationFactory(l2_regularization_weight, bin_ratio, min_bins,
+                                                                         max_bins)
+            else:
+                return RegularizedExampleWiseRuleEvaluationFactory(l2_regularization_weight)
+
+    def __create_label_binning(self) -> (str, float):
+        label_binning = self.label_binning
+
+        if label_binning is None:
+            return None, 0, 0, 0
+        else:
+            prefix, args = parse_prefix_and_dict(label_binning, [LABEL_BINNING_EQUAL_WIDTH])
+
+            if prefix == LABEL_BINNING_EQUAL_WIDTH:
+                bin_ratio = get_float_argument(args, ARGUMENT_BIN_RATIO, 0.04, lambda x: 0 < x < 1)
+                min_bins = get_int_argument(args, ARGUMENT_MIN_BINS, 1, lambda x: x >= 1)
+                max_bins = get_int_argument(args, ARGUMENT_MAX_BINS, 0, lambda x: x == 0 or x >= min_bins)
+                return prefix, bin_ratio, min_bins, max_bins
+            raise ValueError('Invalid value given for parameter \'label_binning\': ' + str(label_binning))
 
     def __create_statistics_provider_factory(self, loss_function, rule_evaluation_factory,
                                              num_threads: int) -> StatisticsProviderFactory:

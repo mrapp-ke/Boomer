@@ -63,6 +63,18 @@ class SingleLabelHeadRefinement final : public IHeadRefinement, public ILabelWis
             return processScoresInternally<DenseLabelWiseScoreVector<PartialIndexVector>>(bestHead, scoreVector);
         }
 
+        const AbstractEvaluatedPrediction* processScores(
+                const AbstractEvaluatedPrediction* bestHead,
+                const DenseBinnedLabelWiseScoreVector<FullIndexVector>& scoreVector) override {
+            return processScoresInternally<DenseBinnedLabelWiseScoreVector<FullIndexVector>>(bestHead, scoreVector);
+        }
+
+        const AbstractEvaluatedPrediction* processScores(
+                const AbstractEvaluatedPrediction* bestHead,
+                const DenseBinnedLabelWiseScoreVector<PartialIndexVector>& scoreVector) override {
+            return processScoresInternally<DenseBinnedLabelWiseScoreVector<PartialIndexVector>>(bestHead, scoreVector);
+        }
+
         const AbstractEvaluatedPrediction* findHead(const AbstractEvaluatedPrediction* bestHead,
                                                     IStatisticsSubset& statisticsSubset, bool uncovered,
                                                     bool accumulated) override {

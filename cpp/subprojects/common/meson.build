@@ -1,4 +1,4 @@
-project('common', 'cpp', version : '0.4.0')
+project('common', 'cpp', version : '0.5.0')
 
 # Source files
 source_files = [
@@ -11,6 +11,7 @@ source_files = [
     'src/common/data/matrix_dense.cpp',
     'src/common/data/matrix_dok_binary.cpp',
     'src/common/data/ring_buffer.cpp',
+    'src/common/data/vector_binned_dense.cpp',
     'src/common/data/vector_dense.cpp',
     'src/common/data/vector_dok.cpp',
     'src/common/data/vector_dok_binary.cpp',
@@ -48,7 +49,9 @@ source_files = [
     'src/common/post_processing/post_processor_no.cpp',
     'src/common/pruning/pruning_irep.cpp',
     'src/common/pruning/pruning_no.cpp',
+    'src/common/rule_evaluation/score_vector_binned_dense.cpp',
     'src/common/rule_evaluation/score_vector_dense.cpp',
+    'src/common/rule_evaluation/score_vector_label_wise_binned_dense.cpp',
     'src/common/rule_evaluation/score_vector_label_wise_dense.cpp',
     'src/common/rule_induction/rule_induction_top_down.cpp',
     'src/common/rule_induction/rule_model_induction_sequential.cpp',
@@ -89,5 +92,5 @@ dependencies = [
 include_directories = include_directories('include')
 
 common_lib = library('mlrlcommon', source_files, include_directories : include_directories, dependencies : dependencies,
-                     version : '0.4.0')
+                     version : '0.5.0')
 common_dep = declare_dependency(include_directories : include_directories, link_with : common_lib)
