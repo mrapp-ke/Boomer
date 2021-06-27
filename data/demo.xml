@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<labels xmlns="http://mulan.sourceforge.net/labels">
+<label name="quality"></label>
+<label name="tabloid"></label>
+<label name="fashion"></label>
+<label name="sports"></label>
+</labels>

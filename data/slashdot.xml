@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<labels xmlns="http://mulan.sourceforge.net/labels">
+<label name="Idle"></label>
+<label name="Science"></label>
+<label name="Games"></label>
+<label name="Technology"></label>
+<label name="YourRightsOnline"></label>
+<label name="AskSlashdot"></label>
+<label name="Mobile"></label>
+<label name="IT"></label>
+<label name="Hardware"></label>
+<label name="Politics"></label>
+<label name="Linux"></label>
+<label name="Developers"></label>
+<label name="News"></label>
+<label name="Apple"></label>
+<label name="Entertainment"></label>
+<label name="BookReviews"></label>
+<label name="Interviews"></label>
+<label name="BSD"></label>
+<label name="Search"></label>
+<label name="Apache"></label>
+</labels>
