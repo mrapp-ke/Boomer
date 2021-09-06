@@ -1,0 +1,27 @@
+@relation weather-weka.filters.supervised.attribute.NominalToBinary
+
+@attribute outlook=sunny numeric
+@attribute outlook=overcast numeric
+@attribute outlook=rainy numeric
+@attribute temperature numeric
+@attribute humidity numeric
+@attribute windy numeric
+@attribute play {0,1}
+@attribute dontplay {0,1}
+@attribute playmaybe {0,1}
+
+@data
+1,0,0,85,85,1,0,1,0
+1,0,0,80,90,0,0,1,0
+0,1,0,83,86,1,1,0,1
+0,0,1,70,96,1,1,0,1
+0,0,1,68,80,1,1,0,1
+0,0,1,65,70,0,0,1,0
+0,1,0,64,65,0,1,0,1
+1,0,0,72,95,1,0,1,0
+1,0,0,69,70,1,1,0,0
+0,0,1,75,80,1,1,0,0
+1,0,0,75,70,0,1,0,0
+0,1,0,72,90,0,1,0,0
+0,1,0,81,75,1,1,0,0
+0,0,1,71,91,0,0,1,0
