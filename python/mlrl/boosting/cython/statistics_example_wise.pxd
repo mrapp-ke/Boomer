@@ -1,22 +1,40 @@
 from mlrl.common.cython.statistics cimport StatisticsProviderFactory, IStatisticsProviderFactory
 from mlrl.boosting.cython.losses_example_wise cimport IExampleWiseLoss
 from mlrl.boosting.cython.rule_evaluation_example_wise cimport IExampleWiseRuleEvaluationFactory
+from mlrl.boosting.cython.rule_evaluation_label_wise cimport ILabelWiseRuleEvaluationFactory
 
-from libcpp.memory cimport shared_ptr
+from libcpp.memory cimport unique_ptr
 
 
-cdef extern from "boosting/statistics/statistics_example_wise_provider.hpp" namespace "boosting" nogil:
+cdef extern from "boosting/statistics/statistics_provider_factory_example_wise_dense.hpp" namespace "boosting" nogil:
 
-    cdef cppclass ExampleWiseStatisticsProviderFactoryImpl"boosting::ExampleWiseStatisticsProviderFactory"(
+    cdef cppclass DenseExampleWiseStatisticsProviderFactoryImpl"boosting::DenseExampleWiseStatisticsProviderFactory"(
             IStatisticsProviderFactory):
 
         # Constructors:
 
-        ExampleWiseStatisticsProviderFactoryImpl(
-            shared_ptr[IExampleWiseLoss] lossFunctionPtr,
-            shared_ptr[IExampleWiseRuleEvaluationFactory] defaultRuleEvaluationFactoryPtr,
-            shared_ptr[IExampleWiseRuleEvaluationFactory] ruleEvaluationFactoryPtr) except +
+        DenseExampleWiseStatisticsProviderFactoryImpl(
+            unique_ptr[IExampleWiseLoss] lossFunctionPtr,
+            unique_ptr[IExampleWiseRuleEvaluationFactory] defaultRuleEvaluationFactoryPtr,
+            unique_ptr[IExampleWiseRuleEvaluationFactory] regularRuleEvaluationFactoryPtr,
+            unique_ptr[IExampleWiseRuleEvaluationFactory] pruningRuleEvaluationFactoryPtr) except +
 
 
-cdef class ExampleWiseStatisticsProviderFactory(StatisticsProviderFactory):
+    cdef cppclass DenseConvertibleExampleWiseStatisticsProviderFactoryImpl"boosting::DenseConvertibleExampleWiseStatisticsProviderFactory"(
+            IStatisticsProviderFactory):
+
+        # Constructors:
+
+        DenseConvertibleExampleWiseStatisticsProviderFactoryImpl(
+            unique_ptr[IExampleWiseLoss] lossFunctionPtr,
+            unique_ptr[IExampleWiseRuleEvaluationFactory] defaultRuleEvaluationFactoryPtr,
+            unique_ptr[ILabelWiseRuleEvaluationFactory] regularRuleEvaluationFactoryPtr,
+            unique_ptr[ILabelWiseRuleEvaluationFactory] pruningRuleEvaluationFactoryPtr) except +
+
+
+cdef class DenseExampleWiseStatisticsProviderFactory(StatisticsProviderFactory):
+    pass
+
+
+cdef class DenseConvertibleExampleWiseStatisticsProviderFactory(StatisticsProviderFactory):
     pass

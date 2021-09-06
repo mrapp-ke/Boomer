@@ -1,5 +1,20 @@
 # Changelog
 
+### Version 0.6.0 (Sep 6, 2021)
+
+***This release comes with changes to the command line API. For brevity and consistency, some parameters and/or their values have been renamed. Moreover, some parameters have been updated to use more reasonable default values. For an updated overview of the available parameters, please refer to the documentation.***
+
+A major update to the BOOMER algorithm that introduces the following changes:
+
+* The parameter `--instance-sampling` does now allow to use stratified sampling (`stratified-label-wise` and `stratified-example-wise`).
+* The parameter `--holdout` does now allow to use stratified sampling (`stratified-label-wise` and `stratified-example-wise`).
+* The parameter `--recalculate-predictions` does now allow to specify whether the predictions of rules should be recalculated on the entire training data, if instance sampling is used.
+* An additional parameter (`--prediction-format`) that allows to specify whether predictions should be stored using dense or sparse matrices has been added. 
+* The code for the construction of rule heads has been reworked, resulting in minor performance improvements.
+* The unnecessary calculation of Hessians is now avoided when used single-label rules for the minimization of a non-decomposable loss function, resulting in a significant performance improvement.
+* A programmatic C++ API for configuring algorithms, including the validation of parameters, is now provided.
+* A documentation is now available [online](https://mlrl-boomer.readthedocs.io).
+
 ### Version 0.5.0 (Jun 27, 2021)
 
 A major update to the BOOMER algorithm that introduces the following changes:
@@ -44,7 +59,7 @@ A major update to the BOOMER algorithm that features the following changes:
 
 The first version of the BOOMER algorithm used in the following publication:
 
-*Rapp M., Loza Mencía E., Fürnkranz J., Nguyen VL., Hüllermeier E. (2020) Learning Gradient Boosted Multi-label Classification Rules. In: Machine Learning and Knowledge Discovery in Databases. ECML PKDD 2020. Lecture Notes in Computer Science, pp. 124-140, vol 12459. Springer, Cham*
+*Michael Rapp, Eneldo Loza Mencía, Johannes Fürnkranz and Eyke Hüllermeier. Gradient-based Label Binning in Multi-label Classification. In: Proceedings of the European Conference on Machine Learning and Knowledge Discovery in Databases (ECML-PKDD), 2021, Springer.*
 
 This version supports the following features to learn an ensemble of boosted classification rules:
 

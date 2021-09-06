@@ -1,4 +1,4 @@
-from libcpp.memory cimport shared_ptr
+from libcpp.memory cimport unique_ptr
 
 
 cdef extern from "common/statistics/statistics_provider_factory.hpp" nogil:
@@ -11,4 +11,4 @@ cdef class StatisticsProviderFactory:
 
     # Attributes:
 
-    cdef shared_ptr[IStatisticsProviderFactory] statistics_provider_factory_ptr
+    cdef unique_ptr[IStatisticsProviderFactory] statistics_provider_factory_ptr

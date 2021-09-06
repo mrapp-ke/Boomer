@@ -15,7 +15,7 @@
  * @tparam Vector       The type of the vector that is returned by the callback
  * @tparam WeightVector The type of the weight vector that is returned by the callback
  */
-template<class Vector, class WeightVector>
+template<typename Vector, typename WeightVector>
 class IRuleRefinementCallback {
 
     public:

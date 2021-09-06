@@ -17,13 +17,13 @@ cdef class RuleModel:
     A wrapper for the C++ class `RuleModel`.
     """
 
-    cpdef int get_num_rules(self):
+    def get_num_rules(self) -> int:
         return self.model_ptr.get().getNumRules()
 
-    cpdef int get_num_used_rules(self):
+    def get_num_used_rules(self) -> int:
         return self.model_ptr.get().getNumUsedRules()
 
-    cpdef object set_num_used_rules(self, uint32 num_used_rules):
+    def set_num_used_rules(self, int num_used_rules):
         self.model_ptr.get().setNumUsedRules(num_used_rules)
 
     def __getstate__(self):
@@ -125,15 +125,15 @@ cdef unique_ptr[IHead] __create_head(object state):
         indices = state[1]
         return __create_partial_head(scores, indices)
     else:
-        return __create_full_head(scores)
+        return __create_complete_head(scores)
 
 
-cdef unique_ptr[IHead] __create_full_head(const float64[::1] scores):
+cdef unique_ptr[IHead] __create_complete_head(const float64[::1] scores):
     cdef uint32 num_elements = scores.shape[0]
-    cdef unique_ptr[FullHeadImpl] head_ptr = make_unique[FullHeadImpl](num_elements)
+    cdef unique_ptr[CompleteHeadImpl] head_ptr = make_unique[CompleteHeadImpl](num_elements)
     cdef const float64* scores_begin = &scores[0]
     cdef const float64* scores_end = &scores[num_elements]
-    cdef FullHeadImpl.score_iterator score_iterator = head_ptr.get().scores_begin()
+    cdef CompleteHeadImpl.score_iterator score_iterator = head_ptr.get().scores_begin()
     copy(scores_begin, scores_end, score_iterator)
     return <unique_ptr[IHead]>move(head_ptr)
 
@@ -178,7 +178,7 @@ cdef class RuleModelSerializer:
         rule_state = [body_state, None]
         self.state.append(rule_state)
 
-    cdef __visit_full_head(self, const FullHeadImpl& head):
+    cdef __visit_complete_head(self, const CompleteHeadImpl& head):
         cdef uint32 num_elements = head.getNumElements()
         rule_state = self.state[len(self.state) - 1]
         head_state = (np.asarray(<float64[:num_elements]>head.scores_cbegin()),)
@@ -191,7 +191,7 @@ cdef class RuleModelSerializer:
                       np.asarray(<uint32[:num_elements]>head.indices_cbegin()))
         rule_state[1] = head_state
 
-    cpdef object serialize(self, RuleModel model):
+    def serialize(self, RuleModel model) -> object:
         """
         Creates and returns a state, which may be serialized using Python's pickle mechanism, from the rules that are
         contained by a given `RuleModel`.
@@ -203,12 +203,12 @@ cdef class RuleModelSerializer:
         model.model_ptr.get().visit(
             wrapEmptyBodyVisitor(<void*>self, <EmptyBodyCythonVisitor>self.__visit_empty_body),
             wrapConjunctiveBodyVisitor(<void*>self, <ConjunctiveBodyCythonVisitor>self.__visit_conjunctive_body),
-            wrapFullHeadVisitor(<void*>self, <FullHeadCythonVisitor>self.__visit_full_head),
+            wrapCompleteHeadVisitor(<void*>self, <CompleteHeadCythonVisitor>self.__visit_complete_head),
             wrapPartialHeadVisitor(<void*>self, <PartialHeadCythonVisitor>self.__visit_partial_head))
         cdef uint32 num_used_rules = model.model_ptr.get().getNumUsedRules()
         return (SERIALIZATION_VERSION, (self.state, num_used_rules))
 
-    cpdef deserialize(self, RuleModel model, object state):
+    def deserialize(self, RuleModel model, object state):
         """
         Deserializes the rules that are contained by a given state and adds them to a `RuleModel`.
 
@@ -243,6 +243,7 @@ cdef uint32 __format_conditions(uint32 num_processed_conditions, uint32 num_cond
                                 bint print_feature_names, bint print_nominal_values, object text, object comparator):
     cdef uint32 result = num_processed_conditions
     cdef uint32 feature_index, i
+    cdef float32 threshold
     cdef object attribute
 
     for i in range(num_conditions):
@@ -250,6 +251,7 @@ cdef uint32 __format_conditions(uint32 num_processed_conditions, uint32 num_cond
             text.write(' & ')
 
         feature_index = index_iterator[i]
+        threshold = threshold_iterator[i]
         attribute = attributes[feature_index] if len(attributes) > feature_index else None
 
         if print_feature_names and attribute is not None:
@@ -261,11 +263,13 @@ cdef uint32 __format_conditions(uint32 num_processed_conditions, uint32 num_cond
         text.write(comparator)
         text.write(' ')
 
-        if print_nominal_values and attribute is not None and attribute.nominal_values is not None and len(
-                attribute.nominal_values) > i:
-            text.write('"' + attribute.nominal_values[i] + '"')
+        if attribute is not None and attribute.nominal_values is not None:
+            if print_nominal_values and len(attribute.nominal_values) > threshold:
+                text.write('"' + attribute.nominal_values[<uint32>threshold] + '"')
+            else:
+                text.write(str(<uint32>threshold))
         else:
-            text.write(str(threshold_iterator[i]))
+            text.write(str(threshold))
 
         result += 1
 
@@ -277,8 +281,8 @@ cdef class RuleModelFormatter:
     Allows to create textual representations of the rules that are contained by a `RuleModel`.
     """
 
-    def __cinit__(self, list attributes, list labels, bint print_feature_names=True, bint print_label_names=True,
-                  bint print_nominal_values=False):
+    def __cinit__(self, list attributes not None, list labels not None, bint print_feature_names,
+                  bint print_label_names, bint print_nominal_values):
         """
         :param attributes:              A list that contains the attributes
         :param labels:                  A list that contains the labels
@@ -335,11 +339,11 @@ cdef class RuleModelFormatter:
 
         text.write('}')
 
-    cdef __visit_full_head(self, const FullHeadImpl& head):
+    cdef __visit_complete_head(self, const CompleteHeadImpl& head):
         cdef object text = self.text
         cdef bint print_label_names = self.print_label_names
         cdef list labels = self.labels
-        cdef FullHeadImpl.score_const_iterator score_iterator = head.scores_cbegin()
+        cdef CompleteHeadImpl.score_const_iterator score_iterator = head.scores_cbegin()
         cdef uint32 num_elements = head.getNumElements()
         cdef uint32 i
 
@@ -386,7 +390,7 @@ cdef class RuleModelFormatter:
 
         text.write(')\n')
 
-    cpdef void format(self, RuleModel model):
+    def format(self, RuleModel model):
         """
         Creates a textual representation of a specific model.
 
@@ -395,10 +399,10 @@ cdef class RuleModelFormatter:
         model.model_ptr.get().visitUsed(
             wrapEmptyBodyVisitor(<void*>self, <EmptyBodyCythonVisitor>self.__visit_empty_body),
             wrapConjunctiveBodyVisitor(<void*>self, <ConjunctiveBodyCythonVisitor>self.__visit_conjunctive_body),
-            wrapFullHeadVisitor(<void*>self, <FullHeadCythonVisitor>self.__visit_full_head),
+            wrapCompleteHeadVisitor(<void*>self, <CompleteHeadCythonVisitor>self.__visit_complete_head),
             wrapPartialHeadVisitor(<void*>self, <PartialHeadCythonVisitor>self.__visit_partial_head))
 
-    cpdef object get_text(self):
+    def get_text(self) -> object:
         """
         Returns the textual representation that has been created via the `format` method.
 

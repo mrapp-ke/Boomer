@@ -18,14 +18,21 @@ class EqualWeightVector final : public IWeightVector {
     public:
 
         /**
-         * @param numElements The number of elements in the vector. Must be at least 1
+         * @param numElements The number of elements in the vector
          */
         EqualWeightVector(uint32 numElements);
 
+        /**
+         * Returns the number of elements in the vector.
+         *
+         * @return The number of elements
+         */
+        uint32 getNumElements() const;
+
+        uint32 getNumNonZeroWeights() const override;
+
         bool hasZeroWeights() const override;
 
-        uint32 getWeight(uint32 pos) const override;
-
-        uint32 getSumOfWeights() const override;
+        float64 getWeight(uint32 pos) const override;
 
 };

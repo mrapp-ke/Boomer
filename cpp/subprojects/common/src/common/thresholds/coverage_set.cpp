@@ -1,7 +1,7 @@
 #include "common/thresholds/coverage_set.hpp"
 #include "common/thresholds/thresholds_subset.hpp"
 #include "common/rule_refinement/refinement.hpp"
-#include "common/head_refinement/prediction.hpp"
+#include "common/rule_refinement/prediction.hpp"
 #include "common/data/arrays.hpp"
 
 

@@ -7,12 +7,12 @@
 
 
 /**
- * An implementation of the class `IFeatureSubSampling` that does not perform any sampling, but includes all features.
+ * Allows to create instances of the type `IFeatureSampling` that do not perform any sampling, but include all features.
  */
-class NoFeatureSubSampling final : public IFeatureSubSampling {
+class NoFeatureSamplingFactory final : public IFeatureSamplingFactory {
 
     public:
 
-        std::unique_ptr<IIndexVector> subSample(uint32 numFeatures, RNG& rng) const override;
+        std::unique_ptr<IFeatureSampling> create(uint32 numFeatures) const override;
 
 };

@@ -2,7 +2,7 @@
 
 
 """
-@author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
 
 Provides classes for performing experiments.
 """

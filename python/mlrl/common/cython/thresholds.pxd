@@ -1,4 +1,4 @@
-from libcpp.memory cimport shared_ptr
+from libcpp.memory cimport unique_ptr
 
 
 cdef extern from "common/thresholds/thresholds_factory.hpp" nogil:
@@ -11,4 +11,4 @@ cdef class ThresholdsFactory:
 
     # Attributes:
 
-    cdef shared_ptr[IThresholdsFactory] thresholds_factory_ptr
+    cdef unique_ptr[IThresholdsFactory] thresholds_factory_ptr

@@ -2,7 +2,7 @@
 #include "common/sampling/instance_sampling.hpp"
 #include "common/thresholds/thresholds_subset.hpp"
 #include "common/rule_refinement/refinement.hpp"
-#include "common/head_refinement/prediction.hpp"
+#include "common/rule_refinement/prediction.hpp"
 
 
 SinglePartition::SinglePartition(uint32 numElements)
@@ -22,9 +22,10 @@ uint32 SinglePartition::getNumElements() const {
     return numElements_;
 }
 
-std::unique_ptr<IWeightVector> SinglePartition::subSample(const IInstanceSubSampling& instanceSubSampling,
-                                                          RNG& rng) const {
-    return instanceSubSampling.subSample(*this, rng);
+std::unique_ptr<IInstanceSampling> SinglePartition::createInstanceSampling(const IInstanceSamplingFactory& factory,
+                                                                           const ILabelMatrix& labelMatrix,
+                                                                           IStatistics& statistics) {
+    return labelMatrix.createInstanceSampling(factory, *this, statistics);
 }
 
 float64 SinglePartition::evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset,

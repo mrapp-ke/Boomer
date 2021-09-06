@@ -13,7 +13,7 @@
  *
  * @tparam T The type of the vector that provides access to the indices of the labels for which the rule may predict
  */
-template<class T>
+template<typename T>
 class DenseScoreVector : virtual public IScoreVector {
 
     private:
@@ -103,7 +103,6 @@ class DenseScoreVector : virtual public IScoreVector {
 
         void updatePrediction(AbstractPrediction& prediction) const override final;
 
-        const AbstractEvaluatedPrediction* processScores(const AbstractEvaluatedPrediction* bestHead,
-                                                         IScoreProcessor& scoreProcessor) const override final;
+        const AbstractEvaluatedPrediction* processScores(ScoreProcessor& scoreProcessor) const override final;
 
 };

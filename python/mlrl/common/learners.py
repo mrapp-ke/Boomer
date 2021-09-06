@@ -1,8 +1,7 @@
 #!/usr/bin/python
 
-
 """
-@author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
 
 Provides base classes for implementing single- or multi-label classifiers or rankers.
 """
@@ -25,10 +24,6 @@ class NominalAttributeLearner(ABC):
 class Learner(BaseEstimator):
     """
     A base class for all single- or multi-label classifiers or rankers.
-
-    Attributes
-        model_      The model
-        train_time_ The time needed to train the model
     """
 
     def fit(self, x, y):

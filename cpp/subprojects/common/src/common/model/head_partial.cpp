@@ -53,6 +53,6 @@ PartialHead::index_const_iterator PartialHead::indices_cend() const {
     return &labelIndices_[numElements_];
 }
 
-void PartialHead::visit(FullHeadVisitor fullHeadVisitor, PartialHeadVisitor partialHeadVisitor) const {
+void PartialHead::visit(CompleteHeadVisitor completeHeadVisitor, PartialHeadVisitor partialHeadVisitor) const {
     partialHeadVisitor(*this);
 }

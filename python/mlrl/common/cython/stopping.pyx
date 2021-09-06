@@ -3,7 +3,8 @@
 """
 from mlrl.common.cython.measures cimport EvaluationMeasure
 
-from libcpp.memory cimport make_shared
+from libcpp.utility cimport move
+from libcpp.memory cimport make_unique
 
 
 cdef class StoppingCriterion:
@@ -22,7 +23,7 @@ cdef class SizeStoppingCriterion(StoppingCriterion):
         """
         :param max_rules: The maximum number of rules
         """
-        self.stopping_criterion_ptr = <shared_ptr[IStoppingCriterion]>make_shared[SizeStoppingCriterionImpl](max_rules)
+        self.stopping_criterion_ptr = <unique_ptr[IStoppingCriterion]>make_unique[SizeStoppingCriterionImpl](max_rules)
 
 
 cdef class TimeStoppingCriterion(StoppingCriterion):
@@ -34,7 +35,7 @@ cdef class TimeStoppingCriterion(StoppingCriterion):
         """
         :param time_limit: The time limit in seconds
         """
-        self.stopping_criterion_ptr = <shared_ptr[IStoppingCriterion]>make_shared[TimeStoppingCriterionImpl](time_limit)
+        self.stopping_criterion_ptr = <unique_ptr[IStoppingCriterion]>make_unique[TimeStoppingCriterionImpl](time_limit)
 
 
 cdef class AggregationFunction:
@@ -50,7 +51,7 @@ cdef class MinFunction(AggregationFunction):
     """
 
     def __cinit__(self):
-        self.aggregation_function_ptr = <shared_ptr[IAggregationFunction]>make_shared[MinFunctionImpl]()
+        self.aggregation_function_ptr = <unique_ptr[IAggregationFunction]>make_unique[MinFunctionImpl]()
 
 
 cdef class MaxFunction(AggregationFunction):
@@ -59,7 +60,7 @@ cdef class MaxFunction(AggregationFunction):
     """
 
     def __cinit__(self):
-        self.aggregation_function_ptr = <shared_ptr[IAggregationFunction]>make_shared[MaxFunctionImpl]()
+        self.aggregation_function_ptr = <unique_ptr[IAggregationFunction]>make_unique[MaxFunctionImpl]()
 
 
 cdef class ArithmeticMeanFunction(AggregationFunction):
@@ -68,7 +69,7 @@ cdef class ArithmeticMeanFunction(AggregationFunction):
     """
 
     def __cinit__(self):
-        self.aggregation_function_ptr = <shared_ptr[IAggregationFunction]>make_shared[ArithmeticMeanFunctionImpl]()
+        self.aggregation_function_ptr = <unique_ptr[IAggregationFunction]>make_unique[ArithmeticMeanFunctionImpl]()
 
 
 cdef class MeasureStoppingCriterion(StoppingCriterion):
@@ -76,8 +77,8 @@ cdef class MeasureStoppingCriterion(StoppingCriterion):
     A wrapper for the C++ class `MeasureStoppingCriterion`.
     """
 
-    def __cinit__(self, EvaluationMeasure measure, AggregationFunction aggregation_function, uint32 min_rules,
-                  uint32 update_interval, uint32 stop_interval, uint32 num_past, uint32 num_recent,
+    def __cinit__(self, EvaluationMeasure measure not None, AggregationFunction aggregation_function not None,
+                  uint32 min_rules, uint32 update_interval, uint32 stop_interval, uint32 num_past, uint32 num_recent,
                   float64 min_improvement, bint force_stop):
         """
         :param measure:                 The measure that should be used to assess the quality of a model
@@ -100,7 +101,7 @@ cdef class MeasureStoppingCriterion(StoppingCriterion):
         :param force_stop:              True, if the induction of rules should be forced to be stopped, if the stopping
                                         criterion is met, False, if the time of stopping should only be stored
         """
-        cdef shared_ptr[IEvaluationMeasure] measure_ptr = measure.get_evaluation_measure_ptr()
-        self.stopping_criterion_ptr = <shared_ptr[IStoppingCriterion]>make_shared[MeasureStoppingCriterionImpl](
-            measure_ptr, aggregation_function.aggregation_function_ptr, min_rules, update_interval, stop_interval,
-            num_past, num_recent, min_improvement, force_stop)
+        cdef unique_ptr[IEvaluationMeasure] measure_ptr = measure.get_evaluation_measure_ptr()
+        self.stopping_criterion_ptr = <unique_ptr[IStoppingCriterion]>make_unique[MeasureStoppingCriterionImpl](
+            move(measure_ptr), move(aggregation_function.aggregation_function_ptr), min_rules, update_interval,
+            stop_interval, num_past, num_recent, min_improvement, force_stop)

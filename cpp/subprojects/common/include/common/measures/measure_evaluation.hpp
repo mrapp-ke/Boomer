@@ -3,8 +3,8 @@
  */
 #pragma once
 
-#include "common/data/view_c_contiguous.hpp"
-#include "common/input/label_matrix.hpp"
+#include "common/input/label_matrix_c_contiguous.hpp"
+#include "common/input/label_matrix_csr.hpp"
 
 
 /**
@@ -19,16 +19,32 @@ class IEvaluationMeasure {
 
         /**
          * Calculates and returns a numerical score that assesses the quality of predictions for the example at a
-         * specific index by comparing them to the corresponding ground truth labels.
+         * specific index by comparing them to the corresponding ground truth labels, based on a label matrix that
+         * provides random access to the labels of the training examples.
          *
          * @param exampleIndex  The index of the example for which the predictions should be evaluated
-         * @param labelMatrix   A reference to an object of type `IRandomAccessMatrix` that provides random access to
+         * @param labelMatrix   A reference to an object of type `CContiguousLabelMatrix` that provides random access to
          *                      the labels of the training examples
-         * @param scoreMatrix   A reference to an object of type `CContiguousView` that stores the currently predicted
-         *                      scores
+         * @param scoreMatrix   A reference to an object of type `CContiguousConstView` that stores the currently 
+         *                      predicted scores
          * @return              The numerical score that has been calculated
          */
-        virtual float64 evaluate(uint32 exampleIndex, const IRandomAccessLabelMatrix& labelMatrix,
-                                 const CContiguousView<float64>& scoreMatrix) const = 0;
+        virtual float64 evaluate(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
+                                 const CContiguousConstView<float64>& scoreMatrix) const = 0;
+
+        /**
+         * Calculates and returns a numerical score that assesses the quality of predictions for the example at a
+         * specific index by comparing them to the corresponding ground truth labels, based on a label matrix that
+         * provides row-wise access to the labels of the training examples.
+         *
+         * @param exampleIndex  The index of the example for which the predictions should be evaluated
+         * @param labelMatrix   A reference to an object of type `CsrLabelMatrix` that provides row-wise access to the
+         *                      labels of the training examples
+         * @param scoreMatrix   A reference to an object of type `CContiguousConstView` that stores the currently 
+         *                      predicted scores
+         * @return              The numerical score that has been calculated
+         */
+        virtual float64 evaluate(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
+                                 const CContiguousConstView<float64>& scoreMatrix) const = 0;
 
 };

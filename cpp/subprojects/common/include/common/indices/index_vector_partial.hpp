@@ -24,6 +24,12 @@ class PartialIndexVector final : public IIndexVector {
         PartialIndexVector(uint32 numElements);
 
         /**
+         * @param numElements   The number of elements in the vector
+         * @param init          True, if all elements in the vector should be value-initialized, false otherwise
+         */
+        PartialIndexVector(uint32 numElements, bool init);
+
+        /**
          * An iterator that provides access to the indices in the vector and allows to modify them.
          */
         typedef DenseVector<uint32>::iterator iterator;
@@ -79,7 +85,5 @@ class PartialIndexVector final : public IIndexVector {
 
         std::unique_ptr<IRuleRefinement> createRuleRefinement(IThresholdsSubset& thresholdsSubset,
                                                               uint32 featureIndex) const override;
-
-        std::unique_ptr<IHeadRefinement> createHeadRefinement(const IHeadRefinementFactory& factory) const override;
 
 };

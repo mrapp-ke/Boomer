@@ -5,10 +5,10 @@
 
 #include "common/thresholds/coverage_mask.hpp"
 #include "common/thresholds/coverage_set.hpp"
-#include "common/indices/index_vector_full.hpp"
+#include "common/indices/index_vector_complete.hpp"
 #include "common/indices/index_vector_partial.hpp"
 #include "common/rule_refinement/rule_refinement.hpp"
-#include "common/head_refinement/prediction.hpp"
+#include "common/rule_refinement/prediction.hpp"
 #include "common/model/condition.hpp"
 #include "common/sampling/partition_bi.hpp"
 #include "common/sampling/partition_single.hpp"
@@ -30,12 +30,12 @@ class IThresholdsSubset {
          * Creates and returns a new instance of the type `IRuleRefinement` that allows to find the best refinement of
          * an existing rule that predicts for all available labels.
          *
-         * @param labelIndices  A reference to an object of type `FullIndexVector` that provides access to the indices
-         *                      of the labels for which the existing rule predicts
+         * @param labelIndices  A reference to an object of type `CompleteIndexVector` that provides access to the
+         *                      indices of the labels for which the existing rule predicts
          * @param featureIndex  The index of the feature that should be considered when searching for refinements
          * @return              An unique pointer to an object of type `IRuleRefinement` that has been created
          */
-        virtual std::unique_ptr<IRuleRefinement> createRuleRefinement(const FullIndexVector& labelIndices,
+        virtual std::unique_ptr<IRuleRefinement> createRuleRefinement(const CompleteIndexVector& labelIndices,
                                                                       uint32 featureIndex) = 0;
 
         /**

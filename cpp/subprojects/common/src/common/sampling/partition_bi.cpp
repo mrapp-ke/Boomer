@@ -2,18 +2,18 @@
 #include "common/sampling/instance_sampling.hpp"
 #include "common/thresholds/thresholds_subset.hpp"
 #include "common/rule_refinement/refinement.hpp"
-#include "common/head_refinement/prediction.hpp"
+#include "common/rule_refinement/prediction.hpp"
 
 
-static inline std::unordered_set<uint32>* createSet(BiPartition::const_iterator iterator, uint32 numElements) {
-    std::unordered_set<uint32>* set = new std::unordered_set<uint32>();
+static inline BitVector* createBitVector(BiPartition::const_iterator iterator, uint32 numElements) {
+    BitVector* vector = new BitVector(numElements, true);
 
     for (uint32 i = 0; i < numElements; i++) {
         uint32 index = iterator[i];
-        set->insert(index);
+        vector->set(index, true);
     }
 
-    return set;
+    return vector;
 }
 
 BiPartition::BiPartition(uint32 numFirst, uint32 numSecond)
@@ -70,24 +70,26 @@ uint32 BiPartition::getNumElements() const {
     return vector_.getNumElements();
 }
 
-const std::unordered_set<uint32>& BiPartition::getFirstSet() {
+const BitVector& BiPartition::getFirstSet() {
     if (firstSet_ == nullptr) {
-        firstSet_ = createSet(this->first_cbegin(), this->getNumFirst());
+        firstSet_ = createBitVector(this->first_cbegin(), this->getNumFirst());
     }
 
     return *firstSet_;
 }
 
-const std::unordered_set<uint32>& BiPartition::getSecondSet() {
+const BitVector& BiPartition::getSecondSet() {
     if (secondSet_ == nullptr) {
-        secondSet_ = createSet(this->second_cbegin(), this->getNumSecond());
+        secondSet_ = createBitVector(this->second_cbegin(), this->getNumSecond());
     }
 
     return *secondSet_;
 }
 
-std::unique_ptr<IWeightVector> BiPartition::subSample(const IInstanceSubSampling& instanceSubSampling, RNG& rng) const {
-    return instanceSubSampling.subSample(*this, rng);
+std::unique_ptr<IInstanceSampling> BiPartition::createInstanceSampling(const IInstanceSamplingFactory& factory,
+                                                                       const ILabelMatrix& labelMatrix,
+                                                                       IStatistics& statistics) {
+    return labelMatrix.createInstanceSampling(factory, *this, statistics);
 }
 
 float64 BiPartition::evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, const ICoverageState& coverageState,

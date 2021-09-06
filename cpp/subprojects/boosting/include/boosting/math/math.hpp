@@ -10,26 +10,12 @@
 namespace boosting {
 
     /**
-     * Returns the result of the floating point division `numerator / denominator` or 0, if a division by zero occurs.
-     *
-     * @tparam T            The type of the operands
-     * @param numerator     The numerator
-     * @param denominator   The denominator
-     * @return              The result of the division or 0, if a division by zero occurred
-     */
-    template<class T>
-    static inline T divideOrZero(T numerator, T denominator) {
-        T result = numerator / denominator;
-        return std::isfinite(result) ? result : 0;
-    }
-
-    /**
      * Calculates and returns the n-th triangular number, i.e., the number of elements in a n times n triangle.
      *
      * @param n A scalar of type `uint32`, representing the order of the triangular number
      * @return  A scalar of type `uint32`, representing the n-th triangular number
      */
-    static inline uint32 triangularNumber(uint32 n) {
+    static inline constexpr uint32 triangularNumber(uint32 n) {
         return (n * (n + 1)) / 2;
     }
 
@@ -43,7 +29,7 @@ namespace boosting {
      * @param x The value `x`
      * @return  The value that has been calculated
      */
-    static inline float64 logisticFunction(float64 x) {
+    static inline constexpr float64 logisticFunction(float64 x) {
         if (x >= 0) {
             float64 exponential = std::exp(-x);  // Evaluates to 0 for large x, resulting in 1 ultimately
             return 1 / (1 + exponential);
@@ -63,8 +49,8 @@ namespace boosting {
      * @param n         The number of elements in the vector
      * @return          The square of the L2 norm
     */
-    template<class Iterator>
-    static inline float64 l2NormPow(Iterator iterator, uint32 n) {
+    template<typename Iterator>
+    static inline constexpr float64 l2NormPow(Iterator iterator, uint32 n) {
         float64 result = 0;
 
         for (uint32 i = 0; i < n; i++) {
@@ -89,8 +75,8 @@ namespace boosting {
      * @param n                 The number of elements in the vector
      * @return                  The square of the L2 norm
     */
-    template<class Iterator, class WeightIterator>
-    static inline float64 l2NormPow(Iterator iterator, WeightIterator weightIterator, uint32 n) {
+    template<typename Iterator, typename WeightIterator>
+    static inline constexpr float64 l2NormPow(Iterator iterator, WeightIterator weightIterator, uint32 n) {
         float64 result = 0;
 
         for (uint32 i = 0; i < n; i++) {

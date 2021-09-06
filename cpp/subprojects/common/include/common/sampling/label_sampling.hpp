@@ -9,22 +9,40 @@
 
 
 /**
- * Defines an interface for all classes that implement a strategy for sub-sampling labels.
+ * Defines an interface for all classes that implement a strategy for sampling labels.
  */
-class ILabelSubSampling {
+class ILabelSampling {
 
     public:
 
-        virtual ~ILabelSubSampling() { };
+        virtual ~ILabelSampling() { };
 
         /**
-         * Creates and returns a sub-sample of the available labels.
+         * Creates and returns a sample of the available labels.
+         *
+         * @param rng   A reference to an object of type `RNG`, implementing the random number generator to be used
+         * @return      A reference to an object of type `IIndexVector` that provides access to the indices of the
+         *              labels that are contained in the sample
+         */
+        virtual const IIndexVector& sample(RNG& rng) = 0;
+
+};
+
+/**
+ * Defines an interface for all factories that allow to create objects of type `ILabelSampling`.
+ */
+class ILabelSamplingFactory {
+
+    public:
+
+        virtual ~ILabelSamplingFactory() { };
+
+        /**
+         * Creates and returns a new object of type `ILabelSampling`.
          *
          * @param numLabels The total number of available labels
-         * @param rng       A reference to an object of type `RNG`, implementing the random number generator to be used
-         * @return          An unique pointer to an object of type `IIndexVector` that provides access to the indices of
-         *                  the labels that are contained in the sub-sample
+         * @return          An unique pointer to an object of type `ILabelSampling` that has been created
          */
-        virtual std::unique_ptr<IIndexVector> subSample(uint32 numLabels, RNG& rng) const = 0;
+        virtual std::unique_ptr<ILabelSampling> create(uint32 numLabels) const = 0;
 
 };

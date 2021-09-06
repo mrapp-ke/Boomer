@@ -1,11 +1,13 @@
 #include "boosting/post_processing/shrinkage_constant.hpp"
+#include "common/validation.hpp"
 
 
 namespace boosting {
 
     ConstantShrinkage::ConstantShrinkage(float64 shrinkage)
         : shrinkage_(shrinkage) {
-
+        assertGreater<float64>("shrinkage", shrinkage, 0);
+        assertLess<float64>("shrinkage", shrinkage, 1);
     }
 
     void ConstantShrinkage::postProcess(AbstractPrediction& prediction) const {

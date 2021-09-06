@@ -11,21 +11,17 @@
  * Randomly selects `numSamples` out of `numTotal` indices without replacement by using a set to keep track of the
  * indices that have already been selected. This method is suitable if `numSamples` is much smaller than `numTotal`
  *
- * @tparam T            The type of the iterator that provides random access to the available indices to sample from
+ * @tparam Iterator     The type of the iterator that provides random access to the available indices to sample from
+ * @param indexVector   A reference to an object of type `PartialIndexVector`, the sampled indices should be written to
  * @param iterator      An iterator that provides random access to the available indices to sample from
  * @param numTotal      The total number of available indices to sample from
- * @param numSamples    The number of indices to be sampled
  * @param rng           A reference to an object of type `RNG`, implementing the random number generator to be used
- * @return              An unique pointer to an object of type `IIndexVector` that provides access to the indices that
- *                      are contained in the sub-sample
  */
-template<class T>
-static inline std::unique_ptr<IIndexVector> sampleIndicesWithoutReplacementViaTrackingSelection(T iterator,
-                                                                                                uint32 numTotal,
-                                                                                                uint32 numSamples,
-                                                                                                RNG& rng) {
-    std::unique_ptr<PartialIndexVector> indexVectorPtr = std::make_unique<PartialIndexVector>(numSamples);
-    PartialIndexVector::iterator sampleIterator = indexVectorPtr->begin();
+template<typename Iterator>
+static inline void sampleIndicesWithoutReplacementViaTrackingSelection(PartialIndexVector& indexVector,
+                                                                       Iterator iterator, uint32 numTotal, RNG& rng) {
+    uint32 numSamples = indexVector.getNumElements();
+    PartialIndexVector::iterator sampleIterator = indexVector.begin();
     std::unordered_set<uint32> selectedIndices;
 
     for (uint32 i = 0; i < numSamples; i++) {
@@ -40,29 +36,23 @@ static inline std::unique_ptr<IIndexVector> sampleIndicesWithoutReplacementViaTr
 
         sampleIterator[i] = sampledIndex;
     }
-
-    return indexVectorPtr;;
 }
 
 /**
  * Randomly selects `numSamples` out of `numTotal` indices without replacement using a reservoir sampling algorithm.
  * This method is suitable if `numSamples` is almost as large as `numTotal`.
  *
- * @tparam T            The type of the iterator that provides random access to the available indices to sample from
+ * @tparam Iterator     The type of the iterator that provides random access to the available indices to sample from
+ * @param indexVector   A reference to an object of type `PartialIndexVector`, the sampled indices should be written to
  * @param iterator      An iterator that provides random access to the available indices to sample from
  * @param numTotal      The total number of available indices to sample from
- * @param numSamples    The number of indices to be sampled
  * @param rng           A reference to an object of type `RNG`, implementing the random number generator to be used
- * @return              A pointer to an object of type `IIndexVector` that provides access to the indices that are
- *                      contained in the sub-sample
  */
-template<class T>
-static inline std::unique_ptr<IIndexVector> sampleIndicesWithoutReplacementViaReservoirSampling(T iterator,
-                                                                                                uint32 numTotal,
-                                                                                                uint32 numSamples,
-                                                                                                RNG& rng) {
-    std::unique_ptr<PartialIndexVector> indexVectorPtr = std::make_unique<PartialIndexVector>(numSamples);
-    PartialIndexVector::iterator sampleIterator = indexVectorPtr->begin();
+template<typename Iterator>
+static inline void sampleIndicesWithoutReplacementViaReservoirSampling(PartialIndexVector& indexVector,
+                                                                       Iterator iterator, uint32 numTotal, RNG& rng) {
+    uint32 numSamples = indexVector.getNumElements();
+    PartialIndexVector::iterator sampleIterator = indexVector.begin();
 
     for (uint32 i = 0; i < numSamples; i++) {
         sampleIterator[i] = iterator[i];
@@ -75,12 +65,11 @@ static inline std::unique_ptr<IIndexVector> sampleIndicesWithoutReplacementViaRe
             sampleIterator[randomIndex] = iterator[i];
         }
     }
-
-    return indexVectorPtr;
 }
 
 /**
- * Computes a random permutation of the indices that are contained by two mutually exclusive sets.
+ * Computes a random permutation of the indices that are contained by two mutually exclusive sets using the Fisher-Yates
+ * shuffle.
  *
  * @tparam FirstIterator    The type of the iterator that provides random access to the indices that are contained by
  *                          the first set
@@ -90,12 +79,13 @@ static inline std::unique_ptr<IIndexVector> sampleIndicesWithoutReplacementViaRe
  * @param secondIterator    The iterator that provides random access to the indices that are contained by the second set
  * @param numFirst          The number of indices that are contained by the first set
  * @param numTotal          The total number of indices to sample from
+ * @param numPermutations   The maximum number of permutations to be performed. Must be in [1, numTotal)
  * @param rng               A reference to an object of type `RNG`, implementing the random number generator to be used
  */
-template<class FirstIterator, class SecondIterator>
+template<typename FirstIterator, typename SecondIterator>
 static inline void randomPermutation(FirstIterator firstIterator, SecondIterator secondIterator, uint32 numFirst,
-                                     uint32 numTotal, RNG& rng) {
-    for (uint32 i = 0; i < numTotal - 2; i++) {
+                                     uint32 numTotal, uint32 numPermutations, RNG& rng) {
+    for (uint32 i = 0; i < numPermutations; i++) {
         // Swap elements at index i and at a randomly selected index...
         uint32 randomIndex = rng.random(i, numTotal);
         uint32 tmp1 = i < numFirst ? firstIterator[i] : secondIterator[i - numFirst];
@@ -119,23 +109,19 @@ static inline void randomPermutation(FirstIterator firstIterator, SecondIterator
 
 /**
  * Randomly selects `numSamples` out of `numTotal` indices without replacement by first generating a random permutation
- * of the available indices using the Fisher-Yates shuffle and then returning the first `numSamples` indices.
+ * of the available indices and then returning the first `numSamples` indices.
  *
- * @tparam T            The type of the iterator that provides random access to the available indices to sample from
+ * @tparam Iterator     The type of the iterator that provides random access to the available indices to sample from
+ * @param indexVector   A reference to an object of type `PartialIndexVector`, the sampled indices should be written to
  * @param iterator      An iterator that provides random access to the available indices to sample from
  * @param numTotal      The total number of available indices to sample from
- * @param numSamples    The number of indices to be sampled
  * @param rng           A reference to an object of type `RNG`, implementing the random number generator to be used
- * @return              An unique pointer to an object of type `IIndexVector` that provides access to the indices that
- *                      are contained in the sub-sample
  */
-template<class T>
-static inline std::unique_ptr<IIndexVector> sampleIndicesWithoutReplacementViaRandomPermutation(T iterator,
-                                                                                                uint32 numTotal,
-                                                                                                uint32 numSamples,
-                                                                                                RNG& rng) {
-    std::unique_ptr<PartialIndexVector> indexVectorPtr = std::make_unique<PartialIndexVector>(numSamples);
-    PartialIndexVector::iterator sampleIterator = indexVectorPtr->begin();
+template<typename Iterator>
+static inline void sampleIndicesWithoutReplacementViaRandomPermutation(PartialIndexVector& indexVector,
+                                                                       Iterator iterator, uint32 numTotal, RNG& rng) {
+    uint32 numSamples = indexVector.getNumElements();
+    PartialIndexVector::iterator sampleIterator = indexVector.begin();
     uint32 unusedIndices[numTotal - numSamples];
 
     for (uint32 i = 0; i < numSamples; i++) {
@@ -147,36 +133,33 @@ static inline std::unique_ptr<IIndexVector> sampleIndicesWithoutReplacementViaRa
     }
 
     randomPermutation<PartialIndexVector::iterator, uint32*>(sampleIterator, &unusedIndices[0], numSamples, numTotal,
-                                                             rng);
-    return indexVectorPtr;
+                                                             numSamples, rng);
 }
 
 /**
  * Randomly selects `numSamples` out of `numTotal` indices without replacement. The method that is used internally is
  * chosen automatically, depending on the ratio `numSamples / numTotal`.
  *
- * @tparam T            The type of the iterator that provides random access to the available indices to sample from
+ * @tparam Iterator     The type of the iterator that provides random access to the available indices to sample from
+ * @param indexVector   A reference to an object of type `PartialIndexVector`, the sampled indices should be written to
  * @param iterator      An iterator that provides random access to the available indices to sample from
  * @param numTotal      The total number of available indices to sample from
- * @param numSamples    The number of indices to be sampled
  * @param rng           A reference to an object of type `RNG`, implementing the random number generator to be used
- * @return              An unique pointer to an object of type `IIndexVector` that provides access to the indices that
- *                      are contained in the sub-sample
  */
-template<class T>
-static inline std::unique_ptr<IIndexVector> sampleIndicesWithoutReplacement(T iterator, uint32 numTotal,
-                                                                            uint32 numSamples, RNG& rng) {
-    float64 ratio = numTotal > 0 ? ((float64) numSamples) / ((float64) numTotal) : 1;
+template<typename Iterator>
+static inline void sampleIndicesWithoutReplacement(PartialIndexVector& indexVector, Iterator iterator, uint32 numTotal,
+                                                   RNG& rng) {
+    float64 ratio = numTotal > 0 ? ((float64) indexVector.getNumElements()) / ((float64) numTotal) : 1;
 
     // The thresholds for choosing a suitable method are based on empirical experiments
     if (ratio < 0.06) {
         // For very small ratios use tracking selection
-        return sampleIndicesWithoutReplacementViaTrackingSelection(iterator, numTotal, numSamples, rng);
+        sampleIndicesWithoutReplacementViaTrackingSelection(indexVector, iterator, numTotal, rng);
     } else if (ratio > 0.5) {
         // For large ratios use reservoir sampling
-        return sampleIndicesWithoutReplacementViaReservoirSampling(iterator, numTotal, numSamples, rng);
+        sampleIndicesWithoutReplacementViaReservoirSampling(indexVector, iterator, numTotal, rng);
     } else {
         // Otherwise, use random permutation as the default method
-        return sampleIndicesWithoutReplacementViaRandomPermutation(iterator, numTotal, numSamples, rng);
+        sampleIndicesWithoutReplacementViaRandomPermutation(indexVector, iterator, numTotal, rng);
     }
 }

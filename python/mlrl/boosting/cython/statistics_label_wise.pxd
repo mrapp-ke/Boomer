@@ -2,21 +2,22 @@ from mlrl.common.cython.statistics cimport StatisticsProviderFactory, IStatistic
 from mlrl.boosting.cython.losses_label_wise cimport ILabelWiseLoss
 from mlrl.boosting.cython.rule_evaluation_label_wise cimport ILabelWiseRuleEvaluationFactory
 
-from libcpp.memory cimport shared_ptr
+from libcpp.memory cimport unique_ptr
 
 
-cdef extern from "boosting/statistics/statistics_label_wise_provider.hpp" namespace "boosting" nogil:
+cdef extern from "boosting/statistics/statistics_provider_factory_label_wise_dense.hpp" namespace "boosting" nogil:
 
-    cdef cppclass LabelWiseStatisticsProviderFactoryImpl"boosting::LabelWiseStatisticsProviderFactory"(
+    cdef cppclass DenseLabelWiseStatisticsProviderFactoryImpl"boosting::DenseLabelWiseStatisticsProviderFactory"(
             IStatisticsProviderFactory):
 
         # Constructors:
 
-        LabelWiseStatisticsProviderFactoryImpl(
-            shared_ptr[ILabelWiseLoss] lossFunctionPtr,
-            shared_ptr[ILabelWiseRuleEvaluationFactory] defaultRuleEvaluationFactoryPtr,
-            shared_ptr[ILabelWiseRuleEvaluationFactory] ruleEvaluationFactoryPtr) except +
+        DenseLabelWiseStatisticsProviderFactoryImpl(
+            unique_ptr[ILabelWiseLoss] lossFunctionPtr,
+            unique_ptr[ILabelWiseRuleEvaluationFactory] defaultRuleEvaluationFactoryPtr,
+            unique_ptr[ILabelWiseRuleEvaluationFactory] regularRuleEvaluationFactoryPtr,
+            unique_ptr[ILabelWiseRuleEvaluationFactory] pruningRuleEvaluationFactoryPtr) except +
 
 
-cdef class LabelWiseStatisticsProviderFactory(StatisticsProviderFactory):
+cdef class DenseLabelWiseStatisticsProviderFactory(StatisticsProviderFactory):
     pass

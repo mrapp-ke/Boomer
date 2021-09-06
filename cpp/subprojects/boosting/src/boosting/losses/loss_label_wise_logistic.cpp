@@ -11,7 +11,7 @@ namespace boosting {
      * @param x The value `x`
      * @return  The value that has been calculated
      */
-    static inline float64 squaredLogisticFunction(float64 x) {
+    static inline constexpr float64 squaredLogisticFunction(float64 x) {
         if (x >= 0) {
             float64 exponential = std::exp(-x);  // Evaluates to 0 for large x, resulting in 1 ultimately
             return 1 / ((exponential + 1) * (exponential + 1));
@@ -31,7 +31,7 @@ namespace boosting {
      * @param x The value `x`
      * @return  The value that has been calculated
      */
-    static inline float64 logSumExp(float64 x) {
+    static inline constexpr float64 logSumExp(float64 x) {
         if (x > 0) {
             return x + std::log(std::exp(0 - x) + 1);
         } else {
@@ -39,9 +39,8 @@ namespace boosting {
         }
     }
 
-    void LabelWiseLogisticLoss::updateGradientAndHessian(DenseVector<float64>::iterator gradient,
-                                                         DenseVector<float64>::iterator hessian, bool trueLabel,
-                                                         float64 predictedScore) const {
+    static inline void updateGradientAndHessian(bool trueLabel, float64 predictedScore, float64* gradient,
+                                                float64* hessian) {
         // The gradient computes as `-expectedScore / (1 + exp(expectedScore * predictedScore))`, or as
         // `1 / (1 + exp(-predictedScore)) - 1` if `trueLabel == true`, `1 / (1 + exp(-predictedScore))`, otherwise...
         float64 logistic = logisticFunction(predictedScore);
@@ -52,10 +51,15 @@ namespace boosting {
         *hessian = logistic - squaredLogisticFunction(predictedScore);
     }
 
-    float64 LabelWiseLogisticLoss::evaluate(bool trueLabel, float64 predictedScore) const {
+    static inline float64 evaluatePrediction(bool trueLabel, float64 predictedScore) {
        // The logistic loss calculates as `log(1 + exp(-expectedScore * predictedScore))`...
         float64 x = trueLabel ? -predictedScore : predictedScore;
         return logSumExp(x);
+    }
+
+    LabelWiseLogisticLoss::LabelWiseLogisticLoss()
+        : AbstractLabelWiseLoss(&updateGradientAndHessian, &evaluatePrediction) {
+
     }
 
 }

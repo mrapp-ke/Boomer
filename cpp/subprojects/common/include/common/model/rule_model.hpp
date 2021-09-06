@@ -4,7 +4,7 @@
 #pragma once
 
 #include "common/model/rule.hpp"
-#include <list>
+#include <forward_list>
 #include <iterator>
 
 
@@ -15,20 +15,14 @@ class RuleModel final {
 
     private:
 
-        std::list<Rule> list_;
-
-        uint32 numUsedRules_;
-
-    public:
-
         /**
          * Allows to iterate only the used rules.
          */
-        class UsedIterator final {
+        class RuleConstIterator final {
 
             private:
 
-                std::list<Rule>::const_iterator iterator_;
+                std::forward_list<Rule>::const_iterator iterator_;
 
                 uint32 index_;
 
@@ -38,7 +32,7 @@ class RuleModel final {
                  * @param list  A reference to the list that stores all available rules
                  * @param index The index to start at
                  */
-                UsedIterator(const std::list<Rule>& list, uint32 index);
+                RuleConstIterator(const std::forward_list<Rule>& list, uint32 index);
 
                 /**
                  * The type that is used to represent the difference between two iterators.
@@ -63,7 +57,7 @@ class RuleModel final {
                 /**
                  * The tag that specifies the capabilities of the iterator.
                  */
-                typedef std::input_iterator_tag iterator_category;
+                typedef std::forward_iterator_tag iterator_category;
 
                 /**
                  * Returns the element, the iterator currently refers to.
@@ -77,14 +71,22 @@ class RuleModel final {
                  *
                  * @return A reference to an iterator that refers to the next element
                  */
-                UsedIterator& operator++();
+                RuleConstIterator& operator++();
 
                 /**
                  * Returns an iterator that refers to the next element.
                  *
                  * @return A reference to an iterator that refers to the next element
                  */
-                UsedIterator& operator++(int n);
+                RuleConstIterator& operator++(int n);
+
+                /**
+                 * Returns whether this iterator and another one refer to the same element.
+                 *
+                 * @param rhs   A reference to another iterator
+                 * @return      True, if the iterators do not refer to the same element, false otherwise
+                 */
+                bool operator!=(const RuleConstIterator& rhs) const;
 
                 /**
                  * Returns whether this iterator and another one refer to the same element.
@@ -92,29 +94,31 @@ class RuleModel final {
                  * @param rhs   A reference to another iterator
                  * @return      True, if the iterators refer to the same element, false otherwise
                  */
-                bool operator!=(const UsedIterator& rhs) const;
-
-                /**
-                 * Returns the difference between this iterator and another one.
-                 *
-                 * @param rhs   A reference to another iterator
-                 * @return      The difference between the iterators
-                 */
-                difference_type operator-(const UsedIterator& rhs) const;
+                bool operator==(const RuleConstIterator& rhs) const;
 
         };
+
+        std::forward_list<Rule> list_;
+
+        std::forward_list<Rule>::iterator it_;
+
+        uint32 numRules_;
+
+        uint32 numUsedRules_;
+
+    public:
 
         RuleModel();
 
         /**
          * An iterator that provides read-only access to all rules.
          */
-        typedef std::list<Rule>::const_iterator const_iterator;
+        typedef std::forward_list<Rule>::const_iterator const_iterator;
 
         /**
          * An iterator that provides read-only access to the used rules.
          */
-        typedef UsedIterator used_const_iterator;
+        typedef RuleConstIterator used_const_iterator;
 
         /**
          * Returns a `const_iterator` to the beginning of the rules.
@@ -179,11 +183,11 @@ class RuleModel final {
          *
          * @param emptyBodyVisitor          The visitor function for handling objects of the type `EmptyBody`
          * @param conjunctiveBodyVisitor    The visitor function for handling objects of the type `ConjunctiveBody`
-         * @param fullHeadVisitor           The visitor function for handling objects of the type `FullHead`
+         * @param completeHeadVisitor       The visitor function for handling objects of the type `CompleteHead`
          * @param partialHeadVisitor        The visitor function for handling objects of the type `PartialHead`
          */
         void visit(IBody::EmptyBodyVisitor emptyBodyVisitor, IBody::ConjunctiveBodyVisitor conjunctiveBodyVisitor,
-                   IHead::FullHeadVisitor fullHeadVisitor, IHead::PartialHeadVisitor partialHeadVisitor) const;
+                   IHead::CompleteHeadVisitor completeHeadVisitor, IHead::PartialHeadVisitor partialHeadVisitor) const;
 
 
         /**
@@ -192,10 +196,11 @@ class RuleModel final {
          *
          * @param emptyBodyVisitor          The visitor function for handling objects of the type `EmptyBody`
          * @param conjunctiveBodyVisitor    The visitor function for handling objects of the type `ConjunctiveBody`
-         * @param fullHeadVisitor           The visitor function for handling objects of the type `FullHead`
+         * @param completeHeadVisitor       The visitor function for handling objects of the type `CompleteHead`
          * @param partialHeadVisitor        The visitor function for handling objects of the type `PartialHead`
          */
         void visitUsed(IBody::EmptyBodyVisitor emptyBodyVisitor, IBody::ConjunctiveBodyVisitor conjunctiveBodyVisitor,
-                       IHead::FullHeadVisitor fullHeadVisitor, IHead::PartialHeadVisitor partialHeadVisitor) const;
+                       IHead::CompleteHeadVisitor completeHeadVisitor,
+                       IHead::PartialHeadVisitor partialHeadVisitor) const;
 
 };

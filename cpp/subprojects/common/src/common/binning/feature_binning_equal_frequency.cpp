@@ -3,6 +3,7 @@
 #include "common/binning/bin_index_vector_dok.hpp"
 #include "common/binning/binning.hpp"
 #include "common/math/math.hpp"
+#include "common/validation.hpp"
 
 
 static inline uint32 getNumBins(FeatureVector& featureVector, bool sparse, float32 binRatio, uint32 minBins,
@@ -41,7 +42,10 @@ static inline uint32 getNumBins(FeatureVector& featureVector, bool sparse, float
 
 EqualFrequencyFeatureBinning::EqualFrequencyFeatureBinning(float32 binRatio, uint32 minBins, uint32 maxBins)
     : binRatio_(binRatio), minBins_(minBins), maxBins_(maxBins) {
-
+    assertGreater<float32>("binRatio", binRatio, 0);
+    assertLess<float32>("binRatio", binRatio, 1);
+    assertGreaterOrEqual<uint32>("minBins", minBins, 2);
+    if (maxBins != 0) { assertGreaterOrEqual<uint32>("maxBins", maxBins, minBins); }
 }
 
 IFeatureBinning::Result EqualFrequencyFeatureBinning::createBins(FeatureVector& featureVector,

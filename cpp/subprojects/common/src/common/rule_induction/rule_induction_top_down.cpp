@@ -1,53 +1,51 @@
 #include "common/rule_induction/rule_induction_top_down.hpp"
-#include "common/indices/index_vector_full.hpp"
+#include "common/rule_refinement/score_processor.hpp"
+#include "common/indices/index_vector_complete.hpp"
+#include "common/validation.hpp"
 #include "omp.h"
 #include <unordered_map>
 
 
-TopDownRuleInduction::TopDownRuleInduction(uint32 numThreads)
-    : numThreads_(numThreads) {
-
+TopDownRuleInduction::TopDownRuleInduction(uint32 minCoverage, uint32 maxConditions, uint32 maxHeadRefinements,
+                                           bool recalculatePredictions, uint32 numThreads)
+    : minCoverage_(minCoverage), maxConditions_(maxConditions), maxHeadRefinements_(maxHeadRefinements),
+      recalculatePredictions_(recalculatePredictions), numThreads_(numThreads) {
+    assertGreaterOrEqual<uint32>("minCoverage", minCoverage, 1);
+    if (maxConditions != 0) { assertGreaterOrEqual<uint32>("maxConditions", maxConditions, 1); }
+    if (maxHeadRefinements != 0) { assertGreaterOrEqual<uint32>("maxHeadRefinements", maxHeadRefinements, 1); }
+    assertGreaterOrEqual<uint32>("numThreads", numThreads, 1);
 }
 
-void TopDownRuleInduction::induceDefaultRule(IStatisticsProvider& statisticsProvider,
-                                             const IHeadRefinementFactory* headRefinementFactory,
-                                             IModelBuilder& modelBuilder) const {
-    if (headRefinementFactory != nullptr) {
-        IStatistics& statistics = statisticsProvider.get();
-        uint32 numStatistics = statistics.getNumStatistics();
-        uint32 numLabels = statistics.getNumLabels();
-        statistics.resetSampledStatistics();
+void TopDownRuleInduction::induceDefaultRule(IStatistics& statistics, IModelBuilder& modelBuilder) const {
+    uint32 numStatistics = statistics.getNumStatistics();
+    uint32 numLabels = statistics.getNumLabels();
+    statistics.resetSampledStatistics();
 
-        for (uint32 i = 0; i < numStatistics; i++) {
-            statistics.addSampledStatistic(i, 1);
-        }
-
-        FullIndexVector labelIndices(numLabels);
-        std::unique_ptr<IStatisticsSubset> statisticsSubsetPtr = labelIndices.createSubset(statistics);
-        std::unique_ptr<IHeadRefinement> headRefinementPtr = headRefinementFactory->create(labelIndices);
-        headRefinementPtr->findHead(nullptr, *statisticsSubsetPtr, true, false);
-        std::unique_ptr<AbstractEvaluatedPrediction> defaultPredictionPtr = headRefinementPtr->pollHead();
-        statisticsProvider.switchRuleEvaluation();
-
-        for (uint32 i = 0; i < numStatistics; i++) {
-            defaultPredictionPtr->apply(statistics, i);
-        }
-
-        modelBuilder.setDefaultRule(*defaultPredictionPtr);
-    } else {
-        statisticsProvider.switchRuleEvaluation();
+    for (uint32 i = 0; i < numStatistics; i++) {
+        statistics.addSampledStatistic(i, 1);
     }
+
+    CompleteIndexVector labelIndices(numLabels);
+    std::unique_ptr<IStatisticsSubset> statisticsSubsetPtr = labelIndices.createSubset(statistics);
+    const IScoreVector& scoreVector = statisticsSubsetPtr->calculatePrediction(true, false);
+    ScoreProcessor scoreProcessor;
+    scoreProcessor.processScores(scoreVector);
+    std::unique_ptr<AbstractEvaluatedPrediction> defaultPredictionPtr = scoreProcessor.pollHead();
+
+    for (uint32 i = 0; i < numStatistics; i++) {
+        defaultPredictionPtr->apply(statistics, i);
+    }
+
+    modelBuilder.setDefaultRule(*defaultPredictionPtr);
 }
 
 bool TopDownRuleInduction::induceRule(IThresholds& thresholds, const IIndexVector& labelIndices,
                                       const IWeightVector& weights, IPartition& partition,
-                                      const IFeatureSubSampling& featureSubSampling, const IPruning& pruning,
-                                      const IPostProcessor& postProcessor, uint32 minCoverage, intp maxConditions,
-                                      intp maxHeadRefinements, RNG& rng, IModelBuilder& modelBuilder) const {
-    // The total number of features
-    uint32 numFeatures = thresholds.getNumFeatures();
-    // True, if the rule is learned on a sub-sample of the available training examples, False otherwise
-    bool instanceSubSamplingUsed = weights.hasZeroWeights();
+                                      IFeatureSampling& featureSampling, const IPruning& pruning,
+                                      const IPostProcessor& postProcessor, RNG& rng,
+                                      IModelBuilder& modelBuilder) const {
+    // True, if the rule is learned on a sample of the available training examples, False otherwise
+    bool instanceSamplingUsed = weights.hasZeroWeights();
     // The label indices for which the next refinement of the rule may predict
     const IIndexVector* currentLabelIndices = &labelIndices;
     // A (stack-allocated) list that contains the conditions in the rule's body (in the order they have been learned)
@@ -69,16 +67,16 @@ bool TopDownRuleInduction::induceRule(IThresholds& thresholds, const IIndexVecto
 
     // Search for the best refinement until no improvement in terms of the rule's quality score is possible anymore or
     // the maximum number of conditions has been reached...
-    while (foundRefinement && (maxConditions == -1 || numConditions < maxConditions)) {
+    while (foundRefinement && (maxConditions_ == 0 || numConditions < maxConditions_)) {
         foundRefinement = false;
 
         // Sample features...
-        std::unique_ptr<IIndexVector> sampledFeatureIndicesPtr = featureSubSampling.subSample(numFeatures, rng);
-        uint32 numSampledFeatures = sampledFeatureIndicesPtr->getNumElements();
+        const IIndexVector& sampledFeatureIndices = featureSampling.sample(rng);
+        uint32 numSampledFeatures = sampledFeatureIndices.getNumElements();
 
         // For each feature, create an object of type `IRuleRefinement`...
         for (intp i = 0; i < numSampledFeatures; i++) {
-            uint32 featureIndex = sampledFeatureIndicesPtr->getIndex((uint32) i);
+            uint32 featureIndex = sampledFeatureIndices.getIndex((uint32) i);
             std::unique_ptr<IRuleRefinement> ruleRefinementPtr = currentLabelIndices->createRuleRefinement(
                 *thresholdsSubsetPtr, featureIndex);
             ruleRefinements[featureIndex] = std::move(ruleRefinementPtr);
@@ -88,14 +86,14 @@ bool TopDownRuleInduction::induceRule(IThresholds& thresholds, const IIndexVecto
         #pragma omp parallel for firstprivate(numSampledFeatures) firstprivate(ruleRefinementsPtr) \
         firstprivate(bestHead) schedule(dynamic) num_threads(numThreads_)
         for (intp i = 0; i < numSampledFeatures; i++) {
-            uint32 featureIndex = sampledFeatureIndicesPtr->getIndex((uint32) i);
+            uint32 featureIndex = sampledFeatureIndices.getIndex((uint32) i);
             std::unique_ptr<IRuleRefinement>& ruleRefinementPtr = ruleRefinementsPtr->find(featureIndex)->second;
             ruleRefinementPtr->findRefinement(bestHead);
         }
 
         // Pick the best refinement among the refinements that have been found for the different features...
         for (intp i = 0; i < numSampledFeatures; i++) {
-            uint32 featureIndex = sampledFeatureIndicesPtr->getIndex((uint32) i);
+            uint32 featureIndex = sampledFeatureIndices.getIndex((uint32) i);
             std::unique_ptr<IRuleRefinement>& ruleRefinementPtr = ruleRefinements.find(featureIndex)->second;
             std::unique_ptr<Refinement> refinementPtr = ruleRefinementPtr->pollRefinement();
 
@@ -110,19 +108,19 @@ bool TopDownRuleInduction::induceRule(IThresholds& thresholds, const IIndexVecto
 
             // Filter the current subset of thresholds by applying the best refinement that has been found...
             thresholdsSubsetPtr->filterThresholds(*bestRefinementPtr);
-            uint32 numCoveredExamples = bestRefinementPtr->coveredWeights;
+            uint32 numCoveredExamples = bestRefinementPtr->numCovered;
 
             // Add the new condition...
             conditions.addCondition(*bestRefinementPtr);
             numConditions++;
 
             // Keep the labels for which the rule predicts, if the head should not be further refined...
-            if (maxHeadRefinements > 0 && numConditions >= maxHeadRefinements) {
+            if (maxHeadRefinements_ > 0 && numConditions >= maxHeadRefinements_) {
                 currentLabelIndices = bestHead;
             }
 
             // Abort refinement process if the rule is not allowed to cover less examples...
-            if (numCoveredExamples <= minCoverage) {
+            if (numCoveredExamples <= minCoverage_) {
                 break;
             }
         }
@@ -133,15 +131,20 @@ bool TopDownRuleInduction::induceRule(IThresholds& thresholds, const IIndexVecto
         // have the same values for the considered features.
         return false;
     } else {
-        if (instanceSubSamplingUsed) {
+        if (instanceSamplingUsed) {
             // Prune rule...
+            IStatisticsProvider& statisticsProvider = thresholds.getStatisticsProvider();
+            statisticsProvider.switchToPruningRuleEvaluation();
             std::unique_ptr<ICoverageState> coverageStatePtr = pruning.prune(*thresholdsSubsetPtr, partition,
                                                                              conditions, *bestHead);
+            statisticsProvider.switchToRegularRuleEvaluation();
 
             // Re-calculate the scores in the head based on the entire training data...
-            const ICoverageState& coverageState =
-                coverageStatePtr.get() != nullptr ? *coverageStatePtr : thresholdsSubsetPtr->getCoverageState();
-            partition.recalculatePrediction(*thresholdsSubsetPtr, coverageState, *bestRefinementPtr);
+            if (recalculatePredictions_) {
+                const ICoverageState& coverageState =
+                    coverageStatePtr.get() != nullptr ? *coverageStatePtr : thresholdsSubsetPtr->getCoverageState();
+                partition.recalculatePrediction(*thresholdsSubsetPtr, coverageState, *bestRefinementPtr);
+            }
         }
 
         // Apply post-processor...

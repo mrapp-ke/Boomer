@@ -3,6 +3,8 @@
  */
 #pragma once
 
+#include "common/input/label_matrix_c_contiguous.hpp"
+#include "common/input/label_matrix_csr.hpp"
 #include "common/statistics/statistics.hpp"
 #include "boosting/rule_evaluation/rule_evaluation_label_wise.hpp"
 
@@ -23,11 +25,9 @@ namespace boosting {
              * Sets the factory that allows to create instances of the class that is used for calculating the
              * predictions, as well as corresponding quality scores, of rules.
              *
-             * @param ruleEvaluationFactoryPtr A shared pointer to an object of type `ILabelWiseRuleEvaluationFactory`
-             *                                 to be set
+             * @param ruleEvaluationFactory A reference to an object of type `ILabelWiseRuleEvaluationFactory` to be set
              */
-            virtual void setRuleEvaluationFactory(
-                std::shared_ptr<ILabelWiseRuleEvaluationFactory> ruleEvaluationFactoryPtr) = 0;
+            virtual void setRuleEvaluationFactory(const ILabelWiseRuleEvaluationFactory& ruleEvaluationFactory) = 0;
 
     };
 
@@ -41,11 +41,24 @@ namespace boosting {
             virtual ~ILabelWiseStatisticsFactory() { };
 
             /**
-             * Creates a new instance of the type `ILabelWiseStatistics`.
+             * Creates a new instance of the class `ILabelWiseStatistics`, based on a matrix that provides random access
+             * to the labels of the training examples.
              *
-             * @return An unique pointer to an object of type `ILabelWiseStatistics` that has been created
+             * @param labelMatrix   A reference to an object of type `CContiguousLabelMatrix` that provides random
+             *                      access to the labels of the training examples
+             * @return              An unique pointer to an object of type `ILabelWiseStatistics` that has been created
              */
-            virtual std::unique_ptr<ILabelWiseStatistics> create() const = 0;
+            virtual std::unique_ptr<ILabelWiseStatistics> create(const CContiguousLabelMatrix& labelMatrix) const = 0;
+
+            /**
+             * Creates a new instance of the type `ILabelWiseStatistics`, based on a matrix that provides row-wise
+             * access to the labels of the training examples.
+             *
+             * @param labelMatrix   A reference to an object of type `CContiguousLabelMatrix` that provides row-wise
+             *                      access to the labels of the training examples
+             * @return              An unique pointer to an object of type `ILabelWiseStatistics` that has been created
+             */
+            virtual std::unique_ptr<ILabelWiseStatistics> create(const CsrLabelMatrix& labelMatrix) const = 0;
 
     };
 

@@ -4,17 +4,17 @@
  */
 #pragma once
 
+#include "common/data/vector_bit.hpp"
 #include "common/rule_refinement/rule_refinement.hpp"
 #include "common/rule_refinement/rule_refinement_callback.hpp"
 #include "common/binning/threshold_vector.hpp"
 #include "common/sampling/weight_vector.hpp"
-#include "common/head_refinement/head_refinement.hpp"
 
 
 /**
  * A vector that stores the weights of individual bins.
  */
-typedef DenseVector<uint8> BinWeightVector;
+typedef BitVector BinWeightVector;
 
 /**
  * Allows to find the best refinements of existing rules, which result from adding a new condition that correspond to a
@@ -24,12 +24,10 @@ typedef DenseVector<uint8> BinWeightVector;
  * @tparam T The type of the vector that provides access to the indices of the labels for which the refined rule is
  *           allowed to predict
  */
-template<class T>
+template<typename T>
 class ApproximateRuleRefinement final : public IRuleRefinement {
 
     private:
-
-        std::unique_ptr<IHeadRefinement> headRefinementPtr_;
 
         const T& labelIndices_;
 
@@ -46,8 +44,6 @@ class ApproximateRuleRefinement final : public IRuleRefinement {
     public:
 
         /**
-         * @param headRefinementPtr An unique pointer to an object of type `IHeadRefinement` that should be used to find
-         *                          the head of refined rules
          * @param labelIndices      A reference to an object of template type `T` that provides access to the indices of
          *                          the labels for which the refined rule is allowed to predict
          * @param featureIndex      The index of the feature, the new condition corresponds to
@@ -57,9 +53,8 @@ class ApproximateRuleRefinement final : public IRuleRefinement {
          * @param callbackPtr       An unique pointer to an object of type `IRuleRefinementCallback` that allows to
          *                          retrieve the bins for a certain feature
          */
-        ApproximateRuleRefinement(std::unique_ptr<IHeadRefinement> headRefinementPtr, const T& labelIndices,
-                                  uint32 featureIndex, bool nominal, const IWeightVector& weights,
-                                  std::unique_ptr<IRuleRefinementCallback<ThresholdVector,
+        ApproximateRuleRefinement(const T& labelIndices, uint32 featureIndex, bool nominal,
+                                  const IWeightVector& weights, std::unique_ptr<IRuleRefinementCallback<ThresholdVector,
                                   BinWeightVector>> callbackPtr);
 
         void findRefinement(const AbstractEvaluatedPrediction* currentHead) override;

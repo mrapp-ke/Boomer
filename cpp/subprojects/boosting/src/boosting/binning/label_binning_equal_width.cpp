@@ -1,132 +1,144 @@
 #include "boosting/binning/label_binning_equal_width.hpp"
-#include "boosting/data/vector_dense_label_wise.hpp"
-#include "boosting/data/vector_dense_example_wise.hpp"
-#include "boosting/math/math.hpp"
 #include "common/binning/binning.hpp"
+#include "common/validation.hpp"
 #include <limits>
 
 
 namespace boosting {
 
-    static inline float64 calculateStatistic(float64 gradient, float64 hessian, float64 l2RegularizationWeight) {
-        return divideOrZero<float64>(gradient, hessian + l2RegularizationWeight);
-    }
+    /**
+     * Assigns labels to bins, based on the corresponding gradients and Hessians, in a way such that each bin contains
+     * labels for which the predicted score is expected to belong to the same value range.
+     */
+    class EqualWidthLabelBinning final : public ILabelBinning {
 
-    template<class GradientIterator, class HessianIterator>
-    EqualWidthLabelBinning<GradientIterator, HessianIterator>::EqualWidthLabelBinning(float32 binRatio, uint32 minBins,
-                                                                                      uint32 maxBins)
+        private:
+
+            float32 binRatio_;
+
+            uint32 minBins_;
+
+            uint32 maxBins_;
+
+        public:
+
+            /**
+             * @param binRatio  A percentage that specifies how many bins should be used to assign labels to, e.g., if
+             *                  100 labels are available, 0.5 means that `ceil(0.5 * 100) = 50` bins should be used.
+             *                  Must be in (0, 1)
+             * @param minBins   The minimum number of bins to be used to assign labels to. Must be at least 2
+             * @param maxBins   The maximum number of bins to be used to assign labels to. Must be at least `minBins` or
+             *                  0, if the maximum number of bins should not be restricted
+             */
+            EqualWidthLabelBinning(float32 binRatio, uint32 minBins, uint32 maxBins)
+                : binRatio_(binRatio), minBins_(minBins), maxBins_(maxBins) {
+                assertGreater<float32>("binRatio", binRatio, 0.0);
+                assertLess<uint32>("binRatio", binRatio, 1.0);
+                assertGreaterOrEqual<uint32>("minBins", minBins, 1);
+                if (maxBins != 0) { assertGreaterOrEqual<uint32>("maxBins", maxBins, minBins); }
+            }
+
+            uint32 getMaxBins(uint32 numLabels) const override {
+                return calculateNumBins(numLabels, binRatio_, minBins_, maxBins_) + 1;
+            }
+
+            LabelInfo getLabelInfo(const float64* criteria, uint32 numElements) const override {
+                LabelInfo labelInfo;
+                labelInfo.numNegativeBins = 0;
+                labelInfo.numPositiveBins = 0;
+
+                if (numElements > 0) {
+                    labelInfo.minNegative = 0;
+                    labelInfo.maxNegative = -std::numeric_limits<float64>::infinity();
+                    labelInfo.minPositive = std::numeric_limits<float64>::infinity();
+                    labelInfo.maxPositive = 0;
+
+                    for (uint32 i = 0; i < numElements; i++) {
+                        float64 criterion = criteria[i];
+
+                        if (criterion < 0) {
+                            labelInfo.numNegativeBins++;
+
+                            if (criterion < labelInfo.minNegative) {
+                                labelInfo.minNegative = criterion;
+                            }
+
+                            if (criterion > labelInfo.maxNegative) {
+                                labelInfo.maxNegative = criterion;
+                            }
+                        } else if (criterion > 0) {
+                            labelInfo.numPositiveBins++;
+
+                            if (criterion < labelInfo.minPositive) {
+                                labelInfo.minPositive = criterion;
+                            }
+
+                            if (criterion > labelInfo.maxPositive) {
+                                labelInfo.maxPositive = criterion;
+                            }
+                        }
+                    }
+
+                    if (labelInfo.numNegativeBins > 0) {
+                        labelInfo.numNegativeBins = calculateNumBins(labelInfo.numNegativeBins, binRatio_, minBins_,
+                                                                     maxBins_);
+                    }
+
+                    if (labelInfo.numPositiveBins > 0) {
+                        labelInfo.numPositiveBins = calculateNumBins(labelInfo.numPositiveBins, binRatio_, minBins_,
+                                                                     maxBins_);
+                    }
+                }
+
+                return labelInfo;
+            }
+
+            void createBins(LabelInfo labelInfo, const float64* criteria, uint32 numElements, Callback callback,
+                            ZeroCallback zeroCallback) const override {
+                uint32 numNegativeBins = labelInfo.numNegativeBins;
+                float64 minNegative = labelInfo.minNegative;
+                float64 maxNegative = labelInfo.maxNegative;
+                uint32 numPositiveBins = labelInfo.numPositiveBins;
+                float64 minPositive = labelInfo.minPositive;
+                float64 maxPositive = labelInfo.maxPositive;
+
+                float64 spanPerNegativeBin = minNegative < 0 ? (maxNegative - minNegative) / numNegativeBins : 0;
+                float64 spanPerPositiveBin = maxPositive > 0 ? (maxPositive - minPositive) / numPositiveBins : 0;
+
+                for (uint32 i = 0; i < numElements; i++) {
+                    float64 criterion = criteria[i];
+
+                    if (criterion < 0) {
+                        uint32 binIndex = std::floor((criterion - minNegative) / spanPerNegativeBin);
+
+                        if (binIndex >= numNegativeBins) {
+                            binIndex = numNegativeBins - 1;
+                        }
+
+                        callback(binIndex, i);
+                    } else if (criterion > 0) {
+                        uint32 binIndex = std::floor((criterion - minPositive) / spanPerPositiveBin);
+
+                        if (binIndex >= numPositiveBins) {
+                            binIndex = numPositiveBins - 1;
+                        }
+
+                        callback(numNegativeBins + binIndex, i);
+                    } else {
+                        zeroCallback(i);
+                    }
+                }
+            }
+
+    };
+
+    EqualWidthLabelBinningFactory::EqualWidthLabelBinningFactory(float32 binRatio, uint32 minBins, uint32 maxBins)
         : binRatio_(binRatio), minBins_(minBins), maxBins_(maxBins) {
 
     }
 
-    template<class GradientIterator, class HessianIterator>
-    uint32 EqualWidthLabelBinning<GradientIterator, HessianIterator>::getMaxBins(uint32 numLabels) const {
-        return calculateNumBins(numLabels, binRatio_, minBins_, maxBins_) + 1;
+    std::unique_ptr<ILabelBinning> EqualWidthLabelBinningFactory::create() const {
+        return std::make_unique<EqualWidthLabelBinning>(binRatio_, minBins_, maxBins_);
     }
-
-    template<class GradientIterator, class HessianIterator>
-    LabelInfo EqualWidthLabelBinning<GradientIterator, HessianIterator>::getLabelInfo(
-            GradientIterator gradientsBegin, GradientIterator gradientsEnd, HessianIterator hessiansBegin,
-            HessianIterator hessiansEnd, float64 l2RegularizationWeight) const {
-        LabelInfo labelInfo;
-        uint32 numStatistics = gradientsEnd - gradientsBegin;
-
-        if (numStatistics > 0) {
-            // Find minimum and maximum among the positive gradients and negative gradients, respectively...
-            uint32 numPositive = 0;
-            uint32 numNegative = 0;
-            labelInfo.minPositive = std::numeric_limits<float64>::infinity();
-            labelInfo.maxPositive = 0;
-            labelInfo.minNegative = 0;
-            labelInfo.maxNegative = -std::numeric_limits<float64>::infinity();
-
-            for (uint32 i = 0; i < numStatistics; i++) {
-                float64 statistic = calculateStatistic(gradientsBegin[i], hessiansBegin[i], l2RegularizationWeight);
-
-                if (statistic < 0) {
-                    numNegative++;
-
-                    if (statistic < labelInfo.minNegative) {
-                        labelInfo.minNegative = statistic;
-                    }
-
-                    if (statistic > labelInfo.maxNegative) {
-                        labelInfo.maxNegative = statistic;
-                    }
-                } else if (statistic > 0) {
-                    numPositive++;
-
-                    if (statistic < labelInfo.minPositive) {
-                        labelInfo.minPositive = statistic;
-                    }
-
-                    if (statistic > labelInfo.maxPositive) {
-                        labelInfo.maxPositive = statistic;
-                    }
-                }
-            }
-
-            labelInfo.numNegativeBins =
-                numPositive > 0 ? calculateNumBins(numPositive, binRatio_, minBins_, maxBins_) : 0;
-            labelInfo.numPositiveBins =
-                numNegative > 0 ? calculateNumBins(numNegative, binRatio_, minBins_, maxBins_) : 0;
-        } else {
-            labelInfo.numPositiveBins = 0;
-            labelInfo.numNegativeBins = 0;
-        }
-
-        return labelInfo;
-    }
-
-    template<class GradientIterator, class HessianIterator>
-    void EqualWidthLabelBinning<GradientIterator, HessianIterator>::createBins(
-            LabelInfo labelInfo, GradientIterator gradientsBegin, GradientIterator gradientsEnd,
-            HessianIterator hessiansBegin, HessianIterator hessiansEnd, float64 l2RegularizationWeight,
-            typename ILabelBinning<GradientIterator, HessianIterator>::Callback callback,
-            typename ILabelBinning<GradientIterator, HessianIterator>::ZeroCallback zeroCallback) const {
-        uint32 numPositiveBins = labelInfo.numPositiveBins;
-        float64 minPositive = labelInfo.minPositive;
-        float64 maxPositive = labelInfo.maxPositive;
-        uint32 numNegativeBins = labelInfo.numNegativeBins;
-        float64 minNegative = labelInfo.minNegative;
-        float64 maxNegative = labelInfo.maxNegative;
-
-        float64 spanPerNegativeBin = maxPositive > 0 ? (maxPositive - minPositive) / numNegativeBins : 0;
-        float64 spanPerPositiveBin = minNegative < 0 ? (maxNegative - minNegative) / numPositiveBins : 0;
-
-        // Assign labels to bins...
-        uint32 numStatistics = gradientsEnd - gradientsBegin;
-
-        for (uint32 i = 0; i < numStatistics; i++) {
-            float64 statistic = calculateStatistic(gradientsBegin[i], hessiansBegin[i], l2RegularizationWeight);
-
-            if (statistic > 0) {
-                // Gradient is positive, i.e., label belongs to a negative bin...
-                uint32 binIndex = std::floor((statistic - minPositive) / spanPerNegativeBin);
-
-                if (binIndex >= numNegativeBins) {
-                    binIndex = numNegativeBins - 1;
-                }
-
-                callback(binIndex, i, statistic);
-            } else if (statistic < 0) {
-                // Gradient is negative, i.e., label belongs to a positive bin...
-                uint32 binIndex = std::floor((statistic - minNegative) / spanPerPositiveBin);
-
-                if (binIndex >= numPositiveBins) {
-                    binIndex = numPositiveBins - 1;
-                }
-
-                callback(numNegativeBins + binIndex, i, statistic);
-            } else {
-                zeroCallback(i);
-            }
-        }
-    }
-
-    template class EqualWidthLabelBinning<DenseLabelWiseStatisticVector::gradient_const_iterator,
-                                          DenseLabelWiseStatisticVector::hessian_const_iterator>;
-    template class EqualWidthLabelBinning<DenseExampleWiseStatisticVector::gradient_const_iterator,
-                                          DenseExampleWiseStatisticVector::hessian_diagonal_const_iterator>;
 
 }

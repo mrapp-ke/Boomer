@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-@author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
 
 Provides classes for saving/loading models to/from disk.
 """

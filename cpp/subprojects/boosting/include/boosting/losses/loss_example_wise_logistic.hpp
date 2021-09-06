@@ -15,13 +15,47 @@ namespace boosting {
 
         public:
 
-            void updateExampleWiseStatistics(uint32 exampleIndex, const IRandomAccessLabelMatrix& labelMatrix,
-                                             const CContiguousView<float64>& scoreMatrix,
-                                             DenseExampleWiseStatisticMatrix& statisticMatrix) const override;
+            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
+                                                   const CContiguousConstView<float64>& scoreMatrix,
+                                                   CompleteIndexVector::const_iterator labelIndicesBegin,
+                                                   CompleteIndexVector::const_iterator labelIndicesEnd,
+                                                   DenseLabelWiseStatisticView& statisticView) const override;
 
-            float64 evaluate(uint32 exampleIndex, const IRandomAccessLabelMatrix& labelMatrix,
-                             const CContiguousView<float64>& scoreMatrix) const override;
+            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
+                                                   const CContiguousConstView<float64>& scoreMatrix,
+                                                   PartialIndexVector::const_iterator labelIndicesBegin,
+                                                   PartialIndexVector::const_iterator labelIndicesEnd,
+                                                   DenseLabelWiseStatisticView& statisticView) const override;
 
+            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
+                                                   const CContiguousConstView<float64>& scoreMatrix,
+                                                   CompleteIndexVector::const_iterator labelIndicesBegin,
+                                                   CompleteIndexVector::const_iterator labelIndicesEnd,
+                                                   DenseLabelWiseStatisticView& statisticView) const override;
+
+            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
+                                                   const CContiguousConstView<float64> scoreMatrix,
+                                                   PartialIndexVector::const_iterator labelIndicesBegin,
+                                                   PartialIndexVector::const_iterator labelIndicesEnd,
+                                                   DenseLabelWiseStatisticView& statisticView) const override;
+
+            void updateExampleWiseStatistics(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
+                                             const CContiguousConstView<float64>& scoreMatrix,
+                                             DenseExampleWiseStatisticView& statisticView) const override;
+
+            void updateExampleWiseStatistics(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
+                                             const CContiguousConstView<float64>& scoreMatrix,
+                                             DenseExampleWiseStatisticView& statisticView) const override;
+
+            float64 evaluate(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
+                             const CContiguousConstView<float64>& scoreMatrix) const override;
+
+            float64 evaluate(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
+                             const CContiguousConstView<float64>& scoreMatrix) const override;
+
+            /**
+             * @see `ISimilarityMeasure::measureSimilarity`
+             */
             float64 measureSimilarity(const LabelVector& labelVector,
                                       CContiguousView<float64>::const_iterator scoresBegin,
                                       CContiguousView<float64>::const_iterator scoresEnd) const override;

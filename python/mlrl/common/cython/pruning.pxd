@@ -1,4 +1,4 @@
-from libcpp.memory cimport shared_ptr
+from libcpp.memory cimport unique_ptr
 
 
 cdef extern from "common/pruning/pruning.hpp" nogil:
@@ -23,7 +23,7 @@ cdef class Pruning:
 
     # Attributes:
 
-    cdef shared_ptr[IPruning] pruning_ptr
+    cdef unique_ptr[IPruning] pruning_ptr
 
 
 cdef class NoPruning(Pruning):

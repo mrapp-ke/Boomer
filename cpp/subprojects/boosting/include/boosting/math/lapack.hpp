@@ -42,7 +42,7 @@ namespace boosting {
              * @param n         The number of equations in the linear system to be solved by the function `dsysv`
              * @return          The optimal value for the parameter "lwork"
              */
-            int queryDsysvLworkParameter(float64* tmpArray1, float64* output, int n);
+            int queryDsysvLworkParameter(float64* tmpArray1, float64* output, int n) const;
 
             /**
              * Computes and returns the solution to a system of linear equations A * X = B using LAPACK's DSYSV solver
@@ -81,7 +81,7 @@ namespace boosting {
              * @param lwork                     The value for the parameter "lwork" to be used by the DSYSV routine.
              *                                  Must have been determined using the function `queryDsysvLworkParameter`
              */
-            void dsysv(float64* tmpArray1, int* tmpArray2, double* tmpArray3, float64* output, int n, int lwork);
+            void dsysv(float64* tmpArray1, int* tmpArray2, double* tmpArray3, float64* output, int n, int lwork) const;
 
     };
 

@@ -4,7 +4,22 @@
 #pragma once
 
 #include "common/data/types.hpp"
+#include <cmath>
 
+
+/**
+ * Returns the result of the floating point division `numerator / denominator` or 0, if a division by zero occurs.
+ *
+ * @tparam T            The type of the operands
+ * @param numerator     The numerator
+ * @param denominator   The denominator
+ * @return              The result of the division or 0, if a division by zero occurred
+ */
+template<typename T>
+static inline constexpr T divideOrZero(T numerator, T denominator) {
+    T result = numerator / denominator;
+    return std::isfinite(result) ? result : 0;
+}
 
 /**
  * Calculates the arithmetic mean of two values `small` and `large`, where `small < large`.
@@ -15,8 +30,8 @@
  * @param large The larger of both values
  * @return      The mean that has been calculated
  */
-template<class T>
-static inline T arithmeticMean(T small, T large) {
+template<typename T>
+static inline constexpr T arithmeticMean(T small, T large) {
     return small + ((large - small) * 0.5);
 }
 
@@ -33,7 +48,7 @@ static inline T arithmeticMean(T small, T large) {
  * @param mean  The arithmetic mean of all previously provided values
  * @return      The arithmetic mean of all values provided so far
  */
-template<class T>
-static inline T iterativeArithmeticMean(uint32 n, T x, T mean) {
+template<typename T>
+static inline constexpr T iterativeArithmeticMean(uint32 n, T x, T mean) {
     return mean + ((x - mean) / (T) n);
 }

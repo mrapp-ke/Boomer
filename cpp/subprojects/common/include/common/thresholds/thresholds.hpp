@@ -3,8 +3,9 @@
  */
 #pragma once
 
-#include "common/thresholds/thresholds_subset.hpp"
 #include "common/sampling/weight_vector.hpp"
+#include "common/statistics/statistics_provider.hpp"
+#include "common/thresholds/thresholds_subset.hpp"
 
 
 /**
@@ -46,5 +47,13 @@ class IThresholds {
          * @return The number of labels
          */
         virtual uint32 getNumLabels() const = 0;
+
+        /**
+         * Returns a reference to an object of type `IStatisticsProvider` that provides access to the statistics that
+         * correspond to individual training examples in the instance space.
+         *
+         * @return A reference to an object of type `IStatisticsProvider`
+         */
+        virtual IStatisticsProvider& getStatisticsProvider() const = 0;
 
 };

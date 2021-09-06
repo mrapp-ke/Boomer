@@ -2,7 +2,7 @@ from mlrl.common.cython._types cimport uint32, float64
 from mlrl.common.cython._measures cimport IEvaluationMeasure
 
 from libcpp cimport bool
-from libcpp.memory cimport shared_ptr
+from libcpp.memory cimport unique_ptr
 
 
 cdef extern from "common/stopping/stopping_criterion.hpp" nogil:
@@ -51,8 +51,8 @@ cdef extern from "common/stopping/stopping_criterion_measure.hpp" nogil:
 
         # Constructors:
 
-        MeasureStoppingCriterionImpl(shared_ptr[IEvaluationMeasure] measurePtr,
-                                     shared_ptr[IAggregationFunction] aggregationFunctionPtr, uint32 minRules,
+        MeasureStoppingCriterionImpl(unique_ptr[IEvaluationMeasure] measurePtr,
+                                     unique_ptr[IAggregationFunction] aggregationFunctionPtr, uint32 minRules,
                                      uint32 updateInterval, uint32 stopInterval, uint32 numPast, uint32 numRecent,
                                      float64 minImprovement, bool forceStop) except +
 
@@ -61,7 +61,7 @@ cdef class StoppingCriterion:
 
     # Attributes:
 
-    cdef shared_ptr[IStoppingCriterion] stopping_criterion_ptr
+    cdef unique_ptr[IStoppingCriterion] stopping_criterion_ptr
 
 
 cdef class SizeStoppingCriterion(StoppingCriterion):
@@ -75,7 +75,7 @@ cdef class AggregationFunction:
 
     # Attributes:
 
-    cdef shared_ptr[IAggregationFunction] aggregation_function_ptr
+    cdef unique_ptr[IAggregationFunction] aggregation_function_ptr
 
 
 cdef class MinFunction(AggregationFunction):

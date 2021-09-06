@@ -1,7 +1,7 @@
 from mlrl.common.cython._measures cimport IEvaluationMeasure, ISimilarityMeasure
 from mlrl.common.cython.measures cimport EvaluationMeasure
 
-from libcpp.memory cimport shared_ptr
+from libcpp.memory cimport unique_ptr
 
 
 cdef extern from "boosting/losses/loss_label_wise.hpp" namespace "boosting" nogil:
@@ -32,7 +32,7 @@ cdef class LabelWiseLoss(EvaluationMeasure):
 
     # Attributes:
 
-    cdef shared_ptr[ILabelWiseLoss] loss_function_ptr
+    cdef unique_ptr[ILabelWiseLoss] loss_function_ptr
 
 
 cdef class LabelWiseLogisticLoss(LabelWiseLoss):

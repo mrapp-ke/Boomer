@@ -15,9 +15,9 @@ DokBinIndexVector::iterator DokBinIndexVector::end() {
 }
 
 uint32 DokBinIndexVector::getBinIndex(uint32 exampleIndex) const {
-    return vector_.getValue(exampleIndex);
+    return vector_[exampleIndex];
 }
 
 void DokBinIndexVector::setBinIndex(uint32 exampleIndex, uint32 binIndex) {
-    vector_.setValue(exampleIndex, binIndex);
+    vector_.set(exampleIndex, binIndex);
 }

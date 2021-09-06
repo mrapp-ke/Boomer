@@ -1,3 +1,8 @@
+#!/usr/bin/python
+
+"""
+Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+"""
 import numpy
 import setuptools
 from Cython.Build import cythonize
@@ -51,7 +56,7 @@ extensions = [
 
 setuptools.setup(
     name='boomer',
-    version='0.5.0',
+    version='0.6.0',
     description='BOOMER - An algorithm for learning gradient boosted multi-label classification rules',
     url='https://github.com/mrapp-ke/Boomer',
     author='Michael Rapp',
@@ -59,8 +64,8 @@ setuptools.setup(
     license='MIT',
     packages=['mlrl.common', 'mlrl.boosting', 'mlrl.testbed'],
     install_requires=[
-        'numpy>=1.20.0',
-        'scipy>=1.6.0',
+        'numpy>=1.21.0',
+        'scipy>=1.7.0',
         'Cython>=0.29.0',
         'scikit-learn>=0.24.0',
         'liac-arff>=2.5.0'

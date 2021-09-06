@@ -1,7 +1,7 @@
 """
 @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
 """
-from libcpp.memory cimport shared_ptr, make_shared
+from libcpp.memory cimport unique_ptr, make_unique
 
 
 cdef class RuleListBuilder(ModelBuilder):
@@ -10,4 +10,4 @@ cdef class RuleListBuilder(ModelBuilder):
     """
 
     def __cinit__(self):
-        self.model_builder_ptr = <shared_ptr[IModelBuilder]>make_shared[RuleListBuilderImpl]()
+        self.model_builder_ptr = <unique_ptr[IModelBuilder]>make_unique[RuleListBuilderImpl]()

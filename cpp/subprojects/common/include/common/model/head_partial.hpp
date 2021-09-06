@@ -4,7 +4,7 @@
 #pragma once
 
 #include "common/model/head.hpp"
-#include "common/head_refinement/prediction_partial.hpp"
+#include "common/rule_refinement/prediction_partial.hpp"
 
 
 /**
@@ -124,6 +124,6 @@ class PartialHead final : public IHead {
          */
         index_const_iterator indices_cend() const;
 
-        void visit(FullHeadVisitor fullHeadVisitor, PartialHeadVisitor partialHeadVisitor) const override;
+        void visit(CompleteHeadVisitor completeHeadVisitor, PartialHeadVisitor partialHeadVisitor) const override;
 
 };

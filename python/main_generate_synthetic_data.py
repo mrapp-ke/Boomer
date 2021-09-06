@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 """
-@author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Eneldo Loza Mencía (eneldo@ke.tu-darmstadt.de)
 
 Implements a method for generating synthetic multi-label datasets that allows to control the degree of marginal and
 conditional dependence between the labels. The method originates from the paper "On label dependence and loss

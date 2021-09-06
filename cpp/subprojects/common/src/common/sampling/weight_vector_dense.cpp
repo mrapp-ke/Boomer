@@ -1,35 +1,62 @@
 #include "common/sampling/weight_vector_dense.hpp"
 
 
-DenseWeightVector::DenseWeightVector(uint32 numElements, uint32 sumOfWeights)
-    : vector_(DenseVector<uint32>(numElements, true)), sumOfWeights_(sumOfWeights) {
+template<typename T>
+DenseWeightVector<T>::DenseWeightVector(uint32 numElements)
+    : DenseWeightVector<T>(numElements, false) {
 
 }
 
-DenseWeightVector::iterator DenseWeightVector::begin() {
+template<typename T>
+DenseWeightVector<T>::DenseWeightVector(uint32 numElements, bool init)
+    : vector_(DenseVector<T>(numElements, init)), numNonZeroWeights_(0) {
+
+}
+
+template<typename T>
+typename DenseWeightVector<T>::iterator DenseWeightVector<T>::begin() {
     return vector_.begin();
 }
 
-DenseWeightVector::iterator DenseWeightVector::end() {
+template<typename T>
+typename DenseWeightVector<T>::iterator DenseWeightVector<T>::end() {
     return vector_.end();
 }
 
-DenseWeightVector::const_iterator DenseWeightVector::cbegin() const {
+template<typename T>
+typename DenseWeightVector<T>::const_iterator DenseWeightVector<T>::cbegin() const {
     return vector_.cbegin();
 }
 
-DenseWeightVector::const_iterator DenseWeightVector::cend() const {
+template<typename T>
+typename DenseWeightVector<T>::const_iterator DenseWeightVector<T>::cend() const {
     return vector_.cend();
 }
 
-bool DenseWeightVector::hasZeroWeights() const {
-    return true;
+template<typename T>
+uint32 DenseWeightVector<T>::getNumElements() const {
+    return vector_.getNumElements();
 }
 
-uint32 DenseWeightVector::getWeight(uint32 pos) const {
-    return vector_.getValue(pos);
+template<typename T>
+uint32 DenseWeightVector<T>::getNumNonZeroWeights() const {
+    return numNonZeroWeights_;
 }
 
-uint32 DenseWeightVector::getSumOfWeights() const {
-    return sumOfWeights_;
+template<typename T>
+void DenseWeightVector<T>::setNumNonZeroWeights(uint32 numNonZeroWeights) {
+    numNonZeroWeights_ = numNonZeroWeights;
 }
+
+template<typename T>
+bool DenseWeightVector<T>::hasZeroWeights() const {
+    return numNonZeroWeights_ < vector_.getNumElements();
+}
+
+template<typename T>
+float64 DenseWeightVector<T>::getWeight(uint32 pos) const {
+    return (float64) vector_[pos];
+}
+
+template class DenseWeightVector<uint32>;
+template class DenseWeightVector<float64>;

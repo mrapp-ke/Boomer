@@ -18,7 +18,7 @@ class SizeStoppingCriterion final : public IStoppingCriterion {
     public:
 
         /**
-         * @param maxRules The maximum number of rules
+         * @param maxRules The maximum number of rules. Must be at least 1
          */
         SizeStoppingCriterion(uint32 maxRules);
 

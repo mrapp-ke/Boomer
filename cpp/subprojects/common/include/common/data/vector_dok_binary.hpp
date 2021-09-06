@@ -40,21 +40,22 @@ class BinaryDokVector final {
         /**
          * Returns the value of the element at a specific position.
          *
-         * @param pos   The position of the element. Must be in [0, getNumElements())
-         * @return      The value of the given element
+         * @param pos   The position of the element
+         * @return      The value of the specified element
          */
-        bool getValue(uint32 pos) const;
+        bool operator[](uint32 pos) const;
 
         /**
-         * Sets a non-zero value to the element at a specific position.
+         * Sets a value to the element at a specific position.
          *
-         * @param pos The position of the element. Must be in [0, getNumElements())
+         * @param pos   The position of the element
+         * @param value The value to be set
          */
-        void setValue(uint32 pos);
+        void set(uint32 pos, bool value);
 
         /**
          * Sets the values of all elements to zero.
          */
-        void setAllToZero();
+        void clear();
 
 };

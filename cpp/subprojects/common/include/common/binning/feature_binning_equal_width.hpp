@@ -24,7 +24,7 @@ class EqualWidthFeatureBinning final : public IFeatureBinning {
 
         /**
          * @param binRatio  A percentage that specifies how many bins should be used, e.g., if 100 values are available,
-         *                  0.5 means that `ceil(0.5 * 100) = 50` bins should be used
+         *                  0.5 means that `ceil(0.5 * 100) = 50` bins should be used. Must be in (0, 1)
          * @param minBins   The minimum number of bins to be used. Must be at least 2
          * @param maxBins   The maximum number of bins to be used. Must be at least `minBins` or 0, if the maximum
          *                  number of bins should not be restricted

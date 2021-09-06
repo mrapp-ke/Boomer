@@ -5,8 +5,8 @@
 #pragma once
 
 #include "common/statistics/histogram.hpp"
-#include "common/head_refinement/prediction_full.hpp"
-#include "common/head_refinement/prediction_partial.hpp"
+#include "common/rule_refinement/prediction_complete.hpp"
+#include "common/rule_refinement/prediction_partial.hpp"
 #include "common/measures/measure_evaluation.hpp"
 
 
@@ -48,7 +48,7 @@ class IStatistics : virtual public IImmutableStatistics {
          * @param statisticIndex    The index of the statistic that should be considered
          * @param weight            The weight of the statistic that should be considered
          */
-        virtual void addSampledStatistic(uint32 statisticIndex, uint32 weight) = 0;
+        virtual void addSampledStatistic(uint32 statisticIndex, float64 weight) = 0;
 
         /**
          * Resets the statistics which should be considered in the following for refining an existing rule. The indices
@@ -82,7 +82,7 @@ class IStatistics : virtual public IImmutableStatistics {
          * @param remove            False, if the statistic should be considered, True, if the statistic should not be
          *                          considered anymore
          */
-        virtual void updateCoveredStatistic(uint32 statisticIndex, uint32 weight, bool remove) = 0;
+        virtual void updateCoveredStatistic(uint32 statisticIndex, float64 weight, bool remove) = 0;
 
         /**
          * Updates a specific statistic based on the prediction of a rule that predicts for all available labels.
@@ -94,7 +94,7 @@ class IStatistics : virtual public IImmutableStatistics {
          * @param prediction        A reference to an object of type `Prediction` that stores the scores that are
          *                          predicted by the rule
          */
-        virtual void applyPrediction(uint32 statisticIndex, const FullPrediction& prediction) = 0;
+        virtual void applyPrediction(uint32 statisticIndex, const CompletePrediction& prediction) = 0;
 
         /**
          * Updates a specific statistic based on the prediction of a rule that predicts for a subset of the available

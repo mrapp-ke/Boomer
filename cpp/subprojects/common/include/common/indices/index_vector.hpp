@@ -11,8 +11,6 @@ class IRuleRefinement;
 class IThresholdsSubset;
 class IImmutableStatistics;
 class IStatisticsSubset;
-class IHeadRefinement;
-class IHeadRefinementFactory;
 
 
 /**
@@ -68,15 +66,5 @@ class IIndexVector {
          */
         virtual std::unique_ptr<IRuleRefinement> createRuleRefinement(IThresholdsSubset& thresholdsSubset,
                                                                       uint32 featureIndex) const = 0;
-
-        /**
-         * Creates and returns a new instance of type `IHeadRefinement` that allows to search for the best head of a
-         * rule, considering only the labels whose indices are stored in this vector.
-         *
-         * @param factory   A reference to an object of type `IHeadRefinementFactory` that should be used to create the
-         *                  instance
-         * @return          An unique pointer to an object of type `IHeadRefinement` that has been created
-         */
-        virtual std::unique_ptr<IHeadRefinement> createHeadRefinement(const IHeadRefinementFactory& factory) const = 0;
 
 };

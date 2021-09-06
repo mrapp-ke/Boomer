@@ -1,23 +1,24 @@
 #include "common/rule_refinement/rule_refinement_exact.hpp"
+#include "common/rule_refinement/score_processor.hpp"
 #include "common/math/math.hpp"
+#include "rule_refinement_common.hpp"
 
 
-template<class T>
+template<typename T>
 ExactRuleRefinement<T>::ExactRuleRefinement(
-        std::unique_ptr<IHeadRefinement> headRefinementPtr, const T& labelIndices, uint32 totalSumOfWeights,
-        uint32 featureIndex, bool nominal,
+        const T& labelIndices, uint32 numExamples, uint32 featureIndex, bool nominal,
         std::unique_ptr<IRuleRefinementCallback<FeatureVector, IWeightVector>> callbackPtr)
-    : headRefinementPtr_(std::move(headRefinementPtr)), labelIndices_(labelIndices),
-      totalSumOfWeights_(totalSumOfWeights), featureIndex_(featureIndex), nominal_(nominal),
+    : labelIndices_(labelIndices), numExamples_(numExamples), featureIndex_(featureIndex), nominal_(nominal),
       callbackPtr_(std::move(callbackPtr)) {
 
 }
 
-template<class T>
+template<typename T>
 void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* currentHead) {
     std::unique_ptr<Refinement> refinementPtr = std::make_unique<Refinement>();
     refinementPtr->featureIndex = featureIndex_;
     const AbstractEvaluatedPrediction* bestHead = currentHead;
+    ScoreProcessor scoreProcessor;
 
     // Invoke the callback...
     std::unique_ptr<IRuleRefinementCallback<FeatureVector, IWeightVector>::Result> callbackResultPtr =
@@ -33,12 +34,12 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
     for (auto it = featureVector.missing_indices_cbegin(); it != featureVector.missing_indices_cend(); it++) {
         uint32 i = *it;
-        uint32 weight = weights.getWeight(i);
+        float64 weight = weights.getWeight(i);
         statisticsSubsetPtr->addToMissing(i, weight);
     }
 
     // In the following, we start by processing all examples with feature values < 0...
-    uint32 sumOfWeights = 0;
+    uint32 numExamples = 0;
     intp firstR = 0;
     intp lastNegativeR = -1;
     float32 previousThreshold = 0;
@@ -56,22 +57,22 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
         lastNegativeR = r;
         uint32 i = iterator[r].index;
-        uint32 weight = weights.getWeight(i);
+        float64 weight = weights.getWeight(i);
 
         if (weight > 0) {
             // Add the example to the subset to mark it as covered by upcoming refinements...
             statisticsSubsetPtr->addToSubset(i, weight);
-            sumOfWeights += weight;
+            numExamples++;
             previousThreshold = currentThreshold;
             previousR = r;
             break;
         }
     }
 
-    uint32 accumulatedSumOfWeights = sumOfWeights;
+    uint32 accumulatedNumExamples = numExamples;
 
     // Traverse the remaining examples with feature values < 0 in ascending order...
-    if (sumOfWeights > 0) {
+    if (numExamples > 0) {
         for (r = r + 1; r < numElements; r++) {
             float32 currentThreshold = iterator[r].value;
 
@@ -81,7 +82,7 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
             lastNegativeR = r;
             uint32 i = iterator[r].index;
-            uint32 weight = weights.getWeight(i);
+            float64 weight = weights.getWeight(i);
 
             // Do only consider examples that are included in the current sub-sample...
             if (weight > 0) {
@@ -89,17 +90,15 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
                 if (previousThreshold != currentThreshold) {
                     // Find and evaluate the best head for the current refinement, if a condition that uses the <=
                     // operator (or the == operator in case of a nominal feature) is used...
-                    const AbstractEvaluatedPrediction* head = headRefinementPtr_->findHead(bestHead,
-                                                                                           *statisticsSubsetPtr, false,
-                                                                                           false);
+                    const IScoreVector& scoreVector = statisticsSubsetPtr->calculatePrediction(false, false);
 
                     // If the refinement is better than the current rule...
-                    if (head != nullptr) {
-                        bestHead = head;
+                    if (isBetterThanBestHead(scoreVector, bestHead)) {
+                        bestHead = scoreProcessor.processScores(scoreVector);
                         refinementPtr->start = firstR;
                         refinementPtr->end = r;
                         refinementPtr->previous = previousR;
-                        refinementPtr->coveredWeights = sumOfWeights;
+                        refinementPtr->numCovered = numExamples;
                         refinementPtr->covered = true;
 
                         if (nominal_) {
@@ -113,15 +112,15 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
                     // Find and evaluate the best head for the current refinement, if a condition that uses the >
                     // operator (or the != operator in case of a nominal feature) is used...
-                    head = headRefinementPtr_->findHead(bestHead, *statisticsSubsetPtr, true, false);
+                    const IScoreVector& scoreVector2 = statisticsSubsetPtr->calculatePrediction(true, false);
 
                     // If the refinement is better than the current rule...
-                    if (head != nullptr) {
-                        bestHead = head;
+                    if (isBetterThanBestHead(scoreVector2, bestHead)) {
+                        bestHead = scoreProcessor.processScores(scoreVector2);
                         refinementPtr->start = firstR;
                         refinementPtr->end = r;
                         refinementPtr->previous = previousR;
-                        refinementPtr->coveredWeights = (totalSumOfWeights_ - sumOfWeights);
+                        refinementPtr->numCovered = (numExamples_ - numExamples);
                         refinementPtr->covered = false;
 
                         if (nominal_) {
@@ -137,7 +136,7 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
                     // the next condition...
                     if (nominal_) {
                         statisticsSubsetPtr->resetSubset();
-                        sumOfWeights = 0;
+                        numExamples = 0;
                         firstR = r;
                     }
                 }
@@ -147,28 +146,27 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
                 // Add the example to the subset to mark it as covered by upcoming refinements...
                 statisticsSubsetPtr->addToSubset(i, weight);
-                sumOfWeights += weight;
-                accumulatedSumOfWeights += weight;
+                numExamples++;
+                accumulatedNumExamples++;
             }
         }
 
         // If the feature is nominal and the examples that have been iterated so far do not all have the same feature
         // value, or if not all examples have been iterated so far, we must evaluate additional conditions
         // `f == previous_threshold` and `f != previous_threshold`...
-        if (nominal_ && sumOfWeights > 0 && (sumOfWeights < accumulatedSumOfWeights
-                                             || accumulatedSumOfWeights < totalSumOfWeights_)) {
+        if (nominal_ && numExamples > 0 && (numExamples < accumulatedNumExamples
+                                            || accumulatedNumExamples < numExamples_)) {
             // Find and evaluate the best head for the current refinement, if a condition that uses the == operator is
             // used...
-            const AbstractEvaluatedPrediction* head = headRefinementPtr_->findHead(bestHead, *statisticsSubsetPtr,
-                                                                                   false, false);
+            const IScoreVector& scoreVector = statisticsSubsetPtr->calculatePrediction(false, false);
 
             // If the refinement is better than the current rule...
-            if (head != nullptr) {
-                bestHead = head;
+            if (isBetterThanBestHead(scoreVector, bestHead)) {
+                bestHead = scoreProcessor.processScores(scoreVector);
                 refinementPtr->start = firstR;
                 refinementPtr->end = (lastNegativeR + 1);
                 refinementPtr->previous = previousR;
-                refinementPtr->coveredWeights = sumOfWeights;
+                refinementPtr->numCovered = numExamples;
                 refinementPtr->covered = true;
                 refinementPtr->comparator = EQ;
                 refinementPtr->threshold = previousThreshold;
@@ -176,15 +174,15 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
             // Find and evaluate the best head for the current refinement, if a condition that uses the != operator is
             // used...
-            head = headRefinementPtr_->findHead(bestHead, *statisticsSubsetPtr, true, false);
+            const IScoreVector& scoreVector2 = statisticsSubsetPtr->calculatePrediction(true, false);
 
             // If the refinement is better than the current rule...
-            if (head != nullptr) {
-                bestHead = head;
+            if (isBetterThanBestHead(scoreVector2, bestHead)) {
+                bestHead = scoreProcessor.processScores(scoreVector2);
                 refinementPtr->start = firstR;
                 refinementPtr->end = (lastNegativeR + 1);
                 refinementPtr->previous = previousR;
-                refinementPtr->coveredWeights = (totalSumOfWeights_ - sumOfWeights);
+                refinementPtr->numCovered = (numExamples_ - numExamples);
                 refinementPtr->covered = false;
                 refinementPtr->comparator = NEQ;
                 refinementPtr->threshold = previousThreshold;
@@ -197,35 +195,35 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
     float32 previousThresholdNegative = previousThreshold;
     intp previousRNegative = previousR;
-    uint32 accumulatedSumOfWeightsNegative = accumulatedSumOfWeights;
+    uint32 accumulatedNumExamplesNegative = accumulatedNumExamples;
 
     // We continue by processing all examples with feature values >= 0...
-    sumOfWeights = 0;
+    numExamples = 0;
     firstR = ((intp) numElements) - 1;
 
     // Traverse examples with feature values >= 0 in descending order until the first example with weight > 0 is
     // encountered...
     for (r = firstR; r > lastNegativeR; r--) {
         uint32 i = iterator[r].index;
-        uint32 weight = weights.getWeight(i);
+        float64 weight = weights.getWeight(i);
 
         if (weight > 0) {
             // Add the example to the subset to mark it as covered by upcoming refinements...
             statisticsSubsetPtr->addToSubset(i, weight);
-            sumOfWeights += weight;
+            numExamples++;
             previousThreshold = iterator[r].value;
             previousR = r;
             break;
         }
     }
 
-    accumulatedSumOfWeights = sumOfWeights;
+    accumulatedNumExamples = numExamples;
 
     // Traverse the remaining examples with feature values >= 0 in descending order...
-    if (sumOfWeights > 0) {
+    if (numExamples > 0) {
         for (r = r - 1; r > lastNegativeR; r--) {
             uint32 i = iterator[r].index;
-            uint32 weight = weights.getWeight(i);
+            float64 weight = weights.getWeight(i);
 
             // Do only consider examples that are included in the current sub-sample...
             if (weight > 0) {
@@ -235,17 +233,15 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
                 if (previousThreshold != currentThreshold) {
                     // Find and evaluate the best head for the current refinement, if a condition that uses the
                     // > operator (or the == operator in case of a nominal feature) is used...
-                    const AbstractEvaluatedPrediction* head = headRefinementPtr_->findHead(bestHead,
-                                                                                           *statisticsSubsetPtr, false,
-                                                                                           false);
+                    const IScoreVector& scoreVector = statisticsSubsetPtr->calculatePrediction(false, false);
 
                     // If the refinement is better than the current rule...
-                    if (head != nullptr) {
-                        bestHead = head;
+                    if (isBetterThanBestHead(scoreVector, bestHead)) {
+                        bestHead = scoreProcessor.processScores(scoreVector);
                         refinementPtr->start = firstR;
                         refinementPtr->end = r;
                         refinementPtr->previous = previousR;
-                        refinementPtr->coveredWeights = sumOfWeights;
+                        refinementPtr->numCovered = numExamples;
                         refinementPtr->covered = true;
 
                         if (nominal_) {
@@ -259,15 +255,15 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
                     // Find and evaluate the best head for the current refinement, if a condition that uses the <=
                     // operator (or the != operator in case of a nominal feature) is used...
-                    head = headRefinementPtr_->findHead(bestHead, *statisticsSubsetPtr, true, false);
+                    const IScoreVector& scoreVector2 = statisticsSubsetPtr->calculatePrediction(true, false);
 
                     // If the refinement is better than the current rule...
-                    if (head != nullptr) {
-                        bestHead = head;
+                    if (isBetterThanBestHead(scoreVector2, bestHead)) {
+                        bestHead = scoreProcessor.processScores(scoreVector2);
                         refinementPtr->start = firstR;
                         refinementPtr->end = r;
                         refinementPtr->previous = previousR;
-                        refinementPtr->coveredWeights = (totalSumOfWeights_ - sumOfWeights);
+                        refinementPtr->numCovered = (numExamples_ - numExamples);
                         refinementPtr->covered = false;
 
                         if (nominal_) {
@@ -283,7 +279,7 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
                     // the next condition...
                     if (nominal_) {
                         statisticsSubsetPtr->resetSubset();
-                        sumOfWeights = 0;
+                        numExamples = 0;
                         firstR = r;
                     }
                 }
@@ -293,8 +289,8 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
                 // Add the example to the subset to mark it as covered by upcoming refinements...
                 statisticsSubsetPtr->addToSubset(i, weight);
-                sumOfWeights += weight;
-                accumulatedSumOfWeights += weight;
+                numExamples++;
+                accumulatedNumExamples++;
             }
         }
     }
@@ -302,19 +298,18 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
     // If the feature is nominal and the examples with feature values >= 0 that have been iterated so far do not all
     // have the same feature value, we must evaluate additional conditions `f == previous_threshold` and
     // `f != previous_threshold`...
-    if (nominal_ && sumOfWeights > 0 && sumOfWeights < accumulatedSumOfWeights) {
+    if (nominal_ && numExamples > 0 && numExamples < accumulatedNumExamples) {
         // Find and evaluate the best head for the current refinement, if a condition that uses the == operator is
         // used...
-        const AbstractEvaluatedPrediction* head = headRefinementPtr_->findHead(bestHead, *statisticsSubsetPtr, false,
-                                                                               false);
+        const IScoreVector& scoreVector = statisticsSubsetPtr->calculatePrediction(false, false);
 
         // If the refinement is better than the current rule...
-        if (head != nullptr) {
-            bestHead = head;
+        if (isBetterThanBestHead(scoreVector, bestHead)) {
+            bestHead = scoreProcessor.processScores(scoreVector);
             refinementPtr->start = firstR;
             refinementPtr->end = lastNegativeR;
             refinementPtr->previous = previousR;
-            refinementPtr->coveredWeights = sumOfWeights;
+            refinementPtr->numCovered = numExamples;
             refinementPtr->covered = true;
             refinementPtr->comparator = EQ;
             refinementPtr->threshold = previousThreshold;
@@ -322,28 +317,28 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
         // Find and evaluate the best head for the current refinement, if a condition that uses the != operator is
         // used...
-        head = headRefinementPtr_->findHead(bestHead, *statisticsSubsetPtr, true, false);
+        const IScoreVector& scoreVector2 = statisticsSubsetPtr->calculatePrediction(true, false);
 
         // If the refinement is better than the current rule...
-        if (head != nullptr) {
-            bestHead = head;
+        if (isBetterThanBestHead(scoreVector2, bestHead)) {
+            bestHead = scoreProcessor.processScores(scoreVector2);
             refinementPtr->start = firstR;
             refinementPtr->end = lastNegativeR;
             refinementPtr->previous = previousR;
-            refinementPtr->coveredWeights = (totalSumOfWeights_ - sumOfWeights);
+            refinementPtr->numCovered = (numExamples_ - numExamples);
             refinementPtr->covered = false;
             refinementPtr->comparator = NEQ;
             refinementPtr->threshold = previousThreshold;
         }
     }
 
-    uint32 totalAccumulatedSumOfWeights = accumulatedSumOfWeightsNegative + accumulatedSumOfWeights;
+    uint32 totalAccumulatedNumExamples = accumulatedNumExamplesNegative + accumulatedNumExamples;
 
     // If the sum of weights of all examples that have been iterated so far (including those with feature values < 0 and
     // those with feature values >= 0) is less than the sum of weights of all examples, this means that there are
     // examples with sparse, i.e. zero, feature values. In such case, we must explicitly test conditions that separate
     // these examples from the ones that have already been iterated...
-    if (totalAccumulatedSumOfWeights > 0 && totalAccumulatedSumOfWeights < totalSumOfWeights_) {
+    if (totalAccumulatedNumExamples > 0 && totalAccumulatedNumExamples < numExamples_) {
         // If the feature is nominal, we must reset the subset once again to ensure that the accumulated state includes
         // all examples that have been processed so far...
         if (nominal_) {
@@ -353,25 +348,24 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
         // Find and evaluate the best head for the current refinement, if the condition `f > previous_threshold / 2` (or
         // the condition `f != 0` in case of a nominal feature) is used...
-        const AbstractEvaluatedPrediction* head = headRefinementPtr_->findHead(bestHead, *statisticsSubsetPtr, false,
-                                                                               nominal_);
+        const IScoreVector& scoreVector = statisticsSubsetPtr->calculatePrediction(false, nominal_);
 
         // If the refinement is better than the current rule...
-        if (head != nullptr) {
-            bestHead = head;
+        if (isBetterThanBestHead(scoreVector, bestHead)) {
+            bestHead = scoreProcessor.processScores(scoreVector);
             refinementPtr->start = firstR;
             refinementPtr->covered = true;
 
             if (nominal_) {
                 refinementPtr->end = -1;
                 refinementPtr->previous = -1;
-                refinementPtr->coveredWeights = totalAccumulatedSumOfWeights;
+                refinementPtr->numCovered = totalAccumulatedNumExamples;
                 refinementPtr->comparator = NEQ;
                 refinementPtr->threshold = 0.0;
             } else {
                 refinementPtr->end = lastNegativeR;
                 refinementPtr->previous = previousR;
-                refinementPtr->coveredWeights = accumulatedSumOfWeights;
+                refinementPtr->numCovered = accumulatedNumExamples;
                 refinementPtr->comparator = GR;
                 refinementPtr->threshold = previousThreshold * 0.5;
             }
@@ -379,24 +373,24 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
         // Find and evaluate the best head for the current refinement, if the condition `f <= previous_threshold / 2`
         // (or `f == 0` in case of a nominal feature) is used...
-        head = headRefinementPtr_->findHead(bestHead, *statisticsSubsetPtr, true, nominal_);
+        const IScoreVector& scoreVector2 = statisticsSubsetPtr->calculatePrediction(true, nominal_);
 
         // If the refinement is better than the current rule...
-        if (head != nullptr) {
-            bestHead = head;
+        if (isBetterThanBestHead(scoreVector2, bestHead)) {
+            bestHead = scoreProcessor.processScores(scoreVector2);
             refinementPtr->start = firstR;
             refinementPtr->covered = false;
 
             if (nominal_) {
                 refinementPtr->end = -1;
                 refinementPtr->previous = -1;
-                refinementPtr->coveredWeights = (totalSumOfWeights_ - totalAccumulatedSumOfWeights);
+                refinementPtr->numCovered = (numExamples_ - totalAccumulatedNumExamples);
                 refinementPtr->comparator = EQ;
                 refinementPtr->threshold = 0.0;
             } else {
                 refinementPtr->end = lastNegativeR;
                 refinementPtr->previous = previousR;
-                refinementPtr->coveredWeights = (totalSumOfWeights_ - accumulatedSumOfWeights);
+                refinementPtr->numCovered = (numExamples_ - accumulatedNumExamples);
                 refinementPtr->comparator = LEQ;
                 refinementPtr->threshold = previousThreshold * 0.5;
             }
@@ -408,23 +402,22 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
     // the remaining ones (unlike in the nominal case, these conditions cannot be evaluated earlier, because it remains
     // unclear what the thresholds of the conditions should be until the examples with feature values >= 0 have been
     // processed).
-    if (!nominal_ && accumulatedSumOfWeightsNegative > 0 && accumulatedSumOfWeightsNegative < totalSumOfWeights_) {
+    if (!nominal_ && accumulatedNumExamplesNegative > 0 && accumulatedNumExamplesNegative < numExamples_) {
         // Find and evaluate the best head for the current refinement, if the condition that uses the <= operator is
         // used...
-        const AbstractEvaluatedPrediction* head = headRefinementPtr_->findHead(bestHead, *statisticsSubsetPtr, false,
-                                                                               true);
+        const IScoreVector& scoreVector = statisticsSubsetPtr->calculatePrediction(false, true);
 
         // If the refinement is better than the current rule...
-        if (head != nullptr) {
-            bestHead = head;
+        if (isBetterThanBestHead(scoreVector, bestHead)) {
+            bestHead = scoreProcessor.processScores(scoreVector);
             refinementPtr->start = 0;
             refinementPtr->end = (lastNegativeR + 1);
             refinementPtr->previous = previousRNegative;
-            refinementPtr->coveredWeights = accumulatedSumOfWeightsNegative;
+            refinementPtr->numCovered = accumulatedNumExamplesNegative;
             refinementPtr->covered = true;
             refinementPtr->comparator = LEQ;
 
-            if (totalAccumulatedSumOfWeights < totalSumOfWeights_) {
+            if (totalAccumulatedNumExamples < numExamples_) {
                 // If the condition separates an example with feature value < 0 from an (sparse) example with feature
                 // value == 0
                 refinementPtr->threshold = previousThresholdNegative * 0.5;
@@ -436,19 +429,19 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
         // Find and evaluate the best head for the current refinement, if the condition that uses the > operator is
         // used...
-        head = headRefinementPtr_->findHead(bestHead, *statisticsSubsetPtr, true, true);
+        const IScoreVector& scoreVector2 = statisticsSubsetPtr->calculatePrediction(true, true);
 
         // If the refinement is better than the current rule...
-        if (head != nullptr) {
-            bestHead = head;
+        if (isBetterThanBestHead(scoreVector2, bestHead)) {
+            bestHead = scoreProcessor.processScores(scoreVector2);
             refinementPtr->start = 0;
             refinementPtr->end = (lastNegativeR + 1);
             refinementPtr->previous = previousRNegative;
-            refinementPtr->coveredWeights = (totalSumOfWeights_ - accumulatedSumOfWeightsNegative);
+            refinementPtr->numCovered = (numExamples_ - accumulatedNumExamplesNegative);
             refinementPtr->covered = false;
             refinementPtr->comparator = GR;
 
-            if (totalAccumulatedSumOfWeights < totalSumOfWeights_) {
+            if (totalAccumulatedNumExamples < numExamples_) {
                 // If the condition separates an example with feature value < 0 from an (sparse) example with feature
                 // value == 0
                 refinementPtr->threshold = previousThresholdNegative * 0.5;
@@ -459,14 +452,14 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
         }
     }
 
-    refinementPtr->headPtr = headRefinementPtr_->pollHead();
+    refinementPtr->headPtr = scoreProcessor.pollHead();
     refinementPtr_ = std::move(refinementPtr);
 }
 
-template<class T>
+template<typename T>
 std::unique_ptr<Refinement> ExactRuleRefinement<T>::pollRefinement() {
     return std::move(refinementPtr_);
 }
 
-template class ExactRuleRefinement<FullIndexVector>;
+template class ExactRuleRefinement<CompleteIndexVector>;
 template class ExactRuleRefinement<PartialIndexVector>;

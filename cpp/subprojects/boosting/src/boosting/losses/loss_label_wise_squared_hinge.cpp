@@ -3,9 +3,8 @@
 
 namespace boosting {
 
-    void LabelWiseSquaredHingeLoss::updateGradientAndHessian(DenseVector<float64>::iterator gradient,
-                                                             DenseVector<float64>::iterator hessian, bool trueLabel,
-                                                             float64 predictedScore) const {
+    static inline void updateGradientAndHessian(bool trueLabel, float64 predictedScore, float64* gradient,
+                                                float64* hessian) {
         if (trueLabel) {
             if (predictedScore < 1) {
                 *gradient = 2 * (predictedScore - 1);
@@ -25,7 +24,7 @@ namespace boosting {
         }
     }
 
-    float64 LabelWiseSquaredHingeLoss::evaluate(bool trueLabel, float64 predictedScore) const {
+    static inline float64 evaluatePrediction(bool trueLabel, float64 predictedScore) {
         if (trueLabel) {
             if (predictedScore < 1) {
                 return (1 - predictedScore) * (1 - predictedScore);
@@ -39,6 +38,11 @@ namespace boosting {
                 return 0;
             }
         }
+    }
+
+    LabelWiseSquaredHingeLoss::LabelWiseSquaredHingeLoss()
+        : AbstractLabelWiseLoss(&updateGradientAndHessian, &evaluatePrediction) {
+
     }
 
 }

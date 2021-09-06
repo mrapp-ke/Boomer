@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include "common/rule_evaluation/score_vector_label_wise.hpp"
+#include "common/rule_evaluation/score_vector.hpp"
 
 
 /**
@@ -25,7 +25,7 @@ class IStatisticsSubset {
          * @param statisticIndex    The index of the missing statistic
          * @param weight            The weight of the missing statistic
          */
-        virtual void addToMissing(uint32 statisticIndex, uint32 weight) = 0;
+        virtual void addToMissing(uint32 statisticIndex, float64 weight) = 0;
 
         /**
          * Adds the statistics at a specific index to the subset in order to mark it as covered by the condition that is
@@ -44,7 +44,7 @@ class IStatisticsSubset {
          * @param statisticIndex    The index of the covered statistic
          * @param weight            The weight of the covered statistic
          */
-        virtual void addToSubset(uint32 statisticIndex, uint32 weight) = 0;
+        virtual void addToSubset(uint32 statisticIndex, float64 weight) = 0;
 
         /**
          * Resets the subset by removing all statistics that have been added via preceding calls to the function
@@ -63,70 +63,30 @@ class IStatisticsSubset {
 
         /**
          * Calculates and returns the scores to be predicted by a rule that covers all statistics that have been added
-         * to the subset so far via the function `addToSubset`.
+         * to the subset so far via the function `addToSubset`, as well as an overall quality score that assesses the
+         * quality of the predicted scores.
          *
-         * If the argument `uncovered` is 1, the rule is considered to cover all statistics that belong to the
+         * If the argument `uncovered` is true, the rule is considered to cover all statistics that belong to the
          * difference between the statistics that have been provided via the function `Statistics#addSampledStatistic`
          * or `Statistics#updateCoveredStatistic` and the statistics that have been added to the subset via the function
          * `addToSubset`.
          *
-         * If the argument `accumulated` is 1, all statistics that have been added since the subset has been created
+         * If the argument `accumulated` is true, all statistics that have been added since the subset has been created
          * via the function `Statistics#createSubset` are taken into account even if the function `resetSubset` has been
          * called since then. If said function has not been invoked, this argument does not have any effect.
          *
-         * The calculated scores correspond to the subset of labels that have been provided when creating the subset via
-         * the function `Statistics#createSubset`. The score to be predicted for an individual label is calculated
-         * independently of the other labels, i.e., in the non-decomposable case it is assumed that the rule will not
-         * predict for any other labels. In addition to each score, a quality score, which assesses the quality of the
-         * prediction for the respective label, is returned.
-         *
-         * @param uncovered     0, if the rule covers all statistics that have been added to the subset via the function
-         *                      `addToSubset`, 1, if the rule covers all statistics that belong to the difference
-         *                      between the statistics that have been provided via the function
+         * @param uncovered     False, if the rule covers all statistics that have been added to the subset via the
+         *                      function `addToSubset`, true, if the rule covers all statistics that belong to the
+         *                      difference between the statistics that have been provided via the function
          *                      `Statistics#addSampledStatistic` or `Statistics#updateCoveredStatistic` and the
          *                      statistics that have been added via the function `addToSubset`
-         * @param accumulated   0, if the rule covers all statistics that have been added to the subset via the function
-         *                      `addToSubset` since the function `resetSubset` has been called for the last time, 1, if
-         *                      the rule covers all examples that have been provided since the subset has been created
-         *                      via the function `Statistics#createSubset`
-         * @return              A reference to an object of type `ILabelWiseScoreVector` that stores the scores to be
-         *                      predicted by the rule for each considered label, as well as the corresponding quality
-         *                      scores
-         */
-        virtual const ILabelWiseScoreVector& calculateLabelWisePrediction(bool uncovered, bool accumulated) = 0;
-
-        /**
-         * Calculates and returns the scores to be predicted by a rule that covers all statistics that have been added
-         * to the subset so far via the function `addToSubset`.
-         *
-         * If the argument `uncovered` is 1, the rule is considered to cover all statistics that belong to the
-         * difference between the statistics that have been provided via the function `Statistics#addSampledStatistic`
-         * or `Statistics#updateCoveredStatistic` and the statistics that have been added to the subset via the function
-         * `addToSubset`.
-         *
-         * If the argument `accumulated` is 1, all statistics that have been added since the subset has been created
-         * via the function `Statistics#createSubset` are taken into account even if the function `resetSubset` has been
-         * called since then. If said function has not been invoked, this argument does not have any effect.
-         *
-         * The calculated scores correspond to the subset of labels that have been provided when creating the subset via
-         * the function `Statistics#createSubset`. The score to be predicted for an individual label is calculated with
-         * respect to the predictions for the other labels. In the decomposable case, i.e., if the labels are considered
-         * independently of each other, this function is equivalent to the function `calculateLabelWisePrediction`. In
-         * addition to the scores, an overall quality score, which assesses the quality of the predictions for all
-         * labels in terms of a single score, is returned.
-         *
-         * @param uncovered     0, if the rule covers all statistics that have been added to the subset via the function
-         *                      `addToSubset`, 1, if the rule covers all statistics that belong to the difference
-         *                      between the statistics that have been provided via the function
-         *                      `Statistics#addSampledStatistic` or `Statistics#updateCoveredStatistic` and the
-         *                      statistics that have been added via the function `addToSubset`
-         * @param accumulated   0, if the rule covers all statistics that have been added to the subset via the function
-         *                      `addToSubset` since the function `resetSubset` has been called for the last time, 1, if
-         *                      the rule covers all examples that have been provided since the subset has been created
-         *                      via the function `Statistics#createSubset`
+         * @param accumulated   False, if the rule covers all statistics that have been added to the subset via the
+         *                      function `addToSubset` since the function `resetSubset` has been called for the last
+         *                      time, true, if the rule covers all examples that have been provided since the subset has
+         *                      been created via the function `Statistics#createSubset`
          * @return              A reference to an object of type `IScoreVector` that stores the scores to be predicted
          *                      by the rule for each considered label, as well as an overall quality score
          */
-        virtual const IScoreVector& calculateExampleWisePrediction(bool uncovered, bool accumulated) = 0;
+        virtual const IScoreVector& calculatePrediction(bool uncovered, bool accumulated) = 0;
 
 };

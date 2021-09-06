@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-@author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
 
 Provides classes for evaluating the predictions or rankings provided by a multi-label learner according to different
 measures. The evaluation results can be written to one or several outputs, e.g. to the console or to a file.
@@ -96,7 +96,7 @@ class Evaluation(ABC):
         Evaluates the predictions provided by a classifier or ranker.
 
         :param experiment_name: The name of the experiment
-        :param meta_data        The meta data of the data set
+        :param meta_data:       The meta data of the data set
         :param predictions:     The predictions provided by the classifier
         :param ground_truth:    The true labels
         :param first_fold:      The first cross validation fold or 0, if no cross validation is used
@@ -195,8 +195,8 @@ class EvaluationOutput(ABC):
 
     def __init__(self, output_predictions: bool, output_individual_folds: bool):
         """
-        :param output_predictions: True, if predictions provided by a classifier or ranker should be written to the
-                                   output, False otherwise
+        :param output_predictions:      True, if predictions provided by a classifier or ranker should be written to the
+                                        output, False otherwise
         :param output_individual_folds: True, if the evaluation results for individual cross validation folds should be
                                         written to the outputs, False, if only the overall evaluation results, i.e.,
                                         averaged over all folds, should be written to the outputs
@@ -225,7 +225,7 @@ class EvaluationOutput(ABC):
         Writes predictions to the output.
 
         :param experiment_name: The name of the experiment
-        :param meta_data        The meta data of the data set
+        :param meta_data:       The meta data of the data set
         :param predictions:     The predictions
         :param ground_truth:    The ground truth
         :param total_folds:     The total number of folds
@@ -360,7 +360,7 @@ class AbstractEvaluation(Evaluation):
         Writes predictions to the outputs.
 
         :param experiment_name: The name of the experiment
-        :param meta_data        The meta data of the data set
+        :param meta_data:       The meta data of the data set
         :param predictions:     The predictions
         :param ground_truth:    The ground truth
         :param current_fold:    The current cross validation fold or 0, if no cross validation is used

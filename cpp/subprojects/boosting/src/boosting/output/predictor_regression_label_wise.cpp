@@ -1,4 +1,5 @@
 #include "boosting/output/predictor_regression_label_wise.hpp"
+#include "common/validation.hpp"
 #include "predictor_common.hpp"
 #include "omp.h"
 
@@ -7,11 +8,12 @@ namespace boosting {
 
     LabelWiseRegressionPredictor::LabelWiseRegressionPredictor(uint32 numThreads)
         : numThreads_(numThreads) {
-
+        assertGreaterOrEqual<uint32>("numThreads", numThreads, 1);
     }
 
     void LabelWiseRegressionPredictor::predict(const CContiguousFeatureMatrix& featureMatrix,
-                                               CContiguousView<float64>& predictionMatrix, const Rule& rule) const {
+                                               CContiguousView<float64>& predictionMatrix, const Rule& rule,
+                                               const LabelVectorSet* labelVectors) const {
         uint32 numExamples = featureMatrix.getNumRows();
         const CContiguousFeatureMatrix* featureMatrixPtr = &featureMatrix;
         CContiguousView<float64>* predictionMatrixPtr = &predictionMatrix;
@@ -26,7 +28,8 @@ namespace boosting {
     }
 
     void LabelWiseRegressionPredictor::predict(const CsrFeatureMatrix& featureMatrix,
-                                               CContiguousView<float64>& predictionMatrix, const Rule& rule) const {
+                                               CContiguousView<float64>& predictionMatrix, const Rule& rule,
+                                               const LabelVectorSet* labelVectors) const {
         uint32 numExamples = featureMatrix.getNumRows();
         uint32 numFeatures = featureMatrix.getNumCols();
         const CsrFeatureMatrix* featureMatrixPtr = &featureMatrix;
@@ -46,7 +49,7 @@ namespace boosting {
 
     void LabelWiseRegressionPredictor::predict(const CContiguousFeatureMatrix& featureMatrix,
                                                CContiguousView<float64>& predictionMatrix,
-                                               const RuleModel& model) const {
+                                               const RuleModel& model, const LabelVectorSet* labelVectors) const {
         uint32 numExamples = featureMatrix.getNumRows();
         const CContiguousFeatureMatrix* featureMatrixPtr = &featureMatrix;
         CContiguousView<float64>* predictionMatrixPtr = &predictionMatrix;
@@ -65,7 +68,7 @@ namespace boosting {
 
     void LabelWiseRegressionPredictor::predict(const CsrFeatureMatrix& featureMatrix,
                                                CContiguousView<float64>& predictionMatrix,
-                                               const RuleModel& model) const {
+                                               const RuleModel& model, const LabelVectorSet* labelVectors) const {
         uint32 numExamples = featureMatrix.getNumRows();
         uint32 numFeatures = featureMatrix.getNumCols();
         const CsrFeatureMatrix* featureMatrixPtr = &featureMatrix;

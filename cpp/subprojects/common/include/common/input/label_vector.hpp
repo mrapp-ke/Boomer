@@ -3,10 +3,10 @@
  */
 #pragma once
 
-#include "common/data/vector_sparse_list_binary.hpp"
+#include "common/data/vector_sparse_array_binary.hpp"
 
 
 /**
- * An one-dimensional sparse vector that stores the relevant labels of an example.
+ * An one-dimensional sparse vector that stores the indices of labels that are relevant to an example.
  */
-typedef BinarySparseListVector LabelVector;
+typedef BinarySparseArrayVector LabelVector;

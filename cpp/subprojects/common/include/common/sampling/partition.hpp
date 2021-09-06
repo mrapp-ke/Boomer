@@ -7,9 +7,10 @@
 #include <memory>
 
 // Forward declarations
-class IWeightVector;
-class IInstanceSubSampling;
-class RNG;
+class IInstanceSampling;
+class IInstanceSamplingFactory;
+class ILabelMatrix;
+class IStatistics;
 class IThresholdsSubset;
 class ICoverageState;
 class Refinement;
@@ -27,21 +28,24 @@ class IPartition {
         virtual ~IPartition() { };
 
         /**
-         * Creates and returns a sub-sample of the examples that belong to the training set.
+         * Creates and returns a new instance of the class `IInstanceSampling`, based on the type of this partition
+         * matrix.
          *
-         * @param instanceSubSampling   A reference to an object of type `IInstanceSubSampling` that should be used to
-         *                              sample the examples
-         * @param rng                   A reference to an object of type `RNG`, implementing the random number generator
-         *                              to be used
-         * @return                      An unique pointer to an object type `WeightVector` that provides access to the
-         *                              weights of the individual training examples
+         * @param factory       A reference to an object of type `IInstanceSamplingFactory` that should be used to
+         *                      create the instance
+         * @param labelMatrix   A reference to an object of type `ILabelMatrix` that provides access to the labels of
+         *                      the training examples
+         * @param statistics    A reference to an object of type `IStatistics` that provides access to the statistics
+         *                      which serve as a basis for learning rules
+         * @return              An unique pointer to an object of type `IInstanceSampling` that has been created
          */
-        virtual std::unique_ptr<IWeightVector> subSample(const IInstanceSubSampling& instanceSubSampling,
-                                                         RNG& rng) const = 0;
+        virtual std::unique_ptr<IInstanceSampling> createInstanceSampling(const IInstanceSamplingFactory& factory,
+                                                                          const ILabelMatrix& labelMatrix,
+                                                                          IStatistics& statistics) = 0;
 
         /**
          * Calculates and returns a quality score that assesses the quality of a rule's prediction for all examples that
-         * do not belong to the current sub-sample and are marked as covered according to a given object of type
+         * do not belong to the current sample and are marked as covered according to a given object of type
          * `ICoverageState`.
          *
          * @param thresholdsSubset  A reference to an object of type `IThresholdsSubset` that should be used to

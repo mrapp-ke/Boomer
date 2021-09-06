@@ -43,3 +43,41 @@ template<typename T>
 static inline void copyArray(const T* from, T* to, uint32 numElements) {
     std::copy(from, from + numElements, to);
 }
+
+/**
+ * Sets all elements in an array `a` to the difference between the elements in two other arrays `b` and `c`, such that
+ * `a = b - c`.
+ *
+ * @tparam T            The type of the arrays `a`, `b` and `c`
+ * @param a             A pointer to an array of template type `T` to be updated
+ * @param b             A pointer to an array of template type `T`
+ * @param c             A pointer to an array of template type `T`
+ * @param numElements   The number of elements in the arrays `a`, `b` and `c`
+ */
+template<typename T>
+static inline void setArrayToDifference(T* a, const T* b, const T* c, uint32 numElements) {
+    for (uint32 i = 0; i < numElements; i++) {
+        a[i] = b[i] - c[i];
+    }
+}
+
+/**
+ * Sets all elements in an array `a` to the difference between the elements in two other array `b` and `c`, such that
+ * `a = b - c`. The indices of elements in the array `b` that correspond to the elements in arrays `a` and `c` are given
+ * as an additional array.
+ *
+ * @tparam T            The type of the arrays `a`, `b` and `c`
+ * @param a             A pointer to an array of template type `T` to be updated
+ * @param b             A pointer to an array of template type `T`
+ * @param c             A pointer to an array of template type `T`
+ * @param indices       A pointer to an array of type `uint32` that stores the indices of the elements in the array `b`
+ *                      that correspond to the elements in arrays `a` and `c`
+ * @param numElements   The number of elements in the array `a`
+ */
+template<typename T>
+static inline void setArrayToDifference(T* a, const T* b, const T* c, const uint32* indices, uint32 numElements) {
+    for (uint32 i = 0; i < numElements; i++) {
+        uint32 index = indices[i];
+        a[i] = b[index] - c[i];
+    }
+}

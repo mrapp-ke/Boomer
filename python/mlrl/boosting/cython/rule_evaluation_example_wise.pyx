@@ -3,21 +3,22 @@
 """
 from mlrl.boosting.cython._blas cimport init_blas
 from mlrl.boosting.cython._lapack cimport init_lapack
+from mlrl.boosting.cython.label_binning cimport LabelBinningFactory
 
-from libcpp.memory cimport make_shared
+from libcpp.memory cimport make_unique
 from libcpp.utility cimport move
 
 
-cdef class ExampleWiseRuleEvaluation:
+cdef class ExampleWiseRuleEvaluationFactory:
     """
-    A wrapper for the pure virtual C++ class `IExampleWiseRuleEvaluation`.
+    A wrapper for the pure virtual C++ class `IExampleWiseRuleEvaluationFactory`.
     """
     pass
 
 
-cdef class RegularizedExampleWiseRuleEvaluationFactory(ExampleWiseRuleEvaluationFactory):
+cdef class ExampleWiseCompleteRuleEvaluationFactory(ExampleWiseRuleEvaluationFactory):
     """
-    A wrapper for the C++ class `RegularizedExampleWiseRuleEvaluationFactory`.
+    A wrapper for the C++ class `ExampleWiseCompleteRuleEvaluationFactory`.
     """
 
     def __cinit__(self, float64 l2_regularization_weight):
@@ -25,26 +26,22 @@ cdef class RegularizedExampleWiseRuleEvaluationFactory(ExampleWiseRuleEvaluation
         :param l2_regularization_weight: The weight of the L2 regularization that is applied for calculating the scores
                                          to be predicted by rules
         """
-        cdef shared_ptr[Blas] blas_ptr = <shared_ptr[Blas]>move(init_blas())
-        cdef shared_ptr[Lapack] lapack_ptr = <shared_ptr[Lapack]>move(init_lapack())
-        self.rule_evaluation_factory_ptr = <shared_ptr[IExampleWiseRuleEvaluationFactory]>make_shared[RegularizedExampleWiseRuleEvaluationFactoryImpl](
-            l2_regularization_weight, blas_ptr, lapack_ptr)
+        self.rule_evaluation_factory_ptr = <unique_ptr[IExampleWiseRuleEvaluationFactory]>make_unique[ExampleWiseCompleteRuleEvaluationFactoryImpl](
+            l2_regularization_weight, move(init_blas()), move(init_lapack()))
 
 
-cdef class EqualWidthBinningExampleWiseRuleEvaluationFactory(ExampleWiseRuleEvaluationFactory):
+cdef class ExampleWiseCompleteBinnedRuleEvaluationFactory(ExampleWiseRuleEvaluationFactory):
     """
-    A wrapper for the C++ class `EqualWidthBinningExampleWiseRuleEvaluationFactory`.
+    A wrapper for the C++ class `ExampleWiseCompleteBinnedRuleEvaluationFactory`.
     """
 
-    def __cinit__(self, float64 l2_regularization_weight, float32 bin_ratio, uint32 min_bins, uint32 max_bins):
+    def __cinit__(self, float64 l2_regularization_weight, LabelBinningFactory label_binning_factory not None):
         """
         :param l2_regularization_weight:    The weight of the L2 regularization that is applied for calculating the
                                             scores to be predicted by rules
-        :param bin_ratio:                   A percentage that specifies how many bins should be used to assign labels to
-        :param min_bins:                    The minimum number of bins to be used to assign labels to
-        :param max_bins:                    The maximum number of bins to be used to assign labels to
+        :param label_binning_factory:       A `LabelBinningFactory` that allows to create the implementation that should
+                                            be used to assign labels to bins
         """
-        cdef shared_ptr[Blas] blas_ptr = <shared_ptr[Blas]>move(init_blas())
-        cdef shared_ptr[Lapack] lapack_ptr = <shared_ptr[Lapack]>move(init_lapack())
-        self.rule_evaluation_factory_ptr = <shared_ptr[IExampleWiseRuleEvaluationFactory]>make_shared[EqualWidthBinningExampleWiseRuleEvaluationFactoryImpl](
-            l2_regularization_weight, bin_ratio, min_bins, max_bins, blas_ptr, lapack_ptr)
+        self.rule_evaluation_factory_ptr = <unique_ptr[IExampleWiseRuleEvaluationFactory]>make_unique[ExampleWiseCompleteBinnedRuleEvaluationFactoryImpl](
+            l2_regularization_weight, move(label_binning_factory.label_binning_factory_ptr), move(init_blas()),
+            move(init_lapack()))

@@ -27,7 +27,7 @@ class TimeStoppingCriterion final : public IStoppingCriterion {
     public:
 
         /**
-         * @param timeLimit The time limit in seconds
+         * @param timeLimit The time limit in seconds. Must be at least 1
          */
         TimeStoppingCriterion(uint32 timeLimit);
 

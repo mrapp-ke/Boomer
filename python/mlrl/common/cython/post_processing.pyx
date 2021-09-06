@@ -1,7 +1,7 @@
 """
 @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
 """
-from libcpp.memory cimport make_shared
+from libcpp.memory cimport make_unique
 
 
 cdef class PostProcessor:
@@ -17,4 +17,4 @@ cdef class NoPostProcessor(PostProcessor):
     """
 
     def __cinit__(self):
-        self.post_processor_ptr = <shared_ptr[IPostProcessor]>make_shared[NoPostProcessorImpl]()
+        self.post_processor_ptr = <unique_ptr[IPostProcessor]>make_unique[NoPostProcessorImpl]()

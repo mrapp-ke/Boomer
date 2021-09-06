@@ -28,7 +28,7 @@ class ISimilarityMeasure {
          * @return              The numerical score that has been calculated
          */
         virtual float64 measureSimilarity(const LabelVector& labelVector,
-                                          CContiguousView<float64>::const_iterator scoresBegin,
-                                          CContiguousView<float64>::const_iterator scoresEnd) const = 0;
+                                          CContiguousConstView<float64>::const_iterator scoresBegin,
+                                          CContiguousConstView<float64>::const_iterator scoresEnd) const = 0;
 
 };

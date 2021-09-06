@@ -13,13 +13,9 @@ namespace boosting {
      */
     class LabelWiseSquaredErrorLoss final : public AbstractLabelWiseLoss {
 
-        protected:
+        public:
 
-            void updateGradientAndHessian(DenseVector<float64>::iterator gradient,
-                                          DenseVector<float64>::iterator hessian, bool trueLabel,
-                                          float64 predictedScore) const override;
-
-            float64 evaluate(bool trueLabel, float64 predictedScore) const override;
+            LabelWiseSquaredErrorLoss();
 
     };
 

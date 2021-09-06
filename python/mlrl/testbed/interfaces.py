@@ -2,7 +2,7 @@
 
 
 """
-@author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
 
 Provides common interfaces that are implemented by several classes.
 """

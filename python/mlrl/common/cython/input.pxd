@@ -1,8 +1,62 @@
 from mlrl.common.cython._types cimport uint8, uint32, float32
 
 from libcpp cimport bool
-from libcpp.memory cimport unique_ptr, shared_ptr
-from libcpp.list cimport list as double_linked_list
+from libcpp.memory cimport unique_ptr
+
+
+cdef extern from "common/input/label_vector.hpp" nogil:
+
+    cdef cppclass LabelVector:
+
+        ctypedef uint32* index_iterator
+
+        ctypedef const uint32* index_const_iterator
+
+        # Functions:
+
+        index_iterator indices_begin()
+
+        index_iterator indices_end()
+
+        index_const_iterator indices_cbegin()
+
+        index_const_iterator indices_cend()
+
+        uint32 getNumElements()
+
+
+ctypedef void (*LabelVectorVisitor)(const LabelVector&)
+
+
+cdef extern from "common/input/label_vector_set.hpp" nogil:
+
+    cdef cppclass LabelVectorSetImpl"LabelVectorSet":
+
+        # Functions:
+
+        void addLabelVector(unique_ptr[LabelVector] labelVectorPtr)
+
+        void visit(LabelVectorVisitor)
+
+
+cdef extern from *:
+    """
+    #include "common/input/label_vector_set.hpp"
+
+
+    typedef void (*LabelVectorCythonVisitor)(void*, const LabelVector&);
+
+    static inline LabelVectorSet::LabelVectorVisitor wrapLabelVectorVisitor(
+            void* self, LabelVectorCythonVisitor visitor) {
+        return [=](const LabelVector& labelVector) {
+            visitor(self, labelVector);
+        };
+    }
+    """
+
+    ctypedef void (*LabelVectorCythonVisitor)(void*, const LabelVector&)
+
+    LabelVectorVisitor wrapLabelVectorVisitor(void* self, LabelVectorCythonVisitor visitor)
 
 
 cdef extern from "common/input/label_matrix.hpp" nogil:
@@ -15,49 +69,25 @@ cdef extern from "common/input/label_matrix.hpp" nogil:
 
         uint32 getNumCols()
 
-
-    cdef cppclass IRandomAccessLabelMatrix(ILabelMatrix):
-
-        # Functions:
-
-        uint8 getValue(uint32 row, uint32 col)
+        unique_ptr[LabelVector] createLabelVector(uint32 row)
 
 
 cdef extern from "common/input/label_matrix_c_contiguous.hpp" nogil:
 
-    cdef cppclass CContiguousLabelMatrixImpl"CContiguousLabelMatrix"(IRandomAccessLabelMatrix):
+    cdef cppclass CContiguousLabelMatrixImpl"CContiguousLabelMatrix"(ILabelMatrix):
 
         # Constructors:
 
-        CContiguousLabelMatrixImpl(uint32 numRows, uint32 numCols, uint8* array) except +
+        CContiguousLabelMatrixImpl(uint32 numRows, uint32 numCols, const uint8* array)
 
 
-cdef extern from "common/input/label_matrix_dok.hpp" nogil:
+cdef extern from "common/input/label_matrix_csr.hpp" nogil:
 
-    cdef cppclass DokLabelMatrixImpl"DokLabelMatrix"(IRandomAccessLabelMatrix):
+    cdef cppclass CsrLabelMatrixImpl"CsrLabelMatrix"(ILabelMatrix):
 
         # Constructors:
 
-        DokLabelMatrixImpl(uint32 numRows, uint32 numCols) except +
-
-        # Functions:
-
-        void setValue(uint32 exampleIndex, uint32 rowIndex)
-
-
-cdef extern from "common/input/label_vector.hpp" nogil:
-
-    cdef cppclass LabelVector:
-
-        ctypedef double_linked_list[uint32].const_iterator index_const_iterator
-
-        # Functions:
-
-        index_const_iterator indices_cbegin()
-
-        index_const_iterator indices_cend()
-
-        void setValue(uint32 pos)
+        CsrLabelMatrixImpl(uint32 numRows, uint32 numCols, uint32* rowIndices, uint32* colIndices)
 
 
 cdef extern from "common/input/feature_matrix.hpp" nogil:
@@ -72,7 +102,7 @@ cdef extern from "common/input/feature_matrix_c_contiguous.hpp" nogil:
 
         # Constructors:
 
-        CContiguousFeatureMatrixImpl(uint32 numRows, uint32 numCols, float32* array) except +
+        CContiguousFeatureMatrixImpl(uint32 numRows, uint32 numCols, const float32* array)
 
         # Functions:
 
@@ -85,7 +115,7 @@ cdef extern from "common/input/feature_matrix_fortran_contiguous.hpp" nogil:
 
         # Constructors:
 
-        FortranContiguousFeatureMatrixImpl(uint32 numRows, uint32 numCols, float32* array) except +
+        FortranContiguousFeatureMatrixImpl(uint32 numRows, uint32 numCols, const float32* array)
 
 
 cdef extern from "common/input/feature_matrix_csc.hpp" nogil:
@@ -94,8 +124,8 @@ cdef extern from "common/input/feature_matrix_csc.hpp" nogil:
 
         # Constructors:
 
-        CscFeatureMatrixImpl(uint32 numRows, uint32 numCols, const float32* data, const uint32* rowIndices,
-                             const uint32* colIndices) except +
+        CscFeatureMatrixImpl(uint32 numRows, uint32 numCols, const float32* data, uint32* rowIndices,
+                             uint32* colIndices)
 
 
 cdef extern from "common/input/feature_matrix_csr.hpp" nogil:
@@ -104,8 +134,7 @@ cdef extern from "common/input/feature_matrix_csr.hpp" nogil:
 
         # Constructors:
 
-        CsrFeatureMatrixImpl(uint32 numRows, uint32 numCols, const float32* data, const uint32* rowIndices,
-                             const uint32 colIndices) except +
+        CsrFeatureMatrixImpl(uint32 numRows, uint32 numCols, const float32* data, uint32* rowIndices, uint32 colIndices)
 
         # Functions:
 
@@ -118,9 +147,9 @@ cdef extern from "common/input/nominal_feature_mask.hpp" nogil:
         pass
 
 
-cdef extern from "common/input/nominal_feature_mask_dok.hpp" nogil:
+cdef extern from "common/input/nominal_feature_mask_bit.hpp" nogil:
 
-    cdef cppclass DokNominalFeatureMaskImpl"DokNominalFeatureMask"(INominalFeatureMask):
+    cdef cppclass BitNominalFeatureMaskImpl"BitNominalFeatureMask"(INominalFeatureMask):
 
         # Functions:
 
@@ -133,25 +162,25 @@ cdef extern from "common/input/nominal_feature_mask_equal.hpp" nogil:
 
         # Constructors:
 
-        EqualNominalFeatureMaskImpl(bool nominal) except +
+        EqualNominalFeatureMaskImpl(bool nominal)
 
 
 cdef class LabelMatrix:
 
     # Attributes:
 
-    cdef shared_ptr[ILabelMatrix] label_matrix_ptr
+    cdef unique_ptr[ILabelMatrix] label_matrix_ptr
 
 
-cdef class RandomAccessLabelMatrix(LabelMatrix):
+cdef class CContiguousLabelMatrix(LabelMatrix):
     pass
 
 
-cdef class CContiguousLabelMatrix(RandomAccessLabelMatrix):
+cdef class CsrLabelMatrix(LabelMatrix):
     pass
 
 
-cdef class DokLabelMatrix(RandomAccessLabelMatrix):
+cdef class DokLabelMatrix(LabelMatrix):
     pass
 
 
@@ -159,7 +188,7 @@ cdef class FeatureMatrix:
 
     # Attributes:
 
-    cdef shared_ptr[IFeatureMatrix] feature_matrix_ptr
+    cdef unique_ptr[IFeatureMatrix] feature_matrix_ptr
 
 
 cdef class FortranContiguousFeatureMatrix(FeatureMatrix):
@@ -174,26 +203,44 @@ cdef class CContiguousFeatureMatrix:
 
     # Attributes:
 
-    cdef shared_ptr[CContiguousFeatureMatrixImpl] feature_matrix_ptr
+    cdef unique_ptr[CContiguousFeatureMatrixImpl] feature_matrix_ptr
 
 
 cdef class CsrFeatureMatrix:
 
     # Attributes:
 
-    cdef shared_ptr[CsrFeatureMatrixImpl] feature_matrix_ptr
+    cdef unique_ptr[CsrFeatureMatrixImpl] feature_matrix_ptr
 
 
 cdef class NominalFeatureMask:
 
     # Attributes:
 
-    cdef shared_ptr[INominalFeatureMask] nominal_feature_mask_ptr
+    cdef unique_ptr[INominalFeatureMask] nominal_feature_mask_ptr
 
 
-cdef class DokNominalFeatureMask(NominalFeatureMask):
+cdef class BitNominalFeatureMask(NominalFeatureMask):
     pass
 
 
 cdef class EqualNominalFeatureMask(NominalFeatureMask):
     pass
+
+
+cdef class LabelVectorSet:
+
+    # Attributes:
+
+    cdef unique_ptr[LabelVectorSetImpl] label_vector_set_ptr
+
+
+cdef class LabelVectorSetSerializer:
+
+    # Attributes:
+
+    cdef list state
+
+    # Functions:
+
+    cdef __visit_label_vector(self, const LabelVector& label_vector)

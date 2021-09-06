@@ -1,12 +1,12 @@
 #pragma once
-#include "common/model/head_full.hpp"
+#include "common/model/head_complete.hpp"
 #include "common/model/head_partial.hpp"
 
 
 namespace boosting {
 
-    static inline void applyFullHead(const FullHead& head, CContiguousView<float64>::iterator iterator) {
-        FullHead::score_const_iterator scoreIterator = head.scores_cbegin();
+    static inline void applyCompleteHead(const CompleteHead& head, CContiguousView<float64>::iterator iterator) {
+        CompleteHead::score_const_iterator scoreIterator = head.scores_cbegin();
         uint32 numElements = head.getNumElements();
 
         for (uint32 i = 0; i < numElements; i++) {
@@ -26,13 +26,13 @@ namespace boosting {
     }
 
     static inline void applyHead(const IHead& head, CContiguousView<float64>::iterator scoreIterator) {
-        auto fullHeadVisitor = [=](const FullHead& head) {
-            applyFullHead(head, scoreIterator);
+        auto completeHeadVisitor = [=](const CompleteHead& head) {
+            applyCompleteHead(head, scoreIterator);
         };
         auto partialHeadVisitor = [=](const PartialHead& head) {
             applyPartialHead(head, scoreIterator);
         };
-        head.visit(fullHeadVisitor, partialHeadVisitor);
+        head.visit(completeHeadVisitor, partialHeadVisitor);
     }
 
     static inline void applyRule(const Rule& rule, CContiguousFeatureMatrix::const_iterator featureValuesBegin,
@@ -43,6 +43,15 @@ namespace boosting {
         if (body.covers(featureValuesBegin, featureValuesEnd)) {
             const IHead& head = rule.getHead();
             applyHead(head, scoreIterator);
+        }
+    }
+
+    static inline void applyRules(const RuleModel& model, CContiguousFeatureMatrix::const_iterator featureValuesBegin,
+                                  CContiguousFeatureMatrix::const_iterator featureValuesEnd,
+                                  CContiguousView<float64>::iterator scoreIterator) {
+        for (auto it = model.used_cbegin(); it != model.used_cend(); it++) {
+            const Rule& rule = *it;
+            applyRule(rule, featureValuesBegin, featureValuesEnd, scoreIterator);
         }
     }
 
@@ -58,6 +67,24 @@ namespace boosting {
                         tmpArray2, n)) {
             const IHead& head = rule.getHead();
             applyHead(head, scoreIterator);
+        }
+    }
+
+    static inline void applyRulesCsr(const RuleModel& model, CsrFeatureMatrix::index_const_iterator featureIndicesBegin,
+                                     CsrFeatureMatrix::index_const_iterator featureIndicesEnd,
+                                     CsrFeatureMatrix::value_const_iterator featureValuesBegin,
+                                     CsrFeatureMatrix::value_const_iterator featureValuesEnd,
+                                     CContiguousView<float64>::iterator scoreIterator) {
+        uint32 numFeatures = featureIndicesEnd - featureIndicesBegin;
+        float32 tmpArray1[numFeatures];
+        uint32 tmpArray2[numFeatures] = {};
+        uint32 n = 1;
+
+        for (auto it = model.used_cbegin(); it != model.used_cend(); it++) {
+            const Rule& rule = *it;
+            applyRuleCsr(rule, featureIndicesBegin, featureIndicesEnd, featureValuesBegin, featureValuesEnd,
+                         scoreIterator, &tmpArray1[0], &tmpArray2[0], n);
+            n++;
         }
     }
 

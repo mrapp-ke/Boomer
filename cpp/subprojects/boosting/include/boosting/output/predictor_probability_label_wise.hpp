@@ -52,26 +52,27 @@ namespace boosting {
 
         private:
 
-            std::shared_ptr<ILabelWiseTransformationFunction> transformationFunctionPtr_;
+            std::unique_ptr<ILabelWiseTransformationFunction> transformationFunctionPtr_;
 
             uint32 numThreads_;
 
         public:
 
             /**
-             * @param transformationFunctionPtr A shared pointer to an object of type `ILabelWiseTransformationFunction`
-             *                                  that should be used to transform predicted scores into probabilities
+             * @param transformationFunctionPtr An unique pointer to an object of type
+             *                                  `ILabelWiseTransformationFunction` that should be used to transform
+             *                                  predicted scores into probabilities
              * @param numThreads                The number of CPU threads to be used to make predictions for different
              *                                  query examples in parallel. Must be at least 1
              */
-            LabelWiseProbabilityPredictor(std::shared_ptr<ILabelWiseTransformationFunction> transformationFunctionPtr,
+            LabelWiseProbabilityPredictor(std::unique_ptr<ILabelWiseTransformationFunction> transformationFunctionPtr,
                                           uint32 numThreads);
 
             void predict(const CContiguousFeatureMatrix& featureMatrix, CContiguousView<float64>& predictionMatrix,
-                         const RuleModel& model) const override;
+                         const RuleModel& model, const LabelVectorSet* labelVectors) const override;
 
             void predict(const CsrFeatureMatrix& featureMatrix, CContiguousView<float64>& predictionMatrix,
-                         const RuleModel& model) const override;
+                         const RuleModel& model, const LabelVectorSet* labelVectors) const override;
 
     };
 

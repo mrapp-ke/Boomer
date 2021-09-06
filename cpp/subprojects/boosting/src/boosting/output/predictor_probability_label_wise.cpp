@@ -1,5 +1,6 @@
 #include "boosting/output/predictor_probability_label_wise.hpp"
 #include "boosting/math/math.hpp"
+#include "common/validation.hpp"
 #include "predictor_common.hpp"
 #include "omp.h"
 
@@ -10,7 +11,7 @@ namespace boosting {
         return logisticFunction(predictedScore);
     }
 
-    static inline void applyTransformationFunction(CContiguousView<float64>::const_iterator originalIterator,
+    static inline void applyTransformationFunction(CContiguousConstView<float64>::const_iterator originalIterator,
                                                    CContiguousView<float64>::iterator transformedIterator,
                                                    uint32 numElements,
                                                    const ILabelWiseTransformationFunction& transformationFunction) {
@@ -22,14 +23,15 @@ namespace boosting {
     }
 
     LabelWiseProbabilityPredictor::LabelWiseProbabilityPredictor(
-            std::shared_ptr<ILabelWiseTransformationFunction> transformationFunctionPtr, uint32 numThreads)
-        : transformationFunctionPtr_(transformationFunctionPtr), numThreads_(numThreads) {
-
+            std::unique_ptr<ILabelWiseTransformationFunction> transformationFunctionPtr, uint32 numThreads)
+        : transformationFunctionPtr_(std::move(transformationFunctionPtr)), numThreads_(numThreads) {
+        assertNotNull("transformationFunctionPtr", transformationFunctionPtr_.get());
+        assertGreaterOrEqual<uint32>("numThreads", numThreads, 1);
     }
 
     void LabelWiseProbabilityPredictor::predict(const CContiguousFeatureMatrix& featureMatrix,
                                                 CContiguousView<float64>& predictionMatrix,
-                                                const RuleModel& model) const {
+                                                const RuleModel& model, const LabelVectorSet* labelVectors) const {
         uint32 numExamples = featureMatrix.getNumRows();
         uint32 numLabels = predictionMatrix.getNumCols();
         const CContiguousFeatureMatrix* featureMatrixPtr = &featureMatrix;
@@ -55,7 +57,7 @@ namespace boosting {
 
     void LabelWiseProbabilityPredictor::predict(const CsrFeatureMatrix& featureMatrix,
                                                 CContiguousView<float64>& predictionMatrix,
-                                                const RuleModel& model) const {
+                                                const RuleModel& model, const LabelVectorSet* labelVectors) const {
         uint32 numExamples = featureMatrix.getNumRows();
         uint32 numLabels = predictionMatrix.getNumCols();
         uint32 numFeatures = featureMatrix.getNumCols();

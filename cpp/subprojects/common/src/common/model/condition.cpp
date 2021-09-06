@@ -6,6 +6,6 @@ Condition::Condition() {
 
 Condition::Condition(const Condition& condition)
     : featureIndex(condition.featureIndex), comparator(condition.comparator), threshold(condition.threshold),
-      start(condition.start), end(condition.end), covered(condition.covered), coveredWeights(condition.coveredWeights) {
+      start(condition.start), end(condition.end), covered(condition.covered), numCovered(condition.numCovered) {
 
 }

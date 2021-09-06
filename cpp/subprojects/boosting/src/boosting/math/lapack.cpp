@@ -10,7 +10,7 @@ namespace boosting {
 
     }
 
-    int Lapack::queryDsysvLworkParameter(float64* tmpArray1, float64* output, int n) {
+    int Lapack::queryDsysvLworkParameter(float64* tmpArray1, float64* output, int n) const {
         // "U" if the upper-right triangle of A should be used, "L" if the lower-left triangle should be used
         char* uplo = "U";
         // The number of right-hand sides, i.e, the number of columns of the matrix B
@@ -34,7 +34,7 @@ namespace boosting {
         return (int) worksize;
     }
 
-    void Lapack::dsysv(float64* tmpArray1, int* tmpArray2, double* tmpArray3, float64* output, int n, int lwork) {
+    void Lapack::dsysv(float64* tmpArray1, int* tmpArray2, double* tmpArray3, float64* output, int n, int lwork) const {
         // "U" if the upper-right triangle of A should be used, "L" if the lower-left triangle should be used
         char* uplo = "U";
         // The number of right-hand sides, i.e, the number of columns of the matrix B

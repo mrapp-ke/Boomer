@@ -1,7 +1,7 @@
 """
 @author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
 """
-from libcpp.memory cimport make_shared
+from libcpp.memory cimport make_unique
 
 
 cdef class Pruning:
@@ -17,7 +17,7 @@ cdef class NoPruning(Pruning):
     """
 
     def __cinit__(self):
-        self.pruning_ptr = <shared_ptr[IPruning]>make_shared[NoPruningImpl]()
+        self.pruning_ptr = <unique_ptr[IPruning]>make_unique[NoPruningImpl]()
 
 
 cdef class IREP(Pruning):
@@ -26,4 +26,4 @@ cdef class IREP(Pruning):
     """
 
     def __cinit__(self):
-        self.pruning_ptr = <shared_ptr[IPruning]>make_shared[IREPImpl]()
+        self.pruning_ptr = <unique_ptr[IPruning]>make_unique[IREPImpl]()

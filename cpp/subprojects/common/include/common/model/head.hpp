@@ -6,7 +6,7 @@
 #include <functional>
 
 // Forward declarations
-class FullHead;
+class CompleteHead;
 class PartialHead;
 
 
@@ -20,9 +20,9 @@ class IHead {
         virtual ~IHead() { };
 
         /**
-         * A visitor function for handling objects of the type `FullHead`.
+         * A visitor function for handling objects of the type `CompleteHead`.
          */
-        typedef std::function<void(const FullHead&)> FullHeadVisitor;
+        typedef std::function<void(const CompleteHead&)> CompleteHeadVisitor;
 
         /**
          * A visitor function for handling objects of the type `PartialHead`.
@@ -33,9 +33,9 @@ class IHead {
          * Invokes one of the given visitor functions, depending on which one is able to handle this particular type of
          * head.
          *
-         * @param fullHeadVisitor       The visitor function for handling objects of the type `FullHead`
+         * @param completeHeadVisitor   The visitor function for handling objects of the type `CompleteHead`
          * @param partialHeadVisitor    The visitor function for handling objects of the type `PartialHead`
          */
-        virtual void visit(FullHeadVisitor fullHeadVisitor, PartialHeadVisitor partialHeadVisitor) const = 0;
+        virtual void visit(CompleteHeadVisitor completeHeadVisitor, PartialHeadVisitor partialHeadVisitor) const = 0;
 
 };

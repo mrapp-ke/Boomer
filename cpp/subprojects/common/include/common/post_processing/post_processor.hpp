@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include "common/head_refinement/prediction.hpp"
+#include "common/rule_refinement/prediction.hpp"
 
 
 /**

@@ -1,4 +1,4 @@
-from libcpp.memory cimport shared_ptr
+from libcpp.memory cimport unique_ptr
 
 
 cdef extern from "common/post_processing/post_processor.hpp" nogil:
@@ -17,7 +17,7 @@ cdef class PostProcessor:
 
     # Attributes:
 
-    cdef shared_ptr[IPostProcessor] post_processor_ptr
+    cdef unique_ptr[IPostProcessor] post_processor_ptr
 
 
 cdef class NoPostProcessor(PostProcessor):

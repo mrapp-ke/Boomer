@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include "common/output/predictor.hpp"
+#include "common/output/predictor_sparse.hpp"
 
 
 namespace boosting {
@@ -16,7 +16,7 @@ namespace boosting {
      * then transformed into binary values according to a certain threshold that is applied to the labels individually
      * (1 if a score exceeds the threshold, i.e., the label is relevant, 0 otherwise).
      */
-    class LabelWiseClassificationPredictor : public IPredictor<uint8> {
+    class LabelWiseClassificationPredictor : public ISparsePredictor<uint8> {
 
         private:
 
@@ -34,10 +34,18 @@ namespace boosting {
             LabelWiseClassificationPredictor(float64 threshold, uint32 numThreads);
 
             void predict(const CContiguousFeatureMatrix& featureMatrix, CContiguousView<uint8>& predictionMatrix,
-                         const RuleModel& model) const override;
+                         const RuleModel& model, const LabelVectorSet* labelVectors) const override;
 
             void predict(const CsrFeatureMatrix& featureMatrix, CContiguousView<uint8>& predictionMatrix,
-                         const RuleModel& model) const override;
+                         const RuleModel& model, const LabelVectorSet* labelVectors) const override;
+
+            std::unique_ptr<SparsePredictionMatrix<uint8>> predict(const CContiguousFeatureMatrix& featureMatrix,
+                                                                   uint32 numLabels, const RuleModel& model,
+                                                                   const LabelVectorSet* labelVectors) const override;
+
+            std::unique_ptr<SparsePredictionMatrix<uint8>> predict(const CsrFeatureMatrix& featureMatrix,
+                                                                   uint32 numLabels, const RuleModel& model,
+                                                                   const LabelVectorSet* labelVectors) const override;
 
     };
 

@@ -64,8 +64,8 @@ class Condition {
         bool covered;
 
         /**
-         * The sum of the weights of all elements that are covered by the condition.
+         * The number of elements that are covered by the condition.
          */
-        uint32 coveredWeights;
+        uint32 numCovered;
 
 };

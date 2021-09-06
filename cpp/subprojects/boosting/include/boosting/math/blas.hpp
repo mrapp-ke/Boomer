@@ -42,7 +42,7 @@ namespace boosting {
              * @param n The number of elements in the arrays `x` and `y`
              * @return  A scalar of type `float64`, representing the result of the dot product x * y
              */
-            float64 ddot(float64* x, float64* y, int n);
+            float64 ddot(float64* x, float64* y, int n) const;
 
             /**
              * Computes and returns the solution to the matrix-vector operation A * x using BLAS' DSPMV routine (see
@@ -60,7 +60,7 @@ namespace boosting {
              *                  operation A * x should be written to. May contain arbitrary values
              * @param n         The number of elements in the arrays `a` and `x`
              */
-            void dspmv(float64* a, float64* x, float64* output, int n);
+            void dspmv(float64* a, float64* x, float64* output, int n) const;
 
     };
 

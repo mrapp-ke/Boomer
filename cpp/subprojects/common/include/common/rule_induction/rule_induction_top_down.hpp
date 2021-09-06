@@ -15,23 +15,38 @@ class TopDownRuleInduction : public IRuleInduction {
 
     private:
 
+        uint32 minCoverage_;
+
+        intp maxConditions_;
+
+        intp maxHeadRefinements_;
+
+        bool recalculatePredictions_;
+
         uint32 numThreads_;
 
     public:
 
         /**
-         * @param numThreads The number of CPU threads to be used to search for potential refinements of a rule in
-         *                   parallel. Must be at least 1
+         * @param minCoverage               The minimum number of training examples that must be covered by a rule. Must
+         *                                  be at least 1
+         * @param maxConditions             The maximum number of conditions to be included in a rule's body. Must be at
+         *                                  least 1 or 0, if the number of conditions should not be restricted
+         * @param maxHeadRefinements        The maximum number of times, the head of a rule may be refinement after a
+         *                                  new condition has been added to its body. Must be at least 1 or 0, if the
+         *                                  number of refinements should not be restricted
+         * @param recalculatePredictions    True, if the predictions of rules should be recalculated on all training
+         *                                  examples, if some of the examples have zero weights, false otherwise
+         * @param numThreads                The number of CPU threads to be used to search for potential refinements of
+         *                                  a rule in parallel. Must be at least 1
          */
-        TopDownRuleInduction(uint32 numThreads);
+        TopDownRuleInduction(uint32 minCoverage, uint32 maxConditions, uint32 maxHeadRefinements,
+                             bool recalculatePredictions, uint32 numThreads);
 
-        void induceDefaultRule(IStatisticsProvider& statisticsProvider,
-                               const IHeadRefinementFactory* headRefinementFactory,
-                               IModelBuilder& modelBuilder) const override;
+        void induceDefaultRule(IStatistics& statistics, IModelBuilder& modelBuilder) const override;
 
         bool induceRule(IThresholds& thresholds, const IIndexVector& labelIndices, const IWeightVector& weights,
-                        IPartition& partition, const IFeatureSubSampling& featureSubSampling, const IPruning& pruning,
-                        const IPostProcessor& postProcessor, uint32 minCoverage, intp maxConditions,
-                        intp maxHeadRefinements, RNG& rng, IModelBuilder& modelBuilder) const override;
+                        IPartition& partition, IFeatureSampling& featureSampling, const IPruning& pruning,
+                        const IPostProcessor& postProcessor, RNG& rng, IModelBuilder& modelBuilder) const override;
 
 };

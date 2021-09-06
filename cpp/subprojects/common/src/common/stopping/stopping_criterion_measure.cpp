@@ -1,6 +1,7 @@
 #include "common/stopping/stopping_criterion_measure.hpp"
 #include "common/sampling/partition_bi.hpp"
 #include "common/math/math.hpp"
+#include "common/validation.hpp"
 #include <limits>
 
 
@@ -64,16 +65,26 @@ float64 ArithmeticMeanFunction::aggregate(RingBuffer<float64>::const_iterator be
     return mean;
 }
 
-MeasureStoppingCriterion::MeasureStoppingCriterion(std::shared_ptr<IEvaluationMeasure> measurePtr,
-                                                   std::shared_ptr<IAggregationFunction> aggregationFunctionPtr,
+MeasureStoppingCriterion::MeasureStoppingCriterion(std::unique_ptr<IEvaluationMeasure> measurePtr,
+                                                   std::unique_ptr<IAggregationFunction> aggregationFunctionPtr,
                                                    uint32 minRules, uint32 updateInterval, uint32 stopInterval,
-                                                   uint32 numPast, uint32 numRecent, float64 minImprovement,
+                                                   uint32 numPast, uint32 numCurrent, float64 minImprovement,
                                                    bool forceStop)
-    : measurePtr_(measurePtr), aggregationFunctionPtr_(aggregationFunctionPtr), updateInterval_(updateInterval),
-      stopInterval_(stopInterval), minImprovement_(minImprovement), pastBuffer_(RingBuffer<float64>(numPast)),
-      recentBuffer_(RingBuffer<float64>(numRecent)), stoppingAction_(forceStop ? FORCE_STOP : STORE_STOP),
-      bestScore_(std::numeric_limits<float64>::infinity()), stopped_(false) {
-    uint32 bufferInterval = (numPast * updateInterval) + (numRecent * updateInterval);
+    : measurePtr_(std::move(measurePtr)), aggregationFunctionPtr_(std::move(aggregationFunctionPtr)),
+      updateInterval_(updateInterval), stopInterval_(stopInterval), minImprovement_(minImprovement),
+      pastBuffer_(RingBuffer<float64>(numPast)), recentBuffer_(RingBuffer<float64>(numCurrent)),
+      stoppingAction_(forceStop ? FORCE_STOP : STORE_STOP), bestScore_(std::numeric_limits<float64>::infinity()),
+      stopped_(false) {
+    assertNotNull("measurePtr", measurePtr_.get());
+    assertNotNull("aggregationFunctionPtr", aggregationFunctionPtr_.get());
+    assertGreaterOrEqual<uint32>("minRules", minRules, 1);
+    assertGreaterOrEqual<uint32>("updateInterval", updateInterval, 1);
+    assertMultiple<uint32>("stopInterval", stopInterval, updateInterval);
+    assertGreaterOrEqual<uint32>("numPast", numPast, 1);
+    assertGreaterOrEqual<uint32>("numCurrent", numCurrent, 1);
+    assertGreaterOrEqual<float64>("minImprovement", minImprovement, 0);
+    assertLessOrEqual<float64>("minImprovement", minImprovement, 1);
+    uint32 bufferInterval = (numPast * updateInterval) + (numCurrent * updateInterval);
     offset_ = bufferInterval < minRules ? minRules - bufferInterval : 0;
 }
 

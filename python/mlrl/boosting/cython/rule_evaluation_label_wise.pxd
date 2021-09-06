@@ -1,6 +1,7 @@
 from mlrl.common.cython._types cimport uint32, float32, float64
+from mlrl.boosting.cython.label_binning cimport ILabelBinningFactory
 
-from libcpp.memory cimport shared_ptr
+from libcpp.memory cimport unique_ptr
 
 
 cdef extern from "boosting/rule_evaluation/rule_evaluation_label_wise.hpp" namespace "boosting" nogil:
@@ -9,37 +10,51 @@ cdef extern from "boosting/rule_evaluation/rule_evaluation_label_wise.hpp" names
         pass
 
 
-cdef extern from "boosting/rule_evaluation/rule_evaluation_label_wise_regularized.hpp" namespace "boosting" nogil:
+cdef extern from "boosting/rule_evaluation/rule_evaluation_label_wise_single.hpp" namespace "boosting" nogil:
 
-    cdef cppclass RegularizedLabelWiseRuleEvaluationFactoryImpl"boosting::RegularizedLabelWiseRuleEvaluationFactory"(
+    cdef cppclass LabelWiseSingleLabelRuleEvaluationFactoryImpl"boosting::LabelWiseSingleLabelRuleEvaluationFactory"(
             ILabelWiseRuleEvaluationFactory):
 
         # Constructors:
 
-        RegularizedLabelWiseRuleEvaluationFactoryImpl(float64 l2RegularizationWeight) except +
+        LabelWiseSingleLabelRuleEvaluationFactoryImpl(float64 l2RegularizationWeight) except +
 
 
-cdef extern from "boosting/rule_evaluation/rule_evaluation_label_wise_binning.hpp" namespace "boosting" nogil:
+cdef extern from "boosting/rule_evaluation/rule_evaluation_label_wise_complete.hpp" namespace "boosting" nogil:
 
-    cdef cppclass EqualWidthBinningLabelWiseRuleEvaluationFactoryImpl"boosting::EqualWidthBinningLabelWiseRuleEvaluationFactory"(
+    cdef cppclass LabelWiseCompleteRuleEvaluationFactoryImpl"boosting::LabelWiseCompleteRuleEvaluationFactory"(
             ILabelWiseRuleEvaluationFactory):
 
         # Constructors:
 
-        EqualWidthBinningLabelWiseRuleEvaluationFactoryImpl(float64 l2RegularizationWeight, float32 binRatio,
-                                                            uint32 minBins, uint32 maxBins) except +
+        LabelWiseCompleteRuleEvaluationFactoryImpl(float64 l2RegularizationWeight) except +
+
+
+cdef extern from "boosting/rule_evaluation/rule_evaluation_label_wise_complete_binned.hpp" namespace "boosting" nogil:
+
+    cdef cppclass LabelWiseCompleteBinnedRuleEvaluationFactoryImpl"boosting::LabelWiseCompleteBinnedRuleEvaluationFactory"(
+            ILabelWiseRuleEvaluationFactory):
+
+        # Constructors:
+
+        LabelWiseCompleteBinnedRuleEvaluationFactoryImpl(
+            float64 l2RegularizationWeight, unique_ptr[ILabelBinningFactory] labelBinningFactoryPtr) except +
 
 
 cdef class LabelWiseRuleEvaluationFactory:
 
     # Attributes:
 
-    cdef shared_ptr[ILabelWiseRuleEvaluationFactory] rule_evaluation_factory_ptr
+    cdef unique_ptr[ILabelWiseRuleEvaluationFactory] rule_evaluation_factory_ptr
 
 
-cdef class RegularizedLabelWiseRuleEvaluationFactory(LabelWiseRuleEvaluationFactory):
+cdef class LabelWiseSingleLabelRuleEvaluationFactory(LabelWiseRuleEvaluationFactory):
     pass
 
 
-cdef class EqualWidthBinningLabelWiseRuleEvaluationFactory(LabelWiseRuleEvaluationFactory):
+cdef class LabelWiseCompleteRuleEvaluationFactory(LabelWiseRuleEvaluationFactory):
+    pass
+
+
+cdef class LabelWiseCompleteBinnedRuleEvaluationFactory(LabelWiseRuleEvaluationFactory):
     pass

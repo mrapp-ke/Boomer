@@ -38,9 +38,11 @@ namespace boosting {
              *                          written to. May contain arbitrary values
              * @param rule              A reference to an object of type `Rule` that should be used to obtain the
              *                          predictions
+             * @param labelVectors      A pointer to an object of type `LabelVectorSet` that stores all known label
+             *                          vectors or a null pointer, if no such set is available
              */
             void predict(const CContiguousFeatureMatrix& featureMatrix, CContiguousView<float64>& predictionMatrix,
-                         const Rule& rule) const;
+                         const Rule& rule, const LabelVectorSet* labelVectors) const;
 
             /**
              * Obtains predictions for all examples in a sparse CSR matrix, using a single rule, and writes them to a
@@ -52,15 +54,17 @@ namespace boosting {
              *                          written to. May contain arbitrary values
              * @param rule              A reference to an object of type `Rule` that should be used to obtain the
              *                          predictions
+             * @param labelVectors      A pointer to an object of type `LabelVectorSet` that stores all known label
+             *                          vectors or a null pointer, if no such set is available
              */
             void predict(const CsrFeatureMatrix& featureMatrix, CContiguousView<float64>& predictionMatrix,
-                         const Rule& rule) const;
+                         const Rule& rule, const LabelVectorSet* labelVectors) const;
 
             void predict(const CContiguousFeatureMatrix& featureMatrix, CContiguousView<float64>& predictionMatrix,
-                         const RuleModel& model) const override;
+                         const RuleModel& model, const LabelVectorSet* labelVectors) const override;
 
             void predict(const CsrFeatureMatrix& featureMatrix, CContiguousView<float64>& predictionMatrix,
-                         const RuleModel& model) const override;
+                         const RuleModel& model, const LabelVectorSet* labelVectors) const override;
 
     };
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-@author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
 
 Implements "Bootstrap Bias Corrected Cross Validation" (BBC-CV) for evaluating different configurations of a learner and
 estimating unbiased performance estimations (see https://link.springer.com/article/10.1007/s10994-018-5714-4).
@@ -14,8 +14,8 @@ import numpy as np
 from sklearn.base import clone
 from sklearn.utils import check_random_state
 
-from mlrl.common import DTYPE_UINT8, DTYPE_UINT32
 from mlrl.common.learners import Learner
+from mlrl.common.types import DTYPE_UINT8, DTYPE_UINT32
 from mlrl.testbed.data import MetaData
 from mlrl.testbed.evaluation import ClassificationEvaluation, EvaluationLogOutput, EvaluationCsvOutput
 from mlrl.testbed.interfaces import Randomized

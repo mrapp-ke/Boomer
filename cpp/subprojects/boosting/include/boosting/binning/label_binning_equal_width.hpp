@@ -9,14 +9,9 @@
 namespace boosting {
 
     /**
-     * Assigns labels to bins, based on the corresponding gradients and Hessians, in a way such that each bin contains
-     * labels for which the predicted score is expected to belong to the same value range.
-     *
-     * @tparam GradientIterator The type of the iterator that provides access to the gradients
-     * @tparam HessianIterator  The type of the iterator that provides access to the Hessians
+     * Allows to create instances of the class `EqualWidthLabelBinning`.
      */
-    template<class GradientIterator, class HessianIterator>
-    class EqualWidthLabelBinning final : public ILabelBinning<GradientIterator, HessianIterator> {
+    class EqualWidthLabelBinningFactory final : public ILabelBinningFactory {
 
         private:
 
@@ -35,19 +30,9 @@ namespace boosting {
              * @param maxBins   The maximum number of bins to be used to assign labels to. Must be at least `minBins` or
              *                  0, if the maximum number of bins should not be restricted
              */
-            EqualWidthLabelBinning(float32 binRatio, uint32 minBins, uint32 maxBins);
+            EqualWidthLabelBinningFactory(float32 binRatio, uint32 minBins, uint32 maxBins);
 
-            uint32 getMaxBins(uint32 numLabels) const override;
-
-            LabelInfo getLabelInfo(GradientIterator gradientsBegin, GradientIterator gradientsEnd,
-                                   HessianIterator hessiansBegin, HessianIterator hessiansEnd,
-                                   float64 l2RegularizationWeight) const override;
-
-            void createBins(
-                LabelInfo labelInfo, GradientIterator gradientsBegin, GradientIterator gradientsEnd,
-                HessianIterator hessiansBegin, HessianIterator hessiansEnd, float64 l2RegularizationWeight,
-                typename ILabelBinning<GradientIterator, HessianIterator>::Callback callback,
-                typename ILabelBinning<GradientIterator, HessianIterator>::ZeroCallback zeroCallback) const override;
+            std::unique_ptr<ILabelBinning> create() const override;
 
     };
 

@@ -1,4 +1,4 @@
-#include "common/indices/index_iterator.hpp"
+#include "common/iterator/index_iterator.hpp"
 
 
 IndexIterator::IndexIterator()
@@ -41,6 +41,10 @@ IndexIterator& IndexIterator::operator--(int n) {
 
 bool IndexIterator::operator!=(const IndexIterator& rhs) const {
     return index_ != rhs.index_;
+}
+
+bool IndexIterator::operator==(const IndexIterator& rhs) const {
+    return index_ == rhs.index_;
 }
 
 IndexIterator::difference_type IndexIterator::operator-(const IndexIterator& rhs) const {

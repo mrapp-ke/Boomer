@@ -1,7 +1,8 @@
 """
 @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
 """
-from libcpp.memory cimport make_shared
+from libcpp.utility cimport move
+from libcpp.memory cimport make_unique
 
 
 cdef class ExampleWiseLoss(EvaluationMeasure):
@@ -9,11 +10,11 @@ cdef class ExampleWiseLoss(EvaluationMeasure):
     A wrapper for the pure virtual C++ class `IExampleWiseLoss`.
     """
 
-    cdef shared_ptr[IEvaluationMeasure] get_evaluation_measure_ptr(self):
-        return <shared_ptr[IEvaluationMeasure]>self.loss_function_ptr
+    cdef unique_ptr[IEvaluationMeasure] get_evaluation_measure_ptr(self):
+        return <unique_ptr[IEvaluationMeasure]>move(self.loss_function_ptr)
 
-    cdef shared_ptr[ISimilarityMeasure] get_similarity_measure_ptr(self):
-        return <shared_ptr[ISimilarityMeasure]>self.loss_function_ptr
+    cdef unique_ptr[ISimilarityMeasure] get_similarity_measure_ptr(self):
+        return <unique_ptr[ISimilarityMeasure]>move(self.loss_function_ptr)
 
 
 cdef class ExampleWiseLogisticLoss(ExampleWiseLoss):
@@ -22,7 +23,7 @@ cdef class ExampleWiseLogisticLoss(ExampleWiseLoss):
     """
 
     def __cinit__(self):
-        self.loss_function_ptr = <shared_ptr[IExampleWiseLoss]>make_shared[ExampleWiseLogisticLossImpl]()
+        self.loss_function_ptr = <unique_ptr[IExampleWiseLoss]>make_unique[ExampleWiseLogisticLossImpl]()
 
     def __reduce__(self):
         return (ExampleWiseLogisticLoss, ())

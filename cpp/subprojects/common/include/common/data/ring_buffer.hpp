@@ -12,7 +12,7 @@
  *
  * @tparam T The type of the values that are stored in the buffer
  */
-template<class T>
+template<typename T>
 class RingBuffer final {
 
     private:
