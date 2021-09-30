@@ -1,7 +1,7 @@
 #include "boosting/statistics/statistics_provider_factory_example_wise_dense.hpp"
 #include "boosting/data/matrix_dense_numeric.hpp"
-#include "boosting/data/statistic_vector_dense_example_wise.hpp"
-#include "boosting/data/statistic_view_dense_example_wise.hpp"
+#include "boosting/data/statistic_vector_example_wise_dense.hpp"
+#include "boosting/data/statistic_view_example_wise_dense.hpp"
 #include "boosting/math/math.hpp"
 #include "common/validation.hpp"
 #include "statistics_example_wise_common.hpp"
@@ -47,7 +47,9 @@ namespace boosting {
                                                                                   DenseExampleWiseStatisticView,
                                                                                   DenseExampleWiseStatisticMatrix,
                                                                                   NumericDenseMatrix<float64>,
-                                                                                  IExampleWiseLoss> {
+                                                                                  IExampleWiseLoss, IEvaluationMeasure,
+                                                                                  IExampleWiseRuleEvaluationFactory,
+                                                                                  ILabelWiseRuleEvaluationFactory> {
 
         public:
 
@@ -65,14 +67,16 @@ namespace boosting {
              *                              currently predicted scores
              */
             DenseExampleWiseStatistics(const IExampleWiseLoss& lossFunction,
+                                       const IEvaluationMeasure& evaluationMeasure,
                                        const IExampleWiseRuleEvaluationFactory& ruleEvaluationFactory,
                                        const LabelMatrix& labelMatrix,
                                        std::unique_ptr<DenseExampleWiseStatisticView> statisticViewPtr,
                                        std::unique_ptr<NumericDenseMatrix<float64>> scoreMatrixPtr)
                 : AbstractExampleWiseStatistics<LabelMatrix, DenseExampleWiseStatisticVector,
                                                 DenseExampleWiseStatisticView, DenseExampleWiseStatisticMatrix,
-                                                NumericDenseMatrix<float64>, IExampleWiseLoss>(
-                      lossFunction, ruleEvaluationFactory, labelMatrix, std::move(statisticViewPtr),
+                                                NumericDenseMatrix<float64>, IExampleWiseLoss, IEvaluationMeasure,
+                                                IExampleWiseRuleEvaluationFactory, ILabelWiseRuleEvaluationFactory>(
+                      lossFunction, evaluationMeasure, ruleEvaluationFactory, labelMatrix, std::move(statisticViewPtr),
                       std::move(scoreMatrixPtr)) {
 
             }
@@ -80,7 +84,7 @@ namespace boosting {
             /**
              * @see `IExampleWiseStatistics::toLabelWiseStatistics`
              */
-            std::unique_ptr<ILabelWiseStatistics> toLabelWiseStatistics(
+            std::unique_ptr<ILabelWiseStatistics<ILabelWiseRuleEvaluationFactory>> toLabelWiseStatistics(
                     const ILabelWiseRuleEvaluationFactory& ruleEvaluationFactory, uint32 numThreads) override final {
                 uint32 numRows = this->statisticViewPtr_->getNumRows();
                 uint32 numCols = this->statisticViewPtr_->getNumCols();
@@ -107,6 +111,7 @@ namespace boosting {
                 }
 
                 return std::make_unique<DenseLabelWiseStatistics<LabelMatrix>>(this->lossFunction_,
+                                                                               this->evaluationMeasure_,
                                                                                ruleEvaluationFactory,
                                                                                this->labelMatrix_,
                                                                                std::move(labelWiseStatisticMatrixPtr),
@@ -116,9 +121,10 @@ namespace boosting {
     };
 
     template<typename LabelMatrix>
-    static inline std::unique_ptr<IExampleWiseStatistics> createInternally(
-            const IExampleWiseLoss& lossFunction, const IExampleWiseRuleEvaluationFactory& ruleEvaluationFactory,
-            uint32 numThreads, const LabelMatrix& labelMatrix) {
+    static inline std::unique_ptr<IExampleWiseStatistics<IExampleWiseRuleEvaluationFactory, ILabelWiseRuleEvaluationFactory>> createStatistics(
+            const IExampleWiseLoss& lossFunction, const IEvaluationMeasure& evaluationMeasure,
+            const IExampleWiseRuleEvaluationFactory& ruleEvaluationFactory, uint32 numThreads,
+            const LabelMatrix& labelMatrix) {
         uint32 numExamples = labelMatrix.getNumRows();
         uint32 numLabels = labelMatrix.getNumCols();
         std::unique_ptr<DenseExampleWiseStatisticMatrix> statisticMatrixPtr =
@@ -139,64 +145,21 @@ namespace boosting {
         }
 
         return std::make_unique<DenseExampleWiseStatistics<LabelMatrix>>(
-            lossFunction, ruleEvaluationFactory, labelMatrix, std::move(statisticMatrixPtr),
+            lossFunction, evaluationMeasure, ruleEvaluationFactory, labelMatrix, std::move(statisticMatrixPtr),
             std::move(scoreMatrixPtr));
     }
 
-    /**
-     * A factory that allows to create new instances of the class `IExampleWiseStatistics` that used dense data
-     * structures to store the statistics.
-     */
-    class DenseExampleWiseStatisticsFactory final : public IExampleWiseStatisticsFactory {
-
-        private:
-
-            const IExampleWiseLoss& lossFunction_;
-
-            const IExampleWiseRuleEvaluationFactory& ruleEvaluationFactory_;
-
-            uint32 numThreads_;
-
-        public:
-
-            /**
-             * @param lossFunction          A reference to an object of type `IExampleWiseLoss`, representing the loss
-             *                              function to be used for calculating gradients and Hessians
-             * @param ruleEvaluationFactory A reference to an object of type `IExampleWiseRuleEvaluationFactory`, to be
-             *                              used for calculating the predictions, as well as corresponding quality
-             *                              scores, of rules
-             * @param numThreads            The number of CPU threads to be used to calculate the initial statistics in
-             *                              parallel. Must be at least 1
-             */
-            DenseExampleWiseStatisticsFactory(const IExampleWiseLoss& lossFunction,
-                                              const IExampleWiseRuleEvaluationFactory& ruleEvaluationFactory,
-                                              uint32 numThreads)
-                : lossFunction_(lossFunction), ruleEvaluationFactory_(ruleEvaluationFactory), numThreads_(numThreads) {
-
-            }
-
-            std::unique_ptr<IExampleWiseStatistics> create(const CContiguousLabelMatrix& labelMatrix) const override {
-                return createInternally<CContiguousLabelMatrix>(lossFunction_, ruleEvaluationFactory_, numThreads_,
-                                                                labelMatrix);
-            }
-
-            std::unique_ptr<IExampleWiseStatistics> create(const CsrLabelMatrix& labelMatrix) const override {
-                return createInternally<CsrLabelMatrix>(lossFunction_, ruleEvaluationFactory_, numThreads_,
-                                                        labelMatrix);
-            }
-
-    };
-
     DenseExampleWiseStatisticsProviderFactory::DenseExampleWiseStatisticsProviderFactory(
-            std::unique_ptr<IExampleWiseLoss> lossFunctionPtr,
+            std::unique_ptr<IExampleWiseLoss> lossFunctionPtr, std::unique_ptr<IEvaluationMeasure> evaluationMeasurePtr,
             std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr,
             std::unique_ptr<IExampleWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr,
             std::unique_ptr<IExampleWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr, uint32 numThreads)
-        : lossFunctionPtr_(std::move(lossFunctionPtr)),
+        : lossFunctionPtr_(std::move(lossFunctionPtr)), evaluationMeasurePtr_(std::move(evaluationMeasurePtr)),
           defaultRuleEvaluationFactoryPtr_(std::move(defaultRuleEvaluationFactoryPtr)),
           regularRuleEvaluationFactoryPtr_(std::move(regularRuleEvaluationFactoryPtr)),
           pruningRuleEvaluationFactoryPtr_(std::move(pruningRuleEvaluationFactoryPtr)), numThreads_(numThreads) {
         assertNotNull("lossFunctionPtr", lossFunctionPtr_.get());
+        assertNotNull("evaluationMeasurePtr", evaluationMeasurePtr_.get());
         assertNotNull("defaultRuleEvaluationFactoryPtr", defaultRuleEvaluationFactoryPtr_.get());
         assertNotNull("regularRuleEvaluationFactoryPtr", regularRuleEvaluationFactoryPtr_.get());
         assertNotNull("pruningRuleEvaluationFactoryPtr", pruningRuleEvaluationFactoryPtr_.get());
@@ -205,32 +168,33 @@ namespace boosting {
 
     std::unique_ptr<IStatisticsProvider> DenseExampleWiseStatisticsProviderFactory::create(
             const CContiguousLabelMatrix& labelMatrix) const {
-        DenseExampleWiseStatisticsFactory statisticsFactory(*lossFunctionPtr_, *defaultRuleEvaluationFactoryPtr_,
-                                                            numThreads_);
-        return std::make_unique<ExampleWiseStatisticsProvider>(*regularRuleEvaluationFactoryPtr_,
-                                                               *pruningRuleEvaluationFactoryPtr_,
-                                                               statisticsFactory.create(labelMatrix));
+        std::unique_ptr<IExampleWiseStatistics<IExampleWiseRuleEvaluationFactory, ILabelWiseRuleEvaluationFactory>> statisticsPtr =
+            createStatistics(*lossFunctionPtr_, *evaluationMeasurePtr_, *defaultRuleEvaluationFactoryPtr_, numThreads_,
+                             labelMatrix);
+        return std::make_unique<ExampleWiseStatisticsProvider<IExampleWiseRuleEvaluationFactory, ILabelWiseRuleEvaluationFactory>>(
+            *regularRuleEvaluationFactoryPtr_, *pruningRuleEvaluationFactoryPtr_, std::move(statisticsPtr));
     }
 
     std::unique_ptr<IStatisticsProvider> DenseExampleWiseStatisticsProviderFactory::create(
             const CsrLabelMatrix& labelMatrix) const {
-        DenseExampleWiseStatisticsFactory statisticsFactory(*lossFunctionPtr_, *defaultRuleEvaluationFactoryPtr_,
-                                                            numThreads_);
-        return std::make_unique<ExampleWiseStatisticsProvider>(*regularRuleEvaluationFactoryPtr_,
-                                                               *pruningRuleEvaluationFactoryPtr_,
-                                                               statisticsFactory.create(labelMatrix));
+        std::unique_ptr<IExampleWiseStatistics<IExampleWiseRuleEvaluationFactory, ILabelWiseRuleEvaluationFactory>> statisticsPtr =
+            createStatistics(*lossFunctionPtr_, *evaluationMeasurePtr_, *defaultRuleEvaluationFactoryPtr_, numThreads_,
+                             labelMatrix);
+        return std::make_unique<ExampleWiseStatisticsProvider<IExampleWiseRuleEvaluationFactory, ILabelWiseRuleEvaluationFactory>>(
+            *regularRuleEvaluationFactoryPtr_, *pruningRuleEvaluationFactoryPtr_, std::move(statisticsPtr));
     }
 
     DenseConvertibleExampleWiseStatisticsProviderFactory::DenseConvertibleExampleWiseStatisticsProviderFactory(
-            std::unique_ptr<IExampleWiseLoss> lossFunctionPtr,
+            std::unique_ptr<IExampleWiseLoss> lossFunctionPtr, std::unique_ptr<IEvaluationMeasure> evaluationMeasurePtr,
             std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr,
             std::unique_ptr<ILabelWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr,
             std::unique_ptr<ILabelWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr, uint32 numThreads)
-        : lossFunctionPtr_(std::move(lossFunctionPtr)),
+        : lossFunctionPtr_(std::move(lossFunctionPtr)), evaluationMeasurePtr_(std::move(evaluationMeasurePtr)),
           defaultRuleEvaluationFactoryPtr_(std::move(defaultRuleEvaluationFactoryPtr)),
           regularRuleEvaluationFactoryPtr_(std::move(regularRuleEvaluationFactoryPtr)),
           pruningRuleEvaluationFactoryPtr_(std::move(pruningRuleEvaluationFactoryPtr)), numThreads_(numThreads) {
         assertNotNull("lossFunctionPtr", lossFunctionPtr_.get());
+        assertNotNull("evaluationMeasurePtr", evaluationMeasurePtr_.get());
         assertNotNull("defaultRuleEvaluationFactoryPtr", defaultRuleEvaluationFactoryPtr_.get());
         assertNotNull("regularRuleEvaluationFactoryPtr", regularRuleEvaluationFactoryPtr_.get());
         assertNotNull("pruningRuleEvaluationFactoryPtr", pruningRuleEvaluationFactoryPtr_.get());
@@ -239,22 +203,22 @@ namespace boosting {
 
     std::unique_ptr<IStatisticsProvider> DenseConvertibleExampleWiseStatisticsProviderFactory::create(
             const CContiguousLabelMatrix& labelMatrix) const {
-        DenseExampleWiseStatisticsFactory statisticsFactory(*lossFunctionPtr_, *defaultRuleEvaluationFactoryPtr_,
-                                                            numThreads_);
-        return std::make_unique<ConvertibleExampleWiseStatisticsProvider>(*regularRuleEvaluationFactoryPtr_,
-                                                                          *pruningRuleEvaluationFactoryPtr_,
-                                                                          statisticsFactory.create(labelMatrix),
-                                                                          numThreads_);
+        std::unique_ptr<IExampleWiseStatistics<IExampleWiseRuleEvaluationFactory, ILabelWiseRuleEvaluationFactory>> statisticsPtr =
+            createStatistics(*lossFunctionPtr_, *evaluationMeasurePtr_, *defaultRuleEvaluationFactoryPtr_, numThreads_,
+                             labelMatrix);
+        return std::make_unique<ConvertibleExampleWiseStatisticsProvider<IExampleWiseRuleEvaluationFactory, ILabelWiseRuleEvaluationFactory>>(
+            *regularRuleEvaluationFactoryPtr_, *pruningRuleEvaluationFactoryPtr_, std::move(statisticsPtr),
+            numThreads_);
     }
 
     std::unique_ptr<IStatisticsProvider> DenseConvertibleExampleWiseStatisticsProviderFactory::create(
             const CsrLabelMatrix& labelMatrix) const {
-        DenseExampleWiseStatisticsFactory statisticsFactory(*lossFunctionPtr_, *defaultRuleEvaluationFactoryPtr_,
-                                                            numThreads_);
-        return std::make_unique<ConvertibleExampleWiseStatisticsProvider>(*regularRuleEvaluationFactoryPtr_,
-                                                                          *pruningRuleEvaluationFactoryPtr_,
-                                                                          statisticsFactory.create(labelMatrix),
-                                                                          numThreads_);
+        std::unique_ptr<IExampleWiseStatistics<IExampleWiseRuleEvaluationFactory, ILabelWiseRuleEvaluationFactory>> statisticsPtr =
+            createStatistics(*lossFunctionPtr_, *evaluationMeasurePtr_, *defaultRuleEvaluationFactoryPtr_, numThreads_,
+                             labelMatrix);
+        return std::make_unique<ConvertibleExampleWiseStatisticsProvider<IExampleWiseRuleEvaluationFactory, ILabelWiseRuleEvaluationFactory>>(
+            *regularRuleEvaluationFactoryPtr_, *pruningRuleEvaluationFactoryPtr_, std::move(statisticsPtr),
+            numThreads_);
     }
 
 }

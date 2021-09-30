@@ -7,7 +7,6 @@
 #include "common/statistics/histogram.hpp"
 #include "common/rule_refinement/prediction_complete.hpp"
 #include "common/rule_refinement/prediction_partial.hpp"
-#include "common/measures/measure_evaluation.hpp"
 
 
 /**
@@ -111,14 +110,12 @@ class IStatistics : virtual public IImmutableStatistics {
 
         /**
          * Calculates and returns a numeric score that assesses the quality of the current predictions for a specific
-         * statistic in terms of a given measure.
+         * statistic.
          *
          * @param statisticIndex    The index of the statistic for which the predictions should be evaluated
-         * @param measure           A reference to an object of type `IEvaluationMeasure` that should be used to assess
-         *                          the quality of the predictions
          * @return                  The numeric score that has been calculated
          */
-        virtual float64 evaluatePrediction(uint32 statisticIndex, const IEvaluationMeasure& measure) const = 0;
+        virtual float64 evaluatePrediction(uint32 statisticIndex) const = 0;
 
         /**
          * Creates and returns a new histogram based on the statistics.

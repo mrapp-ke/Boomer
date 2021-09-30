@@ -21,7 +21,7 @@ namespace boosting {
      * @tparam T The type of the vector that provides access to the labels for which predictions should be calculated
      */
     template<typename T>
-    class ExampleWiseCompleteRuleEvaluation final :
+    class DenseExampleWiseCompleteRuleEvaluation final :
             public AbstractExampleWiseRuleEvaluation<DenseExampleWiseStatisticVector, T> {
 
         private:
@@ -46,8 +46,8 @@ namespace boosting {
              * @param lapack                    A reference to an object of type `Lapack` that allows to execute
              *                                  different LAPACK routines
              */
-            ExampleWiseCompleteRuleEvaluation(const T& labelIndices, float64 l2RegularizationWeight, const Blas& blas,
-                                              const Lapack& lapack)
+            DenseExampleWiseCompleteRuleEvaluation(const T& labelIndices, float64 l2RegularizationWeight,
+                                                   const Blas& blas, const Lapack& lapack)
                 : AbstractExampleWiseRuleEvaluation<DenseExampleWiseStatisticVector, T>(labelIndices.getNumElements(),
                                                                                         lapack),
                   scoreVector_(DenseScoreVector<T>(labelIndices)), l2RegularizationWeight_(l2RegularizationWeight),
@@ -93,18 +93,18 @@ namespace boosting {
         assertNotNull("lapackPtr", lapackPtr_.get());
     }
 
-    std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> ExampleWiseCompleteRuleEvaluationFactory::createDense(
-            const CompleteIndexVector& indexVector) const {
-        return std::make_unique<ExampleWiseCompleteRuleEvaluation<CompleteIndexVector>>(indexVector,
-                                                                                        l2RegularizationWeight_,
-                                                                                        *blasPtr_, *lapackPtr_);
+    std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> ExampleWiseCompleteRuleEvaluationFactory::create(
+            const DenseExampleWiseStatisticVector& statisticVector, const CompleteIndexVector& indexVector) const {
+        return std::make_unique<DenseExampleWiseCompleteRuleEvaluation<CompleteIndexVector>>(indexVector,
+                                                                                             l2RegularizationWeight_,
+                                                                                             *blasPtr_, *lapackPtr_);
     }
 
-    std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> ExampleWiseCompleteRuleEvaluationFactory::createDense(
-            const PartialIndexVector& indexVector) const {
-        return std::make_unique<ExampleWiseCompleteRuleEvaluation<PartialIndexVector>>(indexVector,
-                                                                                       l2RegularizationWeight_,
-                                                                                       *blasPtr_, *lapackPtr_);
+    std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> ExampleWiseCompleteRuleEvaluationFactory::create(
+            const DenseExampleWiseStatisticVector& statisticVector, const PartialIndexVector& indexVector) const {
+        return std::make_unique<DenseExampleWiseCompleteRuleEvaluation<PartialIndexVector>>(indexVector,
+                                                                                            l2RegularizationWeight_,
+                                                                                            *blasPtr_, *lapackPtr_);
     }
 
 }

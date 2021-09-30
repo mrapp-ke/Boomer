@@ -96,9 +96,8 @@ cdef class ExampleWiseClassificationPredictor(AbstractBinaryPredictor):
         self.num_labels = num_labels
         self.measure = measure
         self.num_threads = num_threads
-        cdef unique_ptr[ISimilarityMeasure] measure_ptr = measure.get_similarity_measure_ptr()
         self.predictor_ptr = <unique_ptr[ISparsePredictor[uint8]]>make_unique[ExampleWiseClassificationPredictorImpl](
-            move(measure_ptr), num_threads)
+            move(measure.get_similarity_measure_ptr()), num_threads)
 
     def __reduce__(self):
         return (ExampleWiseClassificationPredictor, (self.num_labels, self.measure, self.num_threads))

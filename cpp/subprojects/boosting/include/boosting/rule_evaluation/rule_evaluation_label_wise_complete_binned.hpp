@@ -4,7 +4,6 @@
 #pragma once
 
 #include "boosting/rule_evaluation/rule_evaluation_label_wise.hpp"
-#include "boosting/data/statistic_vector_dense_label_wise.hpp"
 #include "boosting/binning/label_binning.hpp"
 
 
@@ -32,10 +31,12 @@ namespace boosting {
             LabelWiseCompleteBinnedRuleEvaluationFactory(float64 l2RegularizationWeight,
                                                          std::unique_ptr<ILabelBinningFactory> labelBinningFactoryPtr);
 
-            std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> createDense(
+            std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> create(
+                const DenseLabelWiseStatisticVector& statisticVector,
                 const CompleteIndexVector& indexVector) const override;
 
-            std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> createDense(
+            std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> create(
+                const DenseLabelWiseStatisticVector& statisticVector,
                 const PartialIndexVector& indexVector) const override;
 
     };

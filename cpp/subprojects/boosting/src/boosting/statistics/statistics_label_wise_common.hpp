@@ -26,12 +26,15 @@ namespace boosting {
      * An abstract base class for all statistics that provide access to gradients and Hessians that are calculated
      * according to a differentiable loss function that is applied label-wise.
      *
-     * @tparam StatisticVector  The type of the vectors that are used to store gradients and Hessians
-     * @tparam StatisticView    The type of the view that provides access to the gradients and Hessians
-     * @tparam StatisticMatrix  The type of the matrix that is used to store gradients and Hessians
-     * @tparam ScoreMatrix      The type of the matrices that are used to store predicted scores
+     * @tparam StatisticVector          The type of the vectors that are used to store gradients and Hessians
+     * @tparam StatisticView            The type of the view that provides access to the gradients and Hessians
+     * @tparam StatisticMatrix          The type of the matrix that is used to store gradients and Hessians
+     * @tparam ScoreMatrix              The type of the matrices that are used to store predicted scores
+     * @tparam RuleEvaluationFactory    The type of the classes that may be used for calculating the predictions, as
+     *                                  well as corresponding quality scores, of rules
      */
-    template<typename StatisticVector, typename StatisticView, typename StatisticMatrix, typename ScoreMatrix>
+    template<typename StatisticVector, typename StatisticView, typename StatisticMatrix, typename ScoreMatrix,
+             typename RuleEvaluationFactory>
     class AbstractLabelWiseImmutableStatistics : virtual public IImmutableStatistics {
 
         protected:
@@ -164,23 +167,22 @@ namespace boosting {
             std::unique_ptr<StatisticView> statisticViewPtr_;
 
             /**
-             * A pointer to an object of type `IExampleWiseRuleEvaluationFactory` to be used for calculating the
+             * A pointer to an object of template type `RuleEvaluationFactory` to be used for calculating the
              * predictions, as well as corresponding quality scores, of rules.
              */
-            const ILabelWiseRuleEvaluationFactory* ruleEvaluationFactoryPtr_;
+            const RuleEvaluationFactory* ruleEvaluationFactoryPtr_;
 
         public:
 
             /**
              * @param statisticViewPtr      An unique pointer to an object of template type `StatisticView` that
              *                              provides access to the the gradients and Hessians
-             * @param ruleEvaluationFactory A reference to an object of type `ILabelWiseRuleEvaluationFactory`, that
+             * @param ruleEvaluationFactory A reference to an object of template type `RuleEvaluationFactory`, that
              *                              allows to create instances of the class that is used for calculating the
              *                              predictions, as well as corresponding quality scores, of rules
              */
-            AbstractLabelWiseImmutableStatistics(
-                    std::unique_ptr<StatisticView> statisticViewPtr,
-                    const ILabelWiseRuleEvaluationFactory& ruleEvaluationFactory)
+            AbstractLabelWiseImmutableStatistics(std::unique_ptr<StatisticView> statisticViewPtr,
+                                                 const RuleEvaluationFactory& ruleEvaluationFactory)
                 : numStatistics_(statisticViewPtr->getNumRows()), numLabels_(statisticViewPtr->getNumCols()),
                   statisticViewPtr_(std::move(statisticViewPtr)), ruleEvaluationFactoryPtr_(&ruleEvaluationFactory) {
 
@@ -200,14 +202,18 @@ namespace boosting {
      * Provides access to gradients and Hessians that are calculated according to a differentiable loss function that is
      * applied label-wise and are organized as a histogram.
      *
-     * @tparam StatisticVector  The type of the vectors that are used to store gradients and Hessians
-     * @tparam StatisticView    The type of the view that provides access to the gradients and Hessians
-     * @tparam StatisticMatrix  The type of the matrix that is used to store gradients and Hessians
-     * @tparam ScoreMatrix      The type of the matrices that are used to store predicted scores
+     * @tparam StatisticVector          The type of the vectors that are used to store gradients and Hessians
+     * @tparam StatisticView            The type of the view that provides access to the gradients and Hessians
+     * @tparam StatisticMatrix          The type of the matrix that is used to store gradients and Hessians
+     * @tparam ScoreMatrix              The type of the matrices that are used to store predicted scores
+     * @tparam RuleEvaluationFactory    The type of the classes that may be used for calculating the predictions, as
+     *                                  well as corresponding quality scores, of rules
      */
-    template<typename StatisticVector, typename StatisticView, typename StatisticMatrix, typename ScoreMatrix>
+    template<typename StatisticVector, typename StatisticView, typename StatisticMatrix, typename ScoreMatrix,
+             typename RuleEvaluationFactory>
     class LabelWiseHistogram final : public AbstractLabelWiseImmutableStatistics<StatisticVector, StatisticView,
-                                                                                 StatisticMatrix, ScoreMatrix>,
+                                                                                 StatisticMatrix, ScoreMatrix,
+                                                                                 RuleEvaluationFactory>,
                                      virtual public IHistogram {
 
         private:
@@ -224,14 +230,15 @@ namespace boosting {
              *                                  from
              * @param totalSumVector            A pointer to an object of template type `StatisticVector` that stores
              *                                  the total sums of gradients and Hessians
-             * @param ruleEvaluationFactory     A reference to an object of type `ILabelWiseRuleEvaluationFactory`, that
+             * @param ruleEvaluationFactory     A reference to an object of type `RuleEvaluationFactory`, that
              *                                  allows to create instances of the class that is used for calculating the
              *                                  predictions, as well as corresponding quality scores, of rules
              * @param numBins                   The number of bins in the histogram
              */
             LabelWiseHistogram(const StatisticView& originalStatisticView, const StatisticVector* totalSumVector,
-                               const ILabelWiseRuleEvaluationFactory& ruleEvaluationFactory, uint32 numBins)
-                : AbstractLabelWiseImmutableStatistics<StatisticVector, StatisticView, StatisticMatrix, ScoreMatrix>(
+                               const RuleEvaluationFactory& ruleEvaluationFactory, uint32 numBins)
+                : AbstractLabelWiseImmutableStatistics<StatisticVector, StatisticView, StatisticMatrix, ScoreMatrix,
+                                                       RuleEvaluationFactory>(
                       std::make_unique<StatisticMatrix>(numBins, originalStatisticView.getNumCols()),
                       ruleEvaluationFactory),
                   originalStatisticView_(originalStatisticView), totalSumVector_(totalSumVector) {
@@ -249,7 +256,7 @@ namespace boosting {
 
             std::unique_ptr<IStatisticsSubset> createSubset(const CompleteIndexVector& labelIndices) const override {
                 std::unique_ptr<IRuleEvaluation<StatisticVector>> ruleEvaluationPtr =
-                    totalSumVector_->createRuleEvaluation(*this->ruleEvaluationFactoryPtr_, labelIndices);
+                    this->ruleEvaluationFactoryPtr_->create(*totalSumVector_, labelIndices);
                 return std::make_unique<typename LabelWiseHistogram::CompleteSubset>(*this, totalSumVector_,
                                                                                      std::move(ruleEvaluationPtr),
                                                                                      labelIndices);
@@ -257,7 +264,7 @@ namespace boosting {
 
             std::unique_ptr<IStatisticsSubset> createSubset(const PartialIndexVector& labelIndices) const override {
                 std::unique_ptr<IRuleEvaluation<StatisticVector>> ruleEvaluationPtr =
-                    totalSumVector_->createRuleEvaluation(*this->ruleEvaluationFactoryPtr_, labelIndices);
+                    this->ruleEvaluationFactoryPtr_->create(*totalSumVector_, labelIndices);
                 return std::make_unique<typename LabelWiseHistogram::PartialSubset>(*this, totalSumVector_,
                                                                                     std::move(ruleEvaluationPtr),
                                                                                     labelIndices);
@@ -270,24 +277,32 @@ namespace boosting {
      * according to a differentiable loss function that is applied label-wise and allows to update the gradients and
      * Hessians after a new rule has been learned.
      *
-     * @tparam LabelMatrix      The type of the matrix that provides access to the labels of the training examples
-     * @tparam StatisticVector  The type of the vectors that are used to store gradients and Hessians
-     * @tparam StatisticView    The type of the view that provides access to the gradients and Hessians
-     * @tparam StatisticMatrix  The type of the matrix that is used to store gradients and Hessians
-     * @tparam ScoreMatrix      The type of the matrices that are used to store predicted scores
-     * @tparam LossFunction     The type of the loss function that is used to calculate gradients and Hessians
+     * @tparam LabelMatrix              The type of the matrix that provides access to the labels of the training
+     *                                  examples
+     * @tparam StatisticVector          The type of the vectors that are used to store gradients and Hessians
+     * @tparam StatisticView            The type of the view that provides access to the gradients and Hessians
+     * @tparam StatisticMatrix          The type of the matrix that is used to store gradients and Hessians
+     * @tparam ScoreMatrix              The type of the matrices that are used to store predicted scores
+     * @tparam LossFunction             The type of the loss function that is used to calculate gradients and Hessians
+     * @tparam EvaluationMeasure        The type of the evaluation measure that is used to assess the quality of
+     *                                  predictions for a specific statistic
+     * @tparam RuleEvaluationFactory    The type of the classes that may be used for calculating the predictions, as
+     *                                  well as corresponding quality scores, of rules
      */
     template<typename LabelMatrix, typename StatisticVector, typename StatisticView, typename StatisticMatrix,
-             typename ScoreMatrix, typename LossFunction>
+             typename ScoreMatrix, typename LossFunction, typename EvaluationMeasure, typename RuleEvaluationFactory>
     class AbstractLabelWiseStatistics : public AbstractLabelWiseImmutableStatistics<StatisticVector, StatisticView,
-                                                                                    StatisticMatrix, ScoreMatrix>,
-                                        virtual public ILabelWiseStatistics {
+                                                                                    StatisticMatrix, ScoreMatrix,
+                                                                                    RuleEvaluationFactory>,
+                                        virtual public ILabelWiseStatistics<RuleEvaluationFactory> {
 
         private:
 
             std::unique_ptr<StatisticVector> totalSumVectorPtr_;
 
             const LossFunction& lossFunction_;
+
+            const EvaluationMeasure& evaluationMeasure_;
 
             const LabelMatrix& labelMatrix_;
 
@@ -298,8 +313,11 @@ namespace boosting {
             /**
              * @param lossFunction          A reference to an object of template type `LossFunction`, representing the
              *                              loss function to be used for calculating gradients and Hessians
-             * @param ruleEvaluationFactory A reference to an object of type `ILabelWiseRuleEvaluationFactory`, that
-             *                              allows to create instances of the class that is used for calculating the
+             * @param evaluationMeasure     A reference to an object of template type `EvaluationMeasure` that
+             *                              implements the evaluation measure that should be used to assess the quality
+             *                              of predictions for a specific statistic
+             * @param ruleEvaluationFactory A reference to an object of type `RuleEvaluationFactory`, that allows to
+             *                              create instances of the class that is used for calculating the
              *                              predictions, as well as corresponding quality scores, of rules
              * @param labelMatrix           A reference to an object of template type `LabelMatrix` that provides access
              *                              to the labels of the training examples
@@ -308,21 +326,23 @@ namespace boosting {
              * @param scoreMatrixPtr        An unique pointer to an object of template type `ScoreMatrix` that stores
              *                              the currently predicted scores
              */
-            AbstractLabelWiseStatistics(const LossFunction& lossFunction,
-                                        const ILabelWiseRuleEvaluationFactory& ruleEvaluationFactory,
+            AbstractLabelWiseStatistics(const LossFunction& lossFunction, const EvaluationMeasure& evaluationMeasure,
+                                        const RuleEvaluationFactory& ruleEvaluationFactory,
                                         const LabelMatrix& labelMatrix, std::unique_ptr<StatisticView> statisticViewPtr,
                                         std::unique_ptr<ScoreMatrix> scoreMatrixPtr)
-                : AbstractLabelWiseImmutableStatistics<StatisticVector, StatisticView, StatisticMatrix, ScoreMatrix>(
+                : AbstractLabelWiseImmutableStatistics<StatisticVector, StatisticView, StatisticMatrix, ScoreMatrix,
+                                                       RuleEvaluationFactory>(
                       std::move(statisticViewPtr), ruleEvaluationFactory),
                   totalSumVectorPtr_(std::make_unique<StatisticVector>(this->statisticViewPtr_->getNumCols())),
-                  lossFunction_(lossFunction), labelMatrix_(labelMatrix), scoreMatrixPtr_(std::move(scoreMatrixPtr)) {
+                  lossFunction_(lossFunction), evaluationMeasure_(evaluationMeasure), labelMatrix_(labelMatrix),
+                  scoreMatrixPtr_(std::move(scoreMatrixPtr)) {
 
             }
 
             /**
              * @see `ILabelWiseStatistics::setRuleEvaluationFactory`
              */
-            void setRuleEvaluationFactory(const ILabelWiseRuleEvaluationFactory& ruleEvaluationFactory) override final {
+            void setRuleEvaluationFactory(const RuleEvaluationFactory& ruleEvaluationFactory) override final {
                 this->ruleEvaluationFactoryPtr_ = &ruleEvaluationFactory;
             }
 
@@ -381,8 +401,8 @@ namespace boosting {
             /**
              * @see `IStatistics::evaluatePrediction`
              */
-            float64 evaluatePrediction(uint32 statisticIndex, const IEvaluationMeasure& measure) const override final {
-                return measure.evaluate(statisticIndex, labelMatrix_, *scoreMatrixPtr_);
+            float64 evaluatePrediction(uint32 statisticIndex) const override final {
+                return evaluationMeasure_.evaluate(statisticIndex, labelMatrix_, *scoreMatrixPtr_);
             }
 
             /**
@@ -390,9 +410,8 @@ namespace boosting {
              */
             std::unique_ptr<IHistogram> createHistogram(uint32 numBins) const override final {
                 return std::make_unique<LabelWiseHistogram<StatisticVector, StatisticView, StatisticMatrix,
-                                                           ScoreMatrix>>(*this->statisticViewPtr_,
-                                                                         totalSumVectorPtr_.get(),
-                                                                         *this->ruleEvaluationFactoryPtr_, numBins);
+                                                           ScoreMatrix, RuleEvaluationFactory>>(
+                    *this->statisticViewPtr_, totalSumVectorPtr_.get(), *this->ruleEvaluationFactoryPtr_, numBins);
             }
 
             /**
@@ -401,7 +420,7 @@ namespace boosting {
             std::unique_ptr<IStatisticsSubset> createSubset(
                     const CompleteIndexVector& labelIndices) const override final {
                 std::unique_ptr<IRuleEvaluation<StatisticVector>> ruleEvaluationPtr =
-                    totalSumVectorPtr_->createRuleEvaluation(*this->ruleEvaluationFactoryPtr_, labelIndices);
+                    this->ruleEvaluationFactoryPtr_->create(*totalSumVectorPtr_, labelIndices);
                 return std::make_unique<typename AbstractLabelWiseStatistics::CompleteSubset>(
                     *this, totalSumVectorPtr_.get(), std::move(ruleEvaluationPtr), labelIndices);
             }
@@ -412,7 +431,7 @@ namespace boosting {
             std::unique_ptr<IStatisticsSubset> createSubset(
                     const PartialIndexVector& labelIndices) const override final {
                 std::unique_ptr<IRuleEvaluation<StatisticVector>> ruleEvaluationPtr =
-                    totalSumVectorPtr_->createRuleEvaluation(*this->ruleEvaluationFactoryPtr_, labelIndices);
+                    this->ruleEvaluationFactoryPtr_->create(*totalSumVectorPtr_, labelIndices);
                 return std::make_unique<typename AbstractLabelWiseStatistics::PartialSubset>(
                     *this, totalSumVectorPtr_.get(), std::move(ruleEvaluationPtr), labelIndices);
             }

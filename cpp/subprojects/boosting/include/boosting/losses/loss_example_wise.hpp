@@ -4,7 +4,7 @@
 #pragma once
 
 #include "boosting/losses/loss_label_wise.hpp"
-#include "boosting/data/statistic_view_dense_example_wise.hpp"
+#include "boosting/data/statistic_view_example_wise_dense.hpp"
 
 
 namespace boosting {

@@ -102,7 +102,7 @@ namespace boosting {
      * @tparam T The type of the vector that provides access to the labels for which predictions should be calculated
      */
     template<typename T>
-    class ExampleWiseCompleteBinnedRuleEvaluation final :
+    class DenseExampleWiseCompleteBinnedRuleEvaluation final :
             public AbstractExampleWiseRuleEvaluation<DenseExampleWiseStatisticVector, T> {
 
         private:
@@ -144,10 +144,10 @@ namespace boosting {
              * @param lapack                    A reference to an object of type `Lapack` that allows to execute
              *                                  different LAPACK routines
              */
-            ExampleWiseCompleteBinnedRuleEvaluation(const T& labelIndices, uint32 maxBins,
-                                                    float64 l2RegularizationWeight,
-                                                    std::unique_ptr<ILabelBinning> binningPtr, const Blas& blas,
-                                                    const Lapack& lapack)
+            DenseExampleWiseCompleteBinnedRuleEvaluation(const T& labelIndices, uint32 maxBins,
+                                                         float64 l2RegularizationWeight,
+                                                         std::unique_ptr<ILabelBinning> binningPtr, const Blas& blas,
+                                                         const Lapack& lapack)
                 : AbstractExampleWiseRuleEvaluation<DenseExampleWiseStatisticVector, T>(maxBins, lapack),
                   maxBins_(maxBins), scoreVector_(DenseBinnedScoreVector<T>(labelIndices, maxBins + 1)),
                   aggregatedGradients_(new float64[maxBins]),
@@ -160,7 +160,7 @@ namespace boosting {
                 scoreVector_.scores_binned_begin()[maxBins_] = 0;
             }
 
-            ~ExampleWiseCompleteBinnedRuleEvaluation() {
+            ~DenseExampleWiseCompleteBinnedRuleEvaluation() {
                 delete[] aggregatedGradients_;
                 delete[] aggregatedHessians_;
                 delete[] binIndices_;
@@ -256,19 +256,19 @@ namespace boosting {
         assertNotNull("lapackPtr", lapackPtr_.get());
     }
 
-    std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> ExampleWiseCompleteBinnedRuleEvaluationFactory::createDense(
-            const CompleteIndexVector& indexVector) const {
+    std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> ExampleWiseCompleteBinnedRuleEvaluationFactory::create(
+            const DenseExampleWiseStatisticVector& statisticVector, const CompleteIndexVector& indexVector) const {
         std::unique_ptr<ILabelBinning> labelBinningPtr = labelBinningFactoryPtr_->create();
         uint32 maxBins = labelBinningPtr->getMaxBins(indexVector.getNumElements());
-        return std::make_unique<ExampleWiseCompleteBinnedRuleEvaluation<CompleteIndexVector>>(
+        return std::make_unique<DenseExampleWiseCompleteBinnedRuleEvaluation<CompleteIndexVector>>(
             indexVector, maxBins, l2RegularizationWeight_, std::move(labelBinningPtr), *blasPtr_, *lapackPtr_);
     }
 
-    std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> ExampleWiseCompleteBinnedRuleEvaluationFactory::createDense(
-            const PartialIndexVector& indexVector) const {
+    std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> ExampleWiseCompleteBinnedRuleEvaluationFactory::create(
+            const DenseExampleWiseStatisticVector& statisticVector, const PartialIndexVector& indexVector) const {
         std::unique_ptr<ILabelBinning> labelBinningPtr = labelBinningFactoryPtr_->create();
         uint32 maxBins = labelBinningPtr->getMaxBins(indexVector.getNumElements());
-        return std::make_unique<ExampleWiseCompleteBinnedRuleEvaluation<PartialIndexVector>>(
+        return std::make_unique<DenseExampleWiseCompleteBinnedRuleEvaluation<PartialIndexVector>>(
             indexVector, maxBins, l2RegularizationWeight_, std::move(labelBinningPtr), *blasPtr_, *lapackPtr_);
     }
 

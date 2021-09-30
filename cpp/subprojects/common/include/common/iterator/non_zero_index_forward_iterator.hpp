@@ -85,6 +85,7 @@ class NonZeroIndexForwardIterator {
          */
         NonZeroIndexForwardIterator<T>& operator++() {
             iterator_++;
+            ++index_;
 
             for (; iterator_ != end_; iterator_++) {
                 auto value = *iterator_;
@@ -106,6 +107,7 @@ class NonZeroIndexForwardIterator {
          */
         NonZeroIndexForwardIterator<T>& operator++(int n) {
             iterator_++;
+            index_++;
 
             for (; iterator_ != end_; iterator_++) {
                 auto value = *iterator_;

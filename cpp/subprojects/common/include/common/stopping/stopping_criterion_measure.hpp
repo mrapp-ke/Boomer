@@ -4,7 +4,6 @@
 #pragma once
 
 #include "common/stopping/stopping_criterion.hpp"
-#include "common/measures/measure_evaluation.hpp"
 #include "common/data/ring_buffer.hpp"
 #include <memory>
 
@@ -83,8 +82,6 @@ class MeasureStoppingCriterion final : public IStoppingCriterion {
 
     private:
 
-        std::unique_ptr<IEvaluationMeasure> measurePtr_;
-
         std::unique_ptr<IAggregationFunction> aggregationFunctionPtr_;
 
         uint32 updateInterval_;
@@ -110,8 +107,6 @@ class MeasureStoppingCriterion final : public IStoppingCriterion {
     public:
 
         /**
-         * @param measurePtr                An unique pointer to an object of type `IEvaluationMeasure` that should be
-         *                                  used to assess the quality of a model
          * @param aggregationFunctionPtr    An unique pointer to an object of type `IAggregationFunction` that should be
          *                                  used to aggregate the scores in the buffer
          * @param minRules                  The minimum number of rules that must have been learned until the induction
@@ -132,8 +127,7 @@ class MeasureStoppingCriterion final : public IStoppingCriterion {
          *                                  stopping criterion is met, false, if the time of stopping should only be
          *                                  stored
          */
-        MeasureStoppingCriterion(std::unique_ptr<IEvaluationMeasure> measurePtr,
-                                 std::unique_ptr<IAggregationFunction> aggregationFunctionPtr, uint32 minRules,
+        MeasureStoppingCriterion(std::unique_ptr<IAggregationFunction> aggregationFunctionPtr, uint32 minRules,
                                  uint32 updateInterval, uint32 stopInterval, uint32 numPast, uint32 numCurrent,
                                  float64 minImprovement, bool forceStop);
 

@@ -1,3 +1,4 @@
+from mlrl.common.cython._measures cimport IEvaluationMeasure
 from mlrl.common.cython.statistics cimport StatisticsProviderFactory, IStatisticsProviderFactory
 from mlrl.boosting.cython.losses_example_wise cimport IExampleWiseLoss
 from mlrl.boosting.cython.rule_evaluation_example_wise cimport IExampleWiseRuleEvaluationFactory
@@ -14,7 +15,7 @@ cdef extern from "boosting/statistics/statistics_provider_factory_example_wise_d
         # Constructors:
 
         DenseExampleWiseStatisticsProviderFactoryImpl(
-            unique_ptr[IExampleWiseLoss] lossFunctionPtr,
+            unique_ptr[IExampleWiseLoss] lossFunctionPtr, unique_ptr[IEvaluationMeasure] evaluationMeasurePtr,
             unique_ptr[IExampleWiseRuleEvaluationFactory] defaultRuleEvaluationFactoryPtr,
             unique_ptr[IExampleWiseRuleEvaluationFactory] regularRuleEvaluationFactoryPtr,
             unique_ptr[IExampleWiseRuleEvaluationFactory] pruningRuleEvaluationFactoryPtr) except +
@@ -26,7 +27,7 @@ cdef extern from "boosting/statistics/statistics_provider_factory_example_wise_d
         # Constructors:
 
         DenseConvertibleExampleWiseStatisticsProviderFactoryImpl(
-            unique_ptr[IExampleWiseLoss] lossFunctionPtr,
+            unique_ptr[IExampleWiseLoss] lossFunctionPtr, unique_ptr[IEvaluationMeasure] evaluationMeasurePtr,
             unique_ptr[IExampleWiseRuleEvaluationFactory] defaultRuleEvaluationFactoryPtr,
             unique_ptr[ILabelWiseRuleEvaluationFactory] regularRuleEvaluationFactoryPtr,
             unique_ptr[ILabelWiseRuleEvaluationFactory] pruningRuleEvaluationFactoryPtr) except +

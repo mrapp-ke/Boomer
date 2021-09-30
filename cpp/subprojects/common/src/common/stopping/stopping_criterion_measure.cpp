@@ -5,15 +5,14 @@
 #include <limits>
 
 
-static inline float64 evaluateOnHoldoutSet(const BiPartition& partition, const IStatistics& statistics,
-                                           const IEvaluationMeasure& measure) {
+static inline float64 evaluateOnHoldoutSet(const BiPartition& partition, const IStatistics& statistics) {
     uint32 numHoldoutExamples = partition.getNumSecond();
     BiPartition::const_iterator iterator = partition.second_cbegin();
     float64 mean = 0;
 
     for (uint32 i = 0; i < numHoldoutExamples; i++) {
         uint32 exampleIndex = iterator[i];
-        float64 score = statistics.evaluatePrediction(exampleIndex, measure);
+        float64 score = statistics.evaluatePrediction(exampleIndex);
         mean = iterativeArithmeticMean<float64>(i + 1, score, mean);
     }
 
@@ -65,17 +64,14 @@ float64 ArithmeticMeanFunction::aggregate(RingBuffer<float64>::const_iterator be
     return mean;
 }
 
-MeasureStoppingCriterion::MeasureStoppingCriterion(std::unique_ptr<IEvaluationMeasure> measurePtr,
-                                                   std::unique_ptr<IAggregationFunction> aggregationFunctionPtr,
+MeasureStoppingCriterion::MeasureStoppingCriterion(std::unique_ptr<IAggregationFunction> aggregationFunctionPtr,
                                                    uint32 minRules, uint32 updateInterval, uint32 stopInterval,
                                                    uint32 numPast, uint32 numCurrent, float64 minImprovement,
                                                    bool forceStop)
-    : measurePtr_(std::move(measurePtr)), aggregationFunctionPtr_(std::move(aggregationFunctionPtr)),
-      updateInterval_(updateInterval), stopInterval_(stopInterval), minImprovement_(minImprovement),
-      pastBuffer_(RingBuffer<float64>(numPast)), recentBuffer_(RingBuffer<float64>(numCurrent)),
-      stoppingAction_(forceStop ? FORCE_STOP : STORE_STOP), bestScore_(std::numeric_limits<float64>::infinity()),
-      stopped_(false) {
-    assertNotNull("measurePtr", measurePtr_.get());
+    : aggregationFunctionPtr_(std::move(aggregationFunctionPtr)), updateInterval_(updateInterval),
+      stopInterval_(stopInterval), minImprovement_(minImprovement), pastBuffer_(RingBuffer<float64>(numPast)),
+      recentBuffer_(RingBuffer<float64>(numCurrent)), stoppingAction_(forceStop ? FORCE_STOP : STORE_STOP),
+      bestScore_(std::numeric_limits<float64>::infinity()), stopped_(false) {
     assertNotNull("aggregationFunctionPtr", aggregationFunctionPtr_.get());
     assertGreaterOrEqual<uint32>("minRules", minRules, 1);
     assertGreaterOrEqual<uint32>("updateInterval", updateInterval, 1);
@@ -95,7 +91,7 @@ IStoppingCriterion::Result MeasureStoppingCriterion::test(const IPartition& part
 
     if (!stopped_ && numRules > offset_ && numRules % updateInterval_ == 0) {
         const BiPartition& biPartition = static_cast<const BiPartition&>(partition);
-        float64 currentScore = evaluateOnHoldoutSet(biPartition, statistics, *measurePtr_);
+        float64 currentScore = evaluateOnHoldoutSet(biPartition, statistics);
 
         if (pastBuffer_.isFull()) {
             if (currentScore < bestScore_) {

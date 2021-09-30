@@ -42,7 +42,7 @@ namespace boosting {
      * @tparam T The type of the vector that provides access to the labels for which predictions should be calculated
      */
     template<typename T>
-    class LabelWiseCompleteBinnedRuleEvaluation final : public IRuleEvaluation<DenseLabelWiseStatisticVector> {
+    class DenseLabelWiseCompleteBinnedRuleEvaluation final : public IRuleEvaluation<DenseLabelWiseStatisticVector> {
 
         private:
 
@@ -70,8 +70,8 @@ namespace boosting {
              * @param binningPtr                An unique pointer to an object of type `ILabelBinning` that should be
              *                                  used to assign labels to bins
              */
-            LabelWiseCompleteBinnedRuleEvaluation(const T& labelIndices, float64 l2RegularizationWeight,
-                                                  std::unique_ptr<ILabelBinning> binningPtr)
+            DenseLabelWiseCompleteBinnedRuleEvaluation(const T& labelIndices, float64 l2RegularizationWeight,
+                                                       std::unique_ptr<ILabelBinning> binningPtr)
                 : maxBins_(binningPtr->getMaxBins(labelIndices.getNumElements())),
                   scoreVector_(DenseBinnedScoreVector<T>(labelIndices, maxBins_ + 1)),
                   aggregatedStatisticVector_(DenseLabelWiseStatisticVector(maxBins_)),
@@ -82,7 +82,7 @@ namespace boosting {
                 scoreVector_.scores_binned_begin()[maxBins_] = 0;
             }
 
-            ~LabelWiseCompleteBinnedRuleEvaluation() {
+            ~DenseLabelWiseCompleteBinnedRuleEvaluation() {
                 delete[] numElementsPerBin_;
                 delete[] criteria_;
             }
@@ -137,20 +137,18 @@ namespace boosting {
         assertNotNull("labelBinningFactoryPtr", labelBinningFactoryPtr_.get());
     }
 
-    std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> LabelWiseCompleteBinnedRuleEvaluationFactory::createDense(
-            const CompleteIndexVector& indexVector) const {
+    std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> LabelWiseCompleteBinnedRuleEvaluationFactory::create(
+            const DenseLabelWiseStatisticVector& statisticVector, const CompleteIndexVector& indexVector) const {
         std::unique_ptr<ILabelBinning> labelBinningPtr = labelBinningFactoryPtr_->create();
-        return std::make_unique<LabelWiseCompleteBinnedRuleEvaluation<CompleteIndexVector>>(indexVector,
-                                                                                            l2RegularizationWeight_,
-                                                                                            std::move(labelBinningPtr));
+        return std::make_unique<DenseLabelWiseCompleteBinnedRuleEvaluation<CompleteIndexVector>>(
+            indexVector, l2RegularizationWeight_, std::move(labelBinningPtr));
     }
 
-    std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> LabelWiseCompleteBinnedRuleEvaluationFactory::createDense(
-            const PartialIndexVector& indexVector) const {
+    std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> LabelWiseCompleteBinnedRuleEvaluationFactory::create(
+            const DenseLabelWiseStatisticVector& statisticVector, const PartialIndexVector& indexVector) const {
         std::unique_ptr<ILabelBinning> labelBinningPtr = labelBinningFactoryPtr_->create();
-        return std::make_unique<LabelWiseCompleteBinnedRuleEvaluation<PartialIndexVector>>(indexVector,
-                                                                                           l2RegularizationWeight_,
-                                                                                           std::move(labelBinningPtr));
+        return std::make_unique<DenseLabelWiseCompleteBinnedRuleEvaluation<PartialIndexVector>>(
+            indexVector, l2RegularizationWeight_, std::move(labelBinningPtr));
     }
 
 }

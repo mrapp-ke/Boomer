@@ -6,6 +6,11 @@
 
 namespace boosting {
 
+    static inline constexpr float64 calculateLabelWiseQualityScore(float64 gradient, float64 hessian,
+                                                                   float64 l2RegularizationWeight) {
+        return divideOrZero(-0.5 * gradient * gradient, hessian + l2RegularizationWeight);
+    }
+
     /**
      * Allows to calculate the predictions of single-label rules, as well as an overall quality score, based on the
      * gradients and Hessians that are stored by a `DenseLabelWiseStatisticVector` using L2 regularization.
@@ -13,7 +18,7 @@ namespace boosting {
      * @tparam T The type of the vector that provides access to the labels for which predictions should be calculated
      */
     template<typename T>
-    class LabelWiseSingleLabelRuleEvaluation final : public IRuleEvaluation<DenseLabelWiseStatisticVector> {
+    class DenseLabelWiseSingleLabelRuleEvaluation final : public IRuleEvaluation<DenseLabelWiseStatisticVector> {
 
         private:
 
@@ -33,7 +38,7 @@ namespace boosting {
              * @param l2RegularizationWeight    The weight of the L2 regularization that is applied for calculating the
              *                                  scores to be predicted by rules
              */
-            LabelWiseSingleLabelRuleEvaluation(const T& labelIndices, float64 l2RegularizationWeight)
+            DenseLabelWiseSingleLabelRuleEvaluation(const T& labelIndices, float64 l2RegularizationWeight)
                 : labelIndices_(labelIndices), indexVector_(PartialIndexVector(1)),
                   scoreVector_(DenseScoreVector<PartialIndexVector>(indexVector_)),
                   l2RegularizationWeight_(l2RegularizationWeight) {
@@ -44,30 +49,27 @@ namespace boosting {
                 uint32 numElements = statisticVector.getNumElements();
                 DenseLabelWiseStatisticVector::const_iterator statisticIterator = statisticVector.cbegin();
                 const Tuple<float64>& firstTuple = statisticIterator[0];
-                float64 bestScore = calculateLabelWiseScore(firstTuple.first, firstTuple.second,
-                                                            l2RegularizationWeight_);
-                float64 bestAbsScore = std::abs(bestScore);
+                float64 bestQualityScore = calculateLabelWiseQualityScore(firstTuple.first, firstTuple.second,
+                                                                          l2RegularizationWeight_);
                 uint32 bestIndex = 0;
 
                 for (uint32 i = 1; i < numElements; i++) {
                     const Tuple<float64>& tuple = statisticIterator[i];
-                    float64 score = calculateLabelWiseScore(tuple.first, tuple.second, l2RegularizationWeight_);
-                    float64 absScore = std::abs(score);
+                    float64 qualityScore = calculateLabelWiseQualityScore(tuple.first, tuple.second,
+                                                                          l2RegularizationWeight_);
 
-                    if (absScore > bestAbsScore) {
+                    if (qualityScore < bestQualityScore) {
                         bestIndex = i;
-                        bestScore = score;
-                        bestAbsScore = absScore;
+                        bestQualityScore = qualityScore;
                     }
                 }
 
                 DenseScoreVector<PartialIndexVector>::score_iterator scoreIterator = scoreVector_.scores_begin();
-                scoreIterator[0] = bestScore;
+                scoreIterator[0] = calculateLabelWiseScore(statisticIterator[bestIndex].first,
+                                                           statisticIterator[bestIndex].second,
+                                                           l2RegularizationWeight_);
                 indexVector_.begin()[0] = labelIndices_.cbegin()[bestIndex];
-                scoreVector_.overallQualityScore = calculateLabelWiseQualityScore(bestScore,
-                                                                                  statisticIterator[bestIndex].first,
-                                                                                  statisticIterator[bestIndex].second,
-                                                                                  l2RegularizationWeight_);
+                scoreVector_.overallQualityScore = bestQualityScore;
                 return scoreVector_;
             }
 
@@ -78,16 +80,16 @@ namespace boosting {
         assertGreaterOrEqual<float64>("l2RegularizationWeight", l2RegularizationWeight, 0);
     }
 
-    std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> LabelWiseSingleLabelRuleEvaluationFactory::createDense(
-            const CompleteIndexVector& indexVector) const {
-        return std::make_unique<LabelWiseSingleLabelRuleEvaluation<CompleteIndexVector>>(indexVector,
-                                                                                         l2RegularizationWeight_);
+    std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> LabelWiseSingleLabelRuleEvaluationFactory::create(
+            const DenseLabelWiseStatisticVector& statisticVector, const CompleteIndexVector& indexVector) const {
+        return std::make_unique<DenseLabelWiseSingleLabelRuleEvaluation<CompleteIndexVector>>(indexVector,
+                                                                                              l2RegularizationWeight_);
     }
 
-    std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> LabelWiseSingleLabelRuleEvaluationFactory::createDense(
-            const PartialIndexVector& indexVector) const {
-        return std::make_unique<LabelWiseSingleLabelRuleEvaluation<PartialIndexVector>>(indexVector,
-                                                                                        l2RegularizationWeight_);
+    std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> LabelWiseSingleLabelRuleEvaluationFactory::create(
+            const DenseLabelWiseStatisticVector& statisticVector, const PartialIndexVector& indexVector) const {
+        return std::make_unique<DenseLabelWiseSingleLabelRuleEvaluation<PartialIndexVector>>(indexVector,
+                                                                                             l2RegularizationWeight_);
     }
 
 }

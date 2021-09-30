@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include "boosting/data/statistic_vector_dense_label_wise.hpp"
+#include "boosting/data/statistic_vector_label_wise_dense.hpp"
 #include "rule_evaluation_label_wise_common.hpp"
 
 
@@ -28,6 +28,22 @@ namespace boosting {
             const Tuple<float64>& tuple = statisticIterator[i];
             scoreIterator[i] = calculateLabelWiseScore(tuple.first, tuple.second, l2RegularizationWeight);
         }
+    }
+
+    /**
+     * Calculates and returns a quality score that assesses the quality of the score that is predicted for a single
+     * label.
+     *
+     * @param score                     The predicted score
+     * @param gradient                  The gradient
+     * @param hessian                   The Hessian
+     * @param l2RegularizationWeight    The weight of the L2 regularization
+     * @return                          The quality score that has been calculated
+     */
+    static inline constexpr float64 calculateLabelWiseQualityScore(float64 score, float64 gradient, float64 hessian,
+                                                                   float64 l2RegularizationWeight) {
+        float64 scorePow = score * score;
+        return (gradient * score) + (0.5 * hessian * scorePow) + (0.5 * l2RegularizationWeight * scorePow);
     }
 
 }

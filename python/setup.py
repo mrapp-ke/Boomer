@@ -56,7 +56,7 @@ extensions = [
 
 setuptools.setup(
     name='boomer',
-    version='0.6.0',
+    version='0.6.1',
     description='BOOMER - An algorithm for learning gradient boosted multi-label classification rules',
     url='https://github.com/mrapp-ke/Boomer',
     author='Michael Rapp',

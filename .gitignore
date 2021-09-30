@@ -11,7 +11,7 @@ cpp/build/
 __pycache__/
 
 # Documentation files
-doc/build_/
+doc/_build/
 doc/doxygen/
 doc/python_apidoc/
 doc/python/*.rst

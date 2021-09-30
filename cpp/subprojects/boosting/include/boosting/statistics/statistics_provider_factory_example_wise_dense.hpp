@@ -4,8 +4,9 @@
  */
 #pragma once
 
-#include "boosting/statistics/statistics_example_wise.hpp"
 #include "common/statistics/statistics_provider_factory.hpp"
+#include "common/measures/measure_evaluation.hpp"
+#include "boosting/statistics/statistics_example_wise.hpp"
 #include "boosting/losses/loss_example_wise.hpp"
 
 
@@ -21,6 +22,8 @@ namespace boosting {
 
             std::unique_ptr<IExampleWiseLoss> lossFunctionPtr_;
 
+            std::unique_ptr<IEvaluationMeasure> evaluationMeasurePtr_;
+
             std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr_;
 
             std::unique_ptr<IExampleWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr_;
@@ -34,6 +37,9 @@ namespace boosting {
             /**
              * @param lossFunctionPtr                   An unique pointer to an object of type `IExampleWiseLoss` that
              *                                          should be used for calculating gradients and Hessians
+             * @param evaluationMeasurePtr              An unique pointer to an object of type `IEvaluationMeasure` that
+             *                                          implements the evaluation measure that should be used to assess
+             *                                          the quality of predictions
              * @param defaultRuleEvaluationFactoryPtr   An unique pointer to an object of type
              *                                          `IExampleWiseRuleEvaluationFactory` that should be used for
              *                                          calculating the predictions, as well as corresponding quality
@@ -51,6 +57,7 @@ namespace boosting {
              */
             DenseExampleWiseStatisticsProviderFactory(
                 std::unique_ptr<IExampleWiseLoss> lossFunctionPtr,
+                std::unique_ptr<IEvaluationMeasure> evaluationMeasurePtr,
                 std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr,
                 std::unique_ptr<IExampleWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr,
                 std::unique_ptr<IExampleWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr, uint32 numThreads);
@@ -72,6 +79,8 @@ namespace boosting {
 
             std::unique_ptr<IExampleWiseLoss> lossFunctionPtr_;
 
+            std::unique_ptr<IEvaluationMeasure> evaluationMeasurePtr_;
+
             std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr_;
 
             std::unique_ptr<ILabelWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr_;
@@ -85,6 +94,9 @@ namespace boosting {
             /**
              * @param lossFunctionPtr                   An unique pointer to an object of type `IExampleWiseLoss` that
              *                                          should be used for calculating gradients and Hessians
+             * @param evaluationMeasurePtr              An unique pointer to an object of type `IEvaluationMeasure` that
+             *                                          implements the evaluation measure that should be used to assess
+             *                                          the quality of predictions
              * @param defaultRuleEvaluationFactoryPtr   An unique pointer to an object of type
              *                                          `IExampleWiseRuleEvaluationFactory` that should be used for
              *                                          calculating the predictions, as well as corresponding quality
@@ -102,6 +114,7 @@ namespace boosting {
              */
             DenseConvertibleExampleWiseStatisticsProviderFactory(
                 std::unique_ptr<IExampleWiseLoss> lossFunctionPtr,
+                std::unique_ptr<IEvaluationMeasure> evaluationMeasurePtr,
                 std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr,
                 std::unique_ptr<ILabelWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr,
                 std::unique_ptr<ILabelWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr, uint32 numThreads);

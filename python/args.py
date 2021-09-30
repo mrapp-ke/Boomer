@@ -100,6 +100,12 @@ PARAM_L2_REGULARIZATION_WEIGHT = '--l2-regularization-weight'
 
 PARAM_HEAD_TYPE = '--head-type'
 
+PARAM_HEURISTIC = '--heuristic'
+
+PARAM_PRUNING_HEURISTIC = '--pruning-heuristic'
+
+PARAM_LIFT_FUNCTION = '--lift-function'
+
 
 class LogLevel(Enum):
     DEBUG = 'debug'
@@ -236,13 +242,19 @@ class ArgumentParserBuilder:
                                  + 'output file. Does only have an effect if the parameter ' + PARAM_PRINT_RULES
                                  + ' or ' + PARAM_STORE_RULES + ' is set to True. For a list of the available options '
                                  + 'refer to the documentation.')
-        parser.add_argument(PARAM_FEATURE_FORMAT, type=optional_string, default=SparsePolicy.AUTO.value,
+        parser.add_argument(PARAM_FEATURE_FORMAT, type=optional_string,
+                            default=ArgumentParserBuilder.__get_or_default('feature_format', SparsePolicy.AUTO.value,
+                                                                           **kwargs),
                             help='The format to be used for the representation of the feature matrix. Must be one of '
                                  + format_enum_values(SparsePolicy) + '.')
-        parser.add_argument(PARAM_LABEL_FORMAT, type=optional_string, default=SparsePolicy.AUTO.value,
+        parser.add_argument(PARAM_LABEL_FORMAT, type=optional_string,
+                            default=ArgumentParserBuilder.__get_or_default('label_format', SparsePolicy.AUTO.value,
+                                                                           **kwargs),
                             help='The format to be used for the representation of the label matrix. Must be one of '
                                  + format_enum_values(SparsePolicy) + '.')
-        parser.add_argument(PARAM_PREDICTION_FORMAT, type=optional_string, default=SparsePolicy.AUTO.value,
+        parser.add_argument(PARAM_PREDICTION_FORMAT, type=optional_string,
+                            default=ArgumentParserBuilder.__get_or_default('prediction_format', SparsePolicy.AUTO.value,
+                                                                           **kwargs),
                             help='The format to be used for the representation of predicted labels. Must be one of '
                                  + format_enum_values(SparsePolicy) + '.')
         parser.add_argument(PARAM_MAX_RULES, type=int,
@@ -335,7 +347,8 @@ class ArgumentParserBuilder:
         parser.add_argument(PARAM_SHRINKAGE, type=float,
                             default=ArgumentParserBuilder.__get_or_default('shrinkage', 0.3, **kwargs),
                             help='The shrinkage parameter, a.k.a. the learning rate, to be used. Must be in (0, 1].')
-        parser.add_argument(PARAM_LOSS, type=str, default=LOSS_LOGISTIC_LABEL_WISE,
+        parser.add_argument(PARAM_LOSS, type=str,
+                            default=ArgumentParserBuilder.__get_or_default('loss', LOSS_LOGISTIC_LABEL_WISE, **kwargs),
                             help='The name of the loss function to be minimized during training. Must be one of '
                                  + format_string_set(LOSS_VALUES) + '.')
         parser.add_argument(PARAM_PREDICTOR, type=str,
@@ -369,7 +382,6 @@ class ArgumentParserBuilder:
                                  + 'automatically based on the parameter ' + PARAM_LOSS + '. For additional options '
                                  + 'refer to the documentation.')
         return self
-
 
     def build(self) -> ArgumentParser:
         return self.parser

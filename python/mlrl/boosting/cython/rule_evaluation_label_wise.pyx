@@ -1,9 +1,9 @@
 """
 @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
 """
-from libcpp.memory cimport make_unique
 from mlrl.boosting.cython.label_binning cimport LabelBinningFactory
 
+from libcpp.memory cimport make_unique
 from libcpp.utility cimport move
 
 

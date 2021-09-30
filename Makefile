@@ -69,4 +69,4 @@ doc: install
 	cd doc/python/ && PATH=$$PATH:../../venv/bin/ LD_PRELOAD="../../cpp/build/subprojects/common/libmlrlcommon.so \
 	    ../../cpp/build/subprojects/boosting/libmlrlboosting.so" sphinx-build -M html . ../python_apidoc/api/python
 	@echo "Generating Sphinx documentation..."
-	cd doc/ && PATH=$$PATH:../venv/bin/ sphinx-build -M html . build_
+	cd doc/ && PATH=$$PATH:../venv/bin/ sphinx-build -M html . _build

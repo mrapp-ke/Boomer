@@ -1,8 +1,6 @@
 """
 @author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
 """
-from mlrl.common.cython.measures cimport EvaluationMeasure
-
 from libcpp.utility cimport move
 from libcpp.memory cimport make_unique
 
@@ -77,11 +75,9 @@ cdef class MeasureStoppingCriterion(StoppingCriterion):
     A wrapper for the C++ class `MeasureStoppingCriterion`.
     """
 
-    def __cinit__(self, EvaluationMeasure measure not None, AggregationFunction aggregation_function not None,
-                  uint32 min_rules, uint32 update_interval, uint32 stop_interval, uint32 num_past, uint32 num_recent,
-                  float64 min_improvement, bint force_stop):
+    def __cinit__(self, AggregationFunction aggregation_function not None, uint32 min_rules, uint32 update_interval,
+                  uint32 stop_interval, uint32 num_past, uint32 num_recent, float64 min_improvement, bint force_stop):
         """
-        :param measure:                 The measure that should be used to assess the quality of a model
         :param aggregation_function:    The aggregation function that should be used to aggregate the scores in the
                                         buffer
         :param min_rules:               The minimum number of rules that must have been learned until the induction of
@@ -101,7 +97,6 @@ cdef class MeasureStoppingCriterion(StoppingCriterion):
         :param force_stop:              True, if the induction of rules should be forced to be stopped, if the stopping
                                         criterion is met, False, if the time of stopping should only be stored
         """
-        cdef unique_ptr[IEvaluationMeasure] measure_ptr = measure.get_evaluation_measure_ptr()
         self.stopping_criterion_ptr = <unique_ptr[IStoppingCriterion]>make_unique[MeasureStoppingCriterionImpl](
-            move(measure_ptr), move(aggregation_function.aggregation_function_ptr), min_rules, update_interval,
-            stop_interval, num_past, num_recent, min_improvement, force_stop)
+            move(aggregation_function.aggregation_function_ptr), min_rules, update_interval, stop_interval, num_past,
+            num_recent, min_improvement, force_stop)
