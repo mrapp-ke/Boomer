@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<labels xmlns="http://mulan.sourceforge.net/labels">
+<label name="C12"> </label>
+<label name="C04"> </label>
+<label name="C19"> </label>
+<label name="C03"> </label>
+<label name="C18"> </label>
+<label name="C11"> </label>
+<label name="C05"> </label>
+<label name="C14"> </label>
+<label name="C02"> </label>
+<label name="C07"> </label>
+<label name="C16"> </label>
+<label name="C10"> </label>
+<label name="C13"> </label>
+<label name="C09"> </label>
+<label name="C20"> </label>
+<label name="C17"> </label>
+<label name="C23"> </label>
+<label name="C22"> </label>
+<label name="C15"> </label>
+<label name="C21"> </label>
+<label name="C06"> </label>
+<label name="C08"> </label>
+<label name="C01"> </label>
+</labels>

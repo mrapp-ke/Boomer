@@ -1,0 +1,31 @@
+# Build files
+python/**/*.o
+python/**/*.so
+python/**/*.c
+python/**/*.cpp
+python/**/*.pyd
+python/**/*.pyc
+python/**/*.html
+python/build/
+cpp/build/
+__pycache__/
+
+# Documentation files
+doc/_build/
+doc/doxygen/
+doc/python_apidoc/
+doc/python/*.rst
+
+# Virtual Environment
+venv/
+
+# IntelliJ
+.idea/
+
+# Virtual Studio Code
+.vscode/
+
+# Experiments
+results/
+models/
+parameters/
