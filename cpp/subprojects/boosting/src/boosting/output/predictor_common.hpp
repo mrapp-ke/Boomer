@@ -70,12 +70,12 @@ namespace boosting {
         }
     }
 
-    static inline void applyRulesCsr(const RuleModel& model, CsrFeatureMatrix::index_const_iterator featureIndicesBegin,
+    static inline void applyRulesCsr(const RuleModel& model, uint32 numFeatures,
+                                     CsrFeatureMatrix::index_const_iterator featureIndicesBegin,
                                      CsrFeatureMatrix::index_const_iterator featureIndicesEnd,
                                      CsrFeatureMatrix::value_const_iterator featureValuesBegin,
                                      CsrFeatureMatrix::value_const_iterator featureValuesEnd,
                                      CContiguousView<float64>::iterator scoreIterator) {
-        uint32 numFeatures = featureIndicesEnd - featureIndicesBegin;
         float32 tmpArray1[numFeatures];
         uint32 tmpArray2[numFeatures] = {};
         uint32 n = 1;

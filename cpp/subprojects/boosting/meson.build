@@ -1,4 +1,4 @@
-project('boosting', 'cpp', version : '0.6.1')
+project('boosting', 'cpp', version : '0.6.2')
 
 # Source files
 source_files = [
@@ -44,4 +44,4 @@ dependencies = [
 include_directories = include_directories('include')
 
 boosting_lib = library('mlrlboosting', source_files, include_directories : include_directories,
-                       dependencies : dependencies, version : '0.6.1')
+                       dependencies : dependencies, version : '0.6.2')

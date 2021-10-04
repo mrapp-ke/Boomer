@@ -100,12 +100,6 @@ PARAM_L2_REGULARIZATION_WEIGHT = '--l2-regularization-weight'
 
 PARAM_HEAD_TYPE = '--head-type'
 
-PARAM_HEURISTIC = '--heuristic'
-
-PARAM_PRUNING_HEURISTIC = '--pruning-heuristic'
-
-PARAM_LIFT_FUNCTION = '--lift-function'
-
 
 class LogLevel(Enum):
     DEBUG = 'debug'

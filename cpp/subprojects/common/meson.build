@@ -1,4 +1,4 @@
-project('common', 'cpp', version : '0.6.1')
+project('common', 'cpp', version : '0.6.2')
 
 # Source files
 source_files = [
@@ -102,5 +102,5 @@ dependencies = [
 include_directories = include_directories('include')
 
 common_lib = library('mlrlcommon', source_files, include_directories : include_directories, dependencies : dependencies,
-                     version : '0.6.1')
+                     version : '0.6.2')
 common_dep = declare_dependency(include_directories : include_directories, link_with : common_lib)
