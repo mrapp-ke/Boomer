@@ -3,6 +3,7 @@
 #include "common/sampling/partition_sampling.hpp"
 #include "common/sampling/instance_sampling.hpp"
 #include "common/data/arrays.hpp"
+#include "common/math/math.hpp"
 
 
 CsrLabelMatrix::View::View(const CsrLabelMatrix& labelMatrix, uint32 row)
@@ -42,6 +43,20 @@ uint32 CsrLabelMatrix::getNumRows() const {
 
 uint32 CsrLabelMatrix::getNumCols() const {
     return view_.getNumCols();
+}
+
+float64 CsrLabelMatrix::calculateLabelCardinality() const {
+    uint32 numRows = this->getNumRows();
+    float64 labelCardinality = 0;
+
+    for (uint32 i = 0; i < numRows; i++) {
+        index_const_iterator indicesBegin = this->row_indices_cbegin(i);
+        index_const_iterator indicesEnd = this->row_indices_cend(i);
+        uint32 numRelevantLabels = indicesEnd - indicesBegin;
+        labelCardinality = iterativeArithmeticMean(i + 1, (float64) numRelevantLabels, labelCardinality);
+    }
+
+    return labelCardinality;
 }
 
 CsrLabelMatrix::view_type CsrLabelMatrix::createView(uint32 row) const {

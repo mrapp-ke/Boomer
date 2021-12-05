@@ -42,6 +42,13 @@ class ILabelMatrix {
         virtual uint32 getNumCols() const = 0;
 
         /**
+         * Calculates and returns the label cardinality, i.e., the average number of relevant labels per example.
+         *
+         * @return The label cardinality
+         */
+        virtual float64 calculateLabelCardinality() const = 0;
+
+        /**
          * Creates and returns a label vector that corresponds to a specific row in the label matrix.
          *
          * @param row   The row

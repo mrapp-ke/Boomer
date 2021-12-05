@@ -1,3 +1,5 @@
+from pathlib import Path
+
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -19,8 +21,7 @@ copyright = '2020-2021, Michael Rapp'
 author = 'Michael Rapp'
 
 # The full version, including alpha/beta/rc tags
-release = '0.6.2'
-
+release = (Path(__file__).resolve().parent.parent / 'VERSION').read_text()
 
 # -- General configuration ---------------------------------------------------
 
@@ -35,8 +36,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'python']
-
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'python', '**/*.inc.rst']
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -54,4 +54,4 @@ html_static_path = ['_static']
 # documentation, such as robots.txt or .htaccess. Relative paths are taken
 # as relative to the configuration directory. They are copied to the output
 # directory. They will overwrite any existing file of the same name.
-html_extra_path = ['doxygen', 'python_apidoc']
+html_extra_path = ['apidoc']

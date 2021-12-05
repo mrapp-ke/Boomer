@@ -13,9 +13,11 @@ namespace boosting {
     static inline void calculateLabelWiseScores(
             DenseExampleWiseStatisticVector::gradient_const_iterator gradientIterator,
             DenseExampleWiseStatisticVector::hessian_diagonal_const_iterator hessianIterator,
-            ScoreIterator scoreIterator, uint32 numElements, float64 l2RegularizationWeight) {
+            ScoreIterator scoreIterator, uint32 numElements, float64 l1RegularizationWeight,
+            float64 l2RegularizationWeight) {
         for (uint32 i = 0; i < numElements; i++) {
-            scoreIterator[i] = calculateLabelWiseScore(gradientIterator[i], hessianIterator[i], l2RegularizationWeight);
+            scoreIterator[i] = calculateLabelWiseScore(gradientIterator[i], hessianIterator[i], l1RegularizationWeight,
+                                                       l2RegularizationWeight);
         }
     }
 
@@ -86,8 +88,17 @@ namespace boosting {
         }
     }
 
-    static inline void addRegularizationWeight(float64* coefficients, uint32 numPredictions, const uint32* weights,
-                                               float64 l2RegularizationWeight) {
+    static inline void addL1RegularizationWeight(float64* ordinates, uint32 numPredictions, const uint32* weights,
+                                                 float64 l1RegularizationWeight) {
+        for (uint32 i = 0; i < numPredictions; i++) {
+            uint32 weight = weights[i];
+            float64 gradient = ordinates[i];
+            ordinates[i] += (weight * getL1RegularizationWeight(gradient, l1RegularizationWeight));
+        }
+    }
+
+    static inline void addL2RegularizationWeight(float64* coefficients, uint32 numPredictions, const uint32* weights,
+                                                 float64 l2RegularizationWeight) {
         for (uint32 i = 0; i < numPredictions; i++) {
             uint32 weight = weights[i];
             coefficients[(i * numPredictions) + i] += (weight * l2RegularizationWeight);
@@ -96,8 +107,8 @@ namespace boosting {
 
     /**
      * Allows to calculate the predictions of complete rules, as well as an overall quality score, based on the
-     * gradients and Hessians that are stored by a `DenseExampleWiseStatisticVector` using L2 regularization. The labels
-     * are assigned to bins based on the gradients and Hessians.
+     * gradients and Hessians that are stored by a `DenseExampleWiseStatisticVector` using L1 and L2 regularization. The
+     * labels are assigned to bins based on the gradients and Hessians.
      *
      * @tparam T The type of the vector that provides access to the labels for which predictions should be calculated
      */
@@ -121,6 +132,8 @@ namespace boosting {
 
             float64* criteria_;
 
+            float64 l1RegularizationWeight_;
+
             float64 l2RegularizationWeight_;
 
             std::unique_ptr<ILabelBinning> binningPtr_;
@@ -135,6 +148,8 @@ namespace boosting {
              * @param labelIndices              A reference to an object of template type `T` that provides access to
              *                                  the indices of the labels for which the rules may predict
              * @param maxBins                   The maximum number of bins
+             * @param l1RegularizationWeight    The weight of the L1 regularization that is applied for calculating the
+             *                                  scores to be predicted by rules
              * @param l2RegularizationWeight    The weight of the L2 regularization that is applied for calculating the
              *                                  scores to be predicted by rules
              * @param binningPtr                An unique pointer to an object of type `ILabelBinning` that should be
@@ -145,7 +160,7 @@ namespace boosting {
              *                                  different LAPACK routines
              */
             DenseExampleWiseCompleteBinnedRuleEvaluation(const T& labelIndices, uint32 maxBins,
-                                                         float64 l2RegularizationWeight,
+                                                         float64 l1RegularizationWeight, float64 l2RegularizationWeight,
                                                          std::unique_ptr<ILabelBinning> binningPtr, const Blas& blas,
                                                          const Lapack& lapack)
                 : AbstractExampleWiseRuleEvaluation<DenseExampleWiseStatisticVector, T>(maxBins, lapack),
@@ -153,8 +168,8 @@ namespace boosting {
                   aggregatedGradients_(new float64[maxBins]),
                   aggregatedHessians_(new float64[triangularNumber(maxBins)]), binIndices_(new uint32[maxBins]),
                   numElementsPerBin_(new uint32[maxBins]), criteria_(new float64[labelIndices.getNumElements()]),
-                  l2RegularizationWeight_(l2RegularizationWeight), binningPtr_(std::move(binningPtr)), blas_(blas),
-                  lapack_(lapack) {
+                  l1RegularizationWeight_(l1RegularizationWeight), l2RegularizationWeight_(l2RegularizationWeight),
+                  binningPtr_(std::move(binningPtr)), blas_(blas), lapack_(lapack) {
                 // The last bin is used for labels for which the corresponding criterion is zero. For this particular
                 // bin, the prediction is always zero.
                 scoreVector_.scores_binned_begin()[maxBins_] = 0;
@@ -168,6 +183,9 @@ namespace boosting {
                 delete[] criteria_;
             }
 
+            /**
+             * @see `IRuleEvaluation::calculatePrediction`
+             */
             const IScoreVector& calculatePrediction(DenseExampleWiseStatisticVector& statisticVector) override {
                 // Calculate label-wise criteria...
                 uint32 numLabels = statisticVector.getNumElements();
@@ -176,7 +194,7 @@ namespace boosting {
                 DenseExampleWiseStatisticVector::hessian_diagonal_const_iterator hessianIterator =
                     statisticVector.hessians_diagonal_cbegin();
                 calculateLabelWiseScores(gradientIterator, hessianIterator, criteria_, numLabels,
-                                         l2RegularizationWeight_);
+                                         l1RegularizationWeight_, l2RegularizationWeight_);
 
                 // Obtain information about the bins to be used...
                 LabelInfo labelInfo = binningPtr_->getLabelInfo(criteria_, numLabels);
@@ -212,13 +230,14 @@ namespace boosting {
 
                     // Copy Hessians to the matrix of coefficients and add regularization weight to its diagonal...
                     copyCoefficients(aggregatedHessians_, this->dsysvTmpArray1_, numBins);
-                    addRegularizationWeight(this->dsysvTmpArray1_, numBins, numElementsPerBin_,
-                                            l2RegularizationWeight_);
+                    addL2RegularizationWeight(this->dsysvTmpArray1_, numBins, numElementsPerBin_,
+                                              l2RegularizationWeight_);
 
                     // Copy gradients to the vector of ordinates...
                     typename DenseBinnedScoreVector<T>::score_binned_iterator scoreIterator =
                         scoreVector_.scores_binned_begin();
                     copyOrdinates(aggregatedGradients_, scoreIterator, numBins);
+                    addL1RegularizationWeight(scoreIterator, numBins, numElementsPerBin_, l1RegularizationWeight_);
 
                     // Calculate the scores to be predicted for the individual labels by solving a system of linear
                     // equations...
@@ -231,10 +250,12 @@ namespace boosting {
                                                                         numBins, blas_);
 
                     // Evaluate regularization term...
-                    float64 regularizationTerm = 0.5 * l2RegularizationWeight_
-                                                 * l2NormPow(scoreIterator, numElementsPerBin_, numBins);
+                    float64 l1RegularizationTerm = l1RegularizationWeight_
+                                                   * l1Norm(scoreIterator, numElementsPerBin_, numBins);
+                    float64 l2RegularizationTerm = 0.5 * l2RegularizationWeight_
+                                                   * l2NormPow(scoreIterator, numElementsPerBin_, numBins);
 
-                    scoreVector_.overallQualityScore = qualityScore + regularizationTerm;
+                    scoreVector_.overallQualityScore = qualityScore + l1RegularizationTerm + l2RegularizationTerm;
                 } else {
                     setArrayToValue(scoreVector_.indices_binned_begin(), numLabels, maxBins_);
                     scoreVector_.overallQualityScore = 0;
@@ -246,10 +267,13 @@ namespace boosting {
     };
 
     ExampleWiseCompleteBinnedRuleEvaluationFactory::ExampleWiseCompleteBinnedRuleEvaluationFactory(
-            float64 l2RegularizationWeight, std::unique_ptr<ILabelBinningFactory> labelBinningFactoryPtr,
-            std::unique_ptr<Blas> blasPtr, std::unique_ptr<Lapack> lapackPtr)
-        : l2RegularizationWeight_(l2RegularizationWeight), labelBinningFactoryPtr_(std::move(labelBinningFactoryPtr)),
-          blasPtr_(std::move(blasPtr)), lapackPtr_(std::move(lapackPtr)) {
+            float64 l1RegularizationWeight, float64 l2RegularizationWeight,
+            std::unique_ptr<ILabelBinningFactory> labelBinningFactoryPtr, std::unique_ptr<Blas> blasPtr,
+            std::unique_ptr<Lapack> lapackPtr)
+        : l1RegularizationWeight_(l1RegularizationWeight), l2RegularizationWeight_(l2RegularizationWeight),
+          labelBinningFactoryPtr_(std::move(labelBinningFactoryPtr)), blasPtr_(std::move(blasPtr)),
+          lapackPtr_(std::move(lapackPtr)) {
+        assertGreaterOrEqual<float64>("l1RegularizationWeight", l1RegularizationWeight, 0);
         assertGreaterOrEqual<float64>("l2RegularizationWeight", l2RegularizationWeight, 0);
         assertNotNull("labelBinningFactoryPtr", labelBinningFactoryPtr_.get());
         assertNotNull("blasPtr", blasPtr_.get());
@@ -261,7 +285,8 @@ namespace boosting {
         std::unique_ptr<ILabelBinning> labelBinningPtr = labelBinningFactoryPtr_->create();
         uint32 maxBins = labelBinningPtr->getMaxBins(indexVector.getNumElements());
         return std::make_unique<DenseExampleWiseCompleteBinnedRuleEvaluation<CompleteIndexVector>>(
-            indexVector, maxBins, l2RegularizationWeight_, std::move(labelBinningPtr), *blasPtr_, *lapackPtr_);
+            indexVector, maxBins, l1RegularizationWeight_, l2RegularizationWeight_, std::move(labelBinningPtr),
+            *blasPtr_, *lapackPtr_);
     }
 
     std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> ExampleWiseCompleteBinnedRuleEvaluationFactory::create(
@@ -269,7 +294,8 @@ namespace boosting {
         std::unique_ptr<ILabelBinning> labelBinningPtr = labelBinningFactoryPtr_->create();
         uint32 maxBins = labelBinningPtr->getMaxBins(indexVector.getNumElements());
         return std::make_unique<DenseExampleWiseCompleteBinnedRuleEvaluation<PartialIndexVector>>(
-            indexVector, maxBins, l2RegularizationWeight_, std::move(labelBinningPtr), *blasPtr_, *lapackPtr_);
+            indexVector, maxBins, l1RegularizationWeight_, l2RegularizationWeight_, std::move(labelBinningPtr),
+            *blasPtr_, *lapackPtr_);
     }
 
 }

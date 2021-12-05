@@ -6,8 +6,8 @@ namespace boosting {
     static inline void updateGradientAndHessian(bool trueLabel, float64 predictedScore, float64* gradient,
                                                 float64* hessian) {
         float64 expectedScore = trueLabel ? 1 : -1;
-        *gradient = (2 * predictedScore) - (2 * expectedScore);
-        *hessian = 2;
+        *gradient = (predictedScore - expectedScore);
+        *hessian = 1;
     }
 
     static inline float64 evaluatePrediction(bool trueLabel, float64 predictedScore) {

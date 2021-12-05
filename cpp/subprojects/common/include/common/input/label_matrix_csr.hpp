@@ -50,7 +50,7 @@ class CsrLabelMatrix final : public ILabelMatrix {
                 struct Pred {
 
                     /**
-                     * Returns whether two objects of tyep `CsrLabelMatrix::View` are equal or not.
+                     * Returns whether two objects of type `CsrLabelMatrix::View` are equal or not.
                      *
                      * @param lhs   A reference to a first object of type `CsrLabelMatrix::View`
                      * @param rhs   A reference to a second object of type `CsrLabelMatrix::View`
@@ -146,6 +146,8 @@ class CsrLabelMatrix final : public ILabelMatrix {
         uint32 getNumRows() const override;
 
         uint32 getNumCols() const override;
+
+        float64 calculateLabelCardinality() const override;
 
         std::unique_ptr<LabelVector> createLabelVector(uint32 row) const override;
 

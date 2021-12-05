@@ -49,7 +49,7 @@ namespace boosting {
         }
     }
 
-    static inline uint32 predictLabelVector(LilMatrix<uint8>::Row& row, const LabelVector* labelVector) {
+    static inline uint32 predictLabelVector(BinaryLilMatrix::Row& row, const LabelVector* labelVector) {
         uint32 numNonZeroElements = 0;
 
         if (labelVector != nullptr) {
@@ -58,13 +58,13 @@ namespace boosting {
 
             if (numIndices > 0) {
                 uint32 labelIndex = indexIterator[0];
-                row.emplace_front(labelIndex, 1);
+                row.emplace_front(labelIndex);
                 numNonZeroElements++;
-                LilMatrix<uint8>::Row::iterator it = row.begin();
+                BinaryLilMatrix::Row::iterator it = row.begin();
 
                 for (uint32 i = 1; i < numIndices; i++) {
                     labelIndex = indexIterator[i];
-                    it = row.emplace_after(it, labelIndex, 1);
+                    it = row.emplace_after(it, labelIndex);
                     numNonZeroElements++;
                 }
             }
@@ -147,13 +147,13 @@ namespace boosting {
         }
     }
 
-    std::unique_ptr<SparsePredictionMatrix<uint8>> ExampleWiseClassificationPredictor::predict(
+    std::unique_ptr<BinarySparsePredictionMatrix> ExampleWiseClassificationPredictor::predict(
             const CContiguousFeatureMatrix& featureMatrix, uint32 numLabels, const RuleModel& model,
             const LabelVectorSet* labelVectors) const {
         uint32 numExamples = featureMatrix.getNumRows();
-        std::unique_ptr<LilMatrix<uint8>> lilMatrixPtr = std::make_unique<LilMatrix<uint8>>(numExamples);
+        std::unique_ptr<BinaryLilMatrix> lilMatrixPtr = std::make_unique<BinaryLilMatrix>(numExamples);
         const CContiguousFeatureMatrix* featureMatrixPtr = &featureMatrix;
-        LilMatrix<uint8>* predictionMatrixPtr = lilMatrixPtr.get();
+        BinaryLilMatrix* predictionMatrixPtr = lilMatrixPtr.get();
         const RuleModel* modelPtr = &model;
         const ISimilarityMeasure* measurePtr = measurePtr_.get();
         uint32 numNonZeroElements = 0;
@@ -169,17 +169,17 @@ namespace boosting {
             numNonZeroElements += predictLabelVector(predictionMatrixPtr->getRow(i), closestLabelVector);
         }
 
-        return std::make_unique<SparsePredictionMatrix<uint8>>(std::move(lilMatrixPtr), numLabels, numNonZeroElements);
+        return std::make_unique<BinarySparsePredictionMatrix>(std::move(lilMatrixPtr), numLabels, numNonZeroElements);
     }
 
-    std::unique_ptr<SparsePredictionMatrix<uint8>> ExampleWiseClassificationPredictor::predict(
+    std::unique_ptr<BinarySparsePredictionMatrix> ExampleWiseClassificationPredictor::predict(
             const CsrFeatureMatrix& featureMatrix, uint32 numLabels, const RuleModel& model,
             const LabelVectorSet* labelVectors) const {
         uint32 numExamples = featureMatrix.getNumRows();
         uint32 numFeatures = featureMatrix.getNumCols();
-        std::unique_ptr<LilMatrix<uint8>> lilMatrixPtr = std::make_unique<LilMatrix<uint8>>(numExamples);
+        std::unique_ptr<BinaryLilMatrix> lilMatrixPtr = std::make_unique<BinaryLilMatrix>(numExamples);
         const CsrFeatureMatrix* featureMatrixPtr = &featureMatrix;
-        LilMatrix<uint8>* predictionMatrixPtr = lilMatrixPtr.get();
+        BinaryLilMatrix* predictionMatrixPtr = lilMatrixPtr.get();
         const RuleModel* modelPtr = &model;
         const ISimilarityMeasure* measurePtr = measurePtr_.get();
         uint32 numNonZeroElements = 0;
@@ -198,7 +198,7 @@ namespace boosting {
             numNonZeroElements += predictLabelVector(predictionMatrixPtr->getRow(i), closestLabelVector);
         }
 
-        return std::make_unique<SparsePredictionMatrix<uint8>>(std::move(lilMatrixPtr), numLabels, numNonZeroElements);
+        return std::make_unique<BinarySparsePredictionMatrix>(std::move(lilMatrixPtr), numLabels, numNonZeroElements);
     }
 
 }

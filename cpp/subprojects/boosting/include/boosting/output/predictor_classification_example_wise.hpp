@@ -49,19 +49,31 @@ namespace boosting {
             void transform(const CContiguousConstView<float64>& scoreMatrix,
                            CContiguousView<uint8>& predictionMatrix, const LabelVectorSet* labelVectors) const;
 
+            /**
+             * @see `IPredictor::predict`
+             */
             void predict(const CContiguousFeatureMatrix& featureMatrix, CContiguousView<uint8>& predictionMatrix,
                          const RuleModel& model, const LabelVectorSet* labelVectors) const override;
 
+            /**
+             * @see `IPredictor::predict`
+             */
             void predict(const CsrFeatureMatrix& featureMatrix, CContiguousView<uint8>& predictionMatrix,
                          const RuleModel& model, const LabelVectorSet* labelVectors) const override;
 
-            std::unique_ptr<SparsePredictionMatrix<uint8>> predict(const CContiguousFeatureMatrix& featureMatrix,
-                                                                   uint32 numLabels, const RuleModel& model,
-                                                                   const LabelVectorSet* labelVectors) const override;
+            /**
+             * @see `ISparsePredictor::predict`
+             */
+            std::unique_ptr<BinarySparsePredictionMatrix> predict(const CContiguousFeatureMatrix& featureMatrix,
+                                                                  uint32 numLabels, const RuleModel& model,
+                                                                  const LabelVectorSet* labelVectors) const override;
 
-            std::unique_ptr<SparsePredictionMatrix<uint8>> predict(const CsrFeatureMatrix& featureMatrix,
-                                                                   uint32 numLabels, const RuleModel& model,
-                                                                   const LabelVectorSet* labelVectors) const override;
+            /**
+             * @see `ISparsePredictor::predict`
+             */
+            std::unique_ptr<BinarySparsePredictionMatrix> predict(const CsrFeatureMatrix& featureMatrix,
+                                                                  uint32 numLabels, const RuleModel& model,
+                                                                  const LabelVectorSet* labelVectors) const override;
 
     };
 

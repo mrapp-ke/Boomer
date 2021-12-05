@@ -59,8 +59,8 @@ class AlgorithmBuilder final {
         /**
          * Sets whether a default rule should be used or not.
          *
-         * @param defaultRule   True, if a default rule should be used, false otherwise.
-         * @return              A reference to the builder itself
+         * @param useDefaultRule    True, if a default rule should be used, false otherwise.
+         * @return                  A reference to the builder itself
          */
         AlgorithmBuilder& setUseDefaultRule(bool useDefaultRule);
 

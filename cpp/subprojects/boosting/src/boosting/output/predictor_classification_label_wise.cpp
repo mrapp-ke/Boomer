@@ -17,7 +17,7 @@ namespace boosting {
     }
 
     static inline uint32 applyThreshold(CContiguousConstView<float64>::const_iterator originalIterator,
-                                        LilMatrix<uint8>::Row& row, uint32 numElements, float64 threshold) {
+                                        BinaryLilMatrix::Row& row, uint32 numElements, float64 threshold) {
         uint32 numNonZeroElements = 0;
         uint32 i = 0;
 
@@ -25,19 +25,19 @@ namespace boosting {
             float64 originalValue = originalIterator[i];
 
             if (originalValue > threshold) {
-                row.emplace_front(i, 1);
+                row.emplace_front(i);
                 numNonZeroElements++;
                 break;
             }
         }
 
-        LilMatrix<uint8>::Row::iterator it = row.begin();
+        BinaryLilMatrix::Row::iterator it = row.begin();
 
         for (i = i + 1; i < numElements; i++) {
             float64 originalValue = originalIterator[i];
 
             if (originalValue > threshold) {
-                it = row.emplace_after(it, i, 1);
+                it = row.emplace_after(it, i);
                 numNonZeroElements++;
             }
         }
@@ -91,13 +91,13 @@ namespace boosting {
         }
     }
 
-    std::unique_ptr<SparsePredictionMatrix<uint8>> LabelWiseClassificationPredictor::predict(
+    std::unique_ptr<BinarySparsePredictionMatrix> LabelWiseClassificationPredictor::predict(
             const CContiguousFeatureMatrix& featureMatrix, uint32 numLabels, const RuleModel& model,
             const LabelVectorSet* labelVectors) const {
         uint32 numExamples = featureMatrix.getNumRows();
-        std::unique_ptr<LilMatrix<uint8>> lilMatrixPtr = std::make_unique<LilMatrix<uint8>>(numExamples);
+        std::unique_ptr<BinaryLilMatrix> lilMatrixPtr = std::make_unique<BinaryLilMatrix>(numExamples);
         const CContiguousFeatureMatrix* featureMatrixPtr = &featureMatrix;
-        LilMatrix<uint8>* predictionMatrixPtr = lilMatrixPtr.get();
+        BinaryLilMatrix* predictionMatrixPtr = lilMatrixPtr.get();
         const RuleModel* modelPtr = &model;
         uint32 numNonZeroElements = 0;
 
@@ -111,17 +111,17 @@ namespace boosting {
                                                  threshold_);
         }
 
-        return std::make_unique<SparsePredictionMatrix<uint8>>(std::move(lilMatrixPtr), numLabels, numNonZeroElements);
+        return std::make_unique<BinarySparsePredictionMatrix>(std::move(lilMatrixPtr), numLabels, numNonZeroElements);
     }
 
-    std::unique_ptr<SparsePredictionMatrix<uint8>> LabelWiseClassificationPredictor::predict(
+    std::unique_ptr<BinarySparsePredictionMatrix> LabelWiseClassificationPredictor::predict(
             const CsrFeatureMatrix& featureMatrix, uint32 numLabels, const RuleModel& model,
             const LabelVectorSet* labelVectors) const {
         uint32 numExamples = featureMatrix.getNumRows();
         uint32 numFeatures = featureMatrix.getNumCols();
-        std::unique_ptr<LilMatrix<uint8>> lilMatrixPtr = std::make_unique<LilMatrix<uint8>>(numExamples);
+        std::unique_ptr<BinaryLilMatrix> lilMatrixPtr = std::make_unique<BinaryLilMatrix>(numExamples);
         const CsrFeatureMatrix* featureMatrixPtr = &featureMatrix;
-        LilMatrix<uint8>* predictionMatrixPtr = lilMatrixPtr.get();
+        BinaryLilMatrix* predictionMatrixPtr = lilMatrixPtr.get();
         const RuleModel* modelPtr = &model;
         uint32 numNonZeroElements = 0;
 
@@ -137,7 +137,7 @@ namespace boosting {
                                                  threshold_);
         }
 
-        return std::make_unique<SparsePredictionMatrix<uint8>>(std::move(lilMatrixPtr), numLabels, numNonZeroElements);
+        return std::make_unique<BinarySparsePredictionMatrix>(std::move(lilMatrixPtr), numLabels, numNonZeroElements);
     }
 
 }

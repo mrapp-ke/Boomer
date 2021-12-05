@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include "common/output/prediction_matrix_sparse.hpp"
+#include "common/output/prediction_matrix_sparse_binary.hpp"
 #include "common/output/predictor.hpp"
 
 
@@ -31,12 +31,12 @@ class ISparsePredictor : public IPredictor<T> {
          *                          predictions
          * @param labelVectors      A pointer to an object of type `LabelVectorSet` that stores all known label vectors
          *                          or a null pointer, if no such set is available
-         * @return                  An unique pointer to an object of type `SparsePredictionMatrix` that stores the
-         *                          predictions
+         * @return                  An unique pointer to an object of type `BinarySparsePredictionMatrix` that stores
+         *                          the predictions
          */
-        virtual std::unique_ptr<SparsePredictionMatrix<T>> predict(const CContiguousFeatureMatrix& featureMatrix,
-                                                                   uint32 numLabels, const RuleModel& model,
-                                                                   const LabelVectorSet* labelVectors) const = 0;
+        virtual std::unique_ptr<BinarySparsePredictionMatrix> predict(const CContiguousFeatureMatrix& featureMatrix,
+                                                                      uint32 numLabels, const RuleModel& model,
+                                                                      const LabelVectorSet* labelVectors) const = 0;
 
         /**
          * Obtains and returns sparse predictions for all examples in a sparse CSR matrix, using a specific rule-based
@@ -49,11 +49,11 @@ class ISparsePredictor : public IPredictor<T> {
          *                          predictions
          * @param labelVectors      A pointer to an object of type `LabelVectorSet` that stores all known label vectors
          *                          or a null pointer, if no such set is available
-         * @return                  An unique pointer to an object of type `SparsePredictionMatrix` that stores the
+         * @return                  An unique pointer to an object of type `BinarySparsePredictionMatrix` that stores
          *                          predictions
          */
-        virtual std::unique_ptr<SparsePredictionMatrix<T>> predict(const CsrFeatureMatrix& featureMatrix,
-                                                                   uint32 numLabels, const RuleModel& model,
-                                                                   const LabelVectorSet* labelVectors) const = 0;
+        virtual std::unique_ptr<BinarySparsePredictionMatrix> predict(const CsrFeatureMatrix& featureMatrix,
+                                                                      uint32 numLabels, const RuleModel& model,
+                                                                      const LabelVectorSet* labelVectors) const = 0;
 
 };

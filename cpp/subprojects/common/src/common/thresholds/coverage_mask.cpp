@@ -6,13 +6,13 @@
 
 
 CoverageMask::CoverageMask(uint32 numElements)
-    : array_(new uint32[numElements]{0}), numElements_(numElements), target_(0) {
+    : array_(new uint32[numElements]{0}), numElements_(numElements), indicatorValue_(0) {
 
 }
 
 CoverageMask::CoverageMask(const CoverageMask& coverageMask)
     : array_(new uint32[coverageMask.numElements_]), numElements_(coverageMask.numElements_),
-      target_(coverageMask.target_) {
+      indicatorValue_(coverageMask.indicatorValue_) {
     copyArray(coverageMask.array_, array_, numElements_);
 }
 
@@ -40,21 +40,21 @@ uint32 CoverageMask::getNumElements() const {
     return numElements_;
 }
 
-uint32 CoverageMask::getTarget() const {
-    return target_;
+uint32 CoverageMask::getIndicatorValue() const {
+    return indicatorValue_;
 }
 
-void CoverageMask::setTarget(uint32 target) {
-    target_ = target;
+void CoverageMask::setIndicatorValue(uint32 indicatorValue) {
+    indicatorValue_ = indicatorValue;
 }
 
 void CoverageMask::reset() {
-    target_ = 0;
+    indicatorValue_ = 0;
     setArrayToZeros(array_, numElements_);
 }
 
 bool CoverageMask::isCovered(uint32 pos) const {
-    return array_[pos] == target_;
+    return array_[pos] == indicatorValue_;
 }
 
 std::unique_ptr<ICoverageState> CoverageMask::copy() const {

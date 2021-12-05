@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Documentation Status](https://readthedocs.org/projects/mlrl-boomer/badge/?version=latest)](https://mlrl-boomer.readthedocs.io/en/latest/?badge=latest)
 
-This project provides a scikit-learn implementation of **BOOMER - an algorithm for learning gradient boosted multi-label classification rules**.
+This software package provides an implementation of **BOOMER - an algorithm for learning gradient boosted multi-label classification rules** that integrates with the popular [scikit-learn](https://scikit-learn.org) machine learning framework.
 
 The goal of [multi-label classification](https://en.wikipedia.org/wiki/Multi-label_classification) is the automatic assignment of sets of labels to individual data points, for example, the annotation of text documents with topics. The BOOMER algorithm uses [gradient boosting](https://en.wikipedia.org/wiki/Gradient_boosting) to learn an ensemble of rules that is built with respect to a given multivariate loss function. To provide a versatile tool for different use cases, great emphasis is put on the *efficiency* of the implementation. To ensure its *flexibility*, it is designed in a modular fashion and can therefore easily be adjusted to different requirements.  
 
@@ -21,9 +21,9 @@ If you use the algorithm in a scientific publication, we would appreciate citati
 
 The algorithm that is provided by this project currently supports the following core functionalities to learn an ensemble of boosted classification rules:
 
-* Different label-wise or example-wise loss functions can be minimized during training (optionally using L2 regularization).
+* Different label-wise or example-wise loss functions can be minimized during training (optionally using L1 or L2 regularization).
 * The rules may predict for a single label or for all labels (which enables to model local label dependencies).
-* When learning a new rule, random samples of the training examples, features or labels may be used (including different techniques such as sampling with or without replacement).
+* When learning a new rule, random samples of the training examples, features or labels may be used (including different techniques such as sampling with or without replacement or stratification methods).
 * The impact of individual rules on the ensemble can be controlled using shrinkage.
 * Hyper-parameters that provide fine-grained control over the specificity/generality of rules are available.
 * The conditions of rules can be pruned based on a hold-out set.
@@ -44,12 +44,14 @@ In addition, the following features that may speed up training or reduce the mem
 
 An extensive user guide, as well as an API documentation for developers, is available at [https://mlrl-boomer.readthedocs.io](https://mlrl-boomer.readthedocs.io). If you are new to the project, you probably want to read about the following topics:
 
-* Instructions on [building the project](https://mlrl-boomer.readthedocs.io/en/latest/quickstart/index.html#building-the-project).
-* [Examples](https://mlrl-boomer.readthedocs.io/en/latest/quickstart/index.html#running-the-algorithm) of how the algorithm can be run.
+* Instructions for [installing the software package](https://mlrl-boomer.readthedocs.io/en/latest/quickstart/index.html#installation) or [building the project from source](https://mlrl-boomer.readthedocs.io/en/latest/api/index.html#building-from-source).
+* Examples of how to [use the algorithm](https://mlrl-boomer.readthedocs.io/en/latest/quickstart/index.html#using-the-algorithm) in your own Python code or how to use the [command line API](https://mlrl-boomer.readthedocs.io/en/latest/testbed/index.html).
 * An overview of available [parameters](https://mlrl-boomer.readthedocs.io/en/latest/quickstart/index.html#parameters).
 
-For an overview of changes and new features that have been included in past releases, please refer to the [changelog](CHANGELOG.md).
+A collection of benchmark datasets that are compatible with the algorithm are provided in a separate [repository](https://github.com/mrapp-ke/Boomer-Datasets).
+
+For an overview of changes and new features that have been included in past releases, please refer to the [changelog](https://github.com/mrapp-ke/Boomer/blob/master/CHANGELOG.md).
 
 ## License
 
-This project is open source software licensed under the terms of the [MIT license](LICENSE.txt). We welcome contributions to the project to enhance its functionality and make it more accessible to a broader audience. A frequently updated list of contributors is available [here](CONTRIBUTORS.md). 
+This project is open source software licensed under the terms of the [MIT license](https://github.com/mrapp-ke/Boomer/blob/master/LICENSE.txt). We welcome contributions to the project to enhance its functionality and make it more accessible to a broader audience. A frequently updated list of contributors is available [here](https://github.com/mrapp-ke/Boomer/blob/master/CONTRIBUTORS.md). 

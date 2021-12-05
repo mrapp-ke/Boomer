@@ -21,10 +21,19 @@ namespace boosting {
 
             RuleListBuilder();
 
+            /**
+             * @see `IModelBuilder::setDefaultRule`
+             */
             void setDefaultRule(const AbstractPrediction& prediction) override;
 
+            /**
+             * @see `IModelBuilder::addRule`
+             */
             void addRule(const ConditionList& conditions, const AbstractPrediction& prediction) override;
 
+            /**
+             * @see `IModelBuilder::build`
+             */
             std::unique_ptr<RuleModel> build(uint32 numUsedRules) override;
 
     };

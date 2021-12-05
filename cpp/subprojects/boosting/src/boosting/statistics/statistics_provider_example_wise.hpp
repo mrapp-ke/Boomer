@@ -52,14 +52,23 @@ namespace boosting {
 
             }
 
+            /**
+             * @see `IStatisticsProvider::get`
+             */
             IStatistics& get() const override {
                 return *statisticsPtr_;
             }
 
+            /**
+             * @see `IStatisticsProvider::switchToRegularRuleEvaluation`
+             */
             void switchToRegularRuleEvaluation() override {
                 statisticsPtr_->setRuleEvaluationFactory(regularRuleEvaluationFactory_);
             }
 
+            /**
+             * @see `IStatisticsProvider::switchToPruningRuleEvaluation`
+             */
             void switchToPruningRuleEvaluation() override {
                 statisticsPtr_->setRuleEvaluationFactory(pruningRuleEvaluationFactory_);
             }
@@ -116,6 +125,9 @@ namespace boosting {
 
             }
 
+            /**
+             * @see `IStatisticsProvider::get`
+             */
             IStatistics& get() const override {
                 IExampleWiseStatistics<ExampleWiseRuleEvaluationFactory, LabelWiseRuleEvaluationFactory>* exampleWiseStatistics =
                     exampleWiseStatisticsPtr_.get();
@@ -127,6 +139,9 @@ namespace boosting {
                 }
             }
 
+            /**
+             * @see `IStatisticsProvider::switchToRegularRuleEvaluation`
+             */
             void switchToRegularRuleEvaluation() override {
                 IExampleWiseStatistics<ExampleWiseRuleEvaluationFactory, LabelWiseRuleEvaluationFactory>* exampleWiseStatistics =
                     exampleWiseStatisticsPtr_.get();
@@ -140,6 +155,9 @@ namespace boosting {
                 }
             }
 
+            /**
+             * @see `IStatisticsProvider::switchToPruningRuleEvaluation`
+             */
             void switchToPruningRuleEvaluation() override {
                 IExampleWiseStatistics<ExampleWiseRuleEvaluationFactory, LabelWiseRuleEvaluationFactory>* exampleWiseStatistics =
                     exampleWiseStatisticsPtr_.get();

@@ -16,6 +16,8 @@ namespace boosting {
 
         private:
 
+            float64 l1RegularizationWeight_;
+
             float64 l2RegularizationWeight_;
 
             std::unique_ptr<ILabelBinningFactory> labelBinningFactoryPtr_;
@@ -23,12 +25,14 @@ namespace boosting {
         public:
 
             /**
+             * @param l1RegularizationWeight    The weight of the L1 regularization that is applied for calculating the
+             *                                  scores to be predicted by rules
              * @param l2RegularizationWeight    The weight of the L2 regularization that is applied for calculating the
              *                                  scores to be predicted by rules
              * @param labelBinningFactoryPtr    An unique pointer to an object of type `ILabelBinningFactory` that
              *                                  allows to create the implementation to be used to assign labels to bins
              */
-            LabelWiseCompleteBinnedRuleEvaluationFactory(float64 l2RegularizationWeight,
+            LabelWiseCompleteBinnedRuleEvaluationFactory(float64 l1RegularizationWeight, float64 l2RegularizationWeight,
                                                          std::unique_ptr<ILabelBinningFactory> labelBinningFactoryPtr);
 
             std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> create(

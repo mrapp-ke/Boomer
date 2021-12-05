@@ -1,2 +1,2 @@
-project('boomer', 'cpp', version : '0.6.2')
+project('mlrl', default_options : ['buildtype=release'])
 subproject('boosting')

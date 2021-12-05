@@ -126,6 +126,8 @@ class CContiguousLabelMatrix final : public ILabelMatrix {
 
         uint32 getNumCols() const override;
 
+        float64 calculateLabelCardinality() const override;
+
         std::unique_ptr<LabelVector> createLabelVector(uint32 row) const override;
 
         std::unique_ptr<IStatisticsProvider> createStatisticsProvider(

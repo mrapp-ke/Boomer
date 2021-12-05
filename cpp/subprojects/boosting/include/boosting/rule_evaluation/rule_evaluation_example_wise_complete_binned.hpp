@@ -18,6 +18,8 @@ namespace boosting {
 
         private:
 
+            float64 l1RegularizationWeight_;
+
             float64 l2RegularizationWeight_;
 
             std::unique_ptr<ILabelBinningFactory> labelBinningFactoryPtr_;
@@ -29,16 +31,19 @@ namespace boosting {
         public:
 
             /**
+             * @param l1RegularizationWeight    The weight of the L1 regularization that is applied for calculating the
+             *                                  scores to be predicted by rules
              * @param l2RegularizationWeight    The weight of the L2 regularization that is applied for calculating the
              *                                  scores to be predicted by rules
              * @param labelBinningFactoryPtr    An unique pointer to an object of type `ILabelBinningFactory` that
-                                                allows to create the implementation to be used to assign labels to bins
+             *                                  allows to create the implementation to be used to assign labels to bins
              * @param blasPtr                   An unique pointer to an object of type `Blas` that allows to execute
              *                                  different BLAS routines
              * @param lapackPtr                 An unique pointer to an object of type `Lapack` that allows to execute
              *                                  different LAPACK routines
              */
-            ExampleWiseCompleteBinnedRuleEvaluationFactory(float64 l2RegularizationWeight,
+            ExampleWiseCompleteBinnedRuleEvaluationFactory(float64 l1RegularizationWeight,
+                                                           float64 l2RegularizationWeight,
                                                            std::unique_ptr<ILabelBinningFactory> labelBinningFactoryPtr,
                                                            std::unique_ptr<Blas> blasPtr,
                                                            std::unique_ptr<Lapack> lapackPtr);

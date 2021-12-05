@@ -160,9 +160,15 @@ namespace boosting {
                                             PartialIndexVector::const_iterator labelIndicesEnd,
                                             DenseLabelWiseStatisticView& statisticView) const override final;
 
+            /**
+             * @see `IEvaluationMeasure::evaluate`
+             */
             float64 evaluate(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
                              const CContiguousConstView<float64>& scoreMatrix) const override final;
 
+            /**
+             * @see `IEvaluationMeasure::evaluate`
+             */
             float64 evaluate(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
                              const CContiguousConstView<float64>& scoreMatrix) const override final;
 

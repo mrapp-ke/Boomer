@@ -2,6 +2,7 @@
 #include "common/statistics/statistics_provider_factory.hpp"
 #include "common/sampling/partition_sampling.hpp"
 #include "common/sampling/instance_sampling.hpp"
+#include "common/math/math.hpp"
 
 
 CContiguousLabelMatrix::View::View(const CContiguousLabelMatrix& labelMatrix, uint32 row)
@@ -28,6 +29,27 @@ uint32 CContiguousLabelMatrix::getNumRows() const {
 
 uint32 CContiguousLabelMatrix::getNumCols() const {
     return view_.getNumCols();
+}
+
+float64 CContiguousLabelMatrix::calculateLabelCardinality() const {
+    uint32 numRows = this->getNumRows();
+    uint32 numCols = this->getNumCols();
+    float64 labelCardinality = 0;
+
+    for (uint32 i = 0; i < numRows; i++) {
+        value_const_iterator labelIterator = this->row_values_cbegin(i);
+        uint32 numRelevantLabels = 0;
+
+        for (uint32 j = 0; j < numCols; j++) {
+            if (labelIterator[j]) {
+                numRelevantLabels++;
+            }
+        }
+
+        labelCardinality = iterativeArithmeticMean(i + 1, (float64) numRelevantLabels, labelCardinality);
+    }
+
+    return labelCardinality;
 }
 
 CContiguousLabelMatrix::view_type CContiguousLabelMatrix::createView(uint32 row) const {

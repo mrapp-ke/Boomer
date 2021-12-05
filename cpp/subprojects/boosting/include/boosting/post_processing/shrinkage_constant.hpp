@@ -24,6 +24,9 @@ namespace boosting {
              */
             ConstantShrinkage(float64 shrinkage);
 
+            /**
+             * @see `IPostProcessor::postProcess`
+             */
             void postProcess(AbstractPrediction& prediction) const override;
 
     };

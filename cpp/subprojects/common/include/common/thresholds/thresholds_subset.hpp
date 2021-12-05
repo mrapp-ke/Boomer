@@ -157,7 +157,7 @@ class IThresholdsSubset {
          *
          * @param partition     A reference to an object of type `BiPartition` that provides access to the indices of
          *                      the training examples that belong to the training set
-         * @param coverageState A reference to an object of type `Coverageset` that keeps track of the examples that are
+         * @param coverageState A reference to an object of type `CoverageSet` that keeps track of the examples that are
          *                      covered by the rule
          * @param head          A reference to an object of type `AbstractPrediction` that stores the scores that are
          *                      predicted by the rule

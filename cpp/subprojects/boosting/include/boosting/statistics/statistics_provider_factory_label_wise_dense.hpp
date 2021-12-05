@@ -62,8 +62,14 @@ namespace boosting {
                 std::unique_ptr<ILabelWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr,
                 std::unique_ptr<ILabelWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr, uint32 numThreads);
 
+            /**
+             * @see `IStatisticsProviderFactory::create`
+             */
             std::unique_ptr<IStatisticsProvider> create(const CContiguousLabelMatrix& labelMatrix) const override;
 
+            /**
+             * @see `IStatisticsProviderFactory::create`
+             */
             std::unique_ptr<IStatisticsProvider> create(const CsrLabelMatrix& labelMatrix) const override;
 
     };

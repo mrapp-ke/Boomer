@@ -1,4 +1,4 @@
-project('common', 'cpp', version : '0.6.2')
+project('common', 'cpp')
 
 # Source files
 source_files = [
@@ -9,7 +9,7 @@ source_files = [
     'src/common/binning/feature_binning_nominal.cpp',
     'src/common/binning/threshold_vector.cpp',
     'src/common/data/matrix_dense.cpp',
-    'src/common/data/matrix_lil.cpp',
+    'src/common/data/matrix_lil_binary.cpp',
     'src/common/data/ring_buffer.cpp',
     'src/common/data/vector_binned_dense.cpp',
     'src/common/data/vector_bit.cpp',
@@ -46,7 +46,7 @@ source_files = [
     'src/common/model/head_partial.cpp',
     'src/common/model/rule_model.cpp',
     'src/common/model/rule.cpp',
-    'src/common/output/prediction_matrix_sparse.cpp',
+    'src/common/output/prediction_matrix_sparse_binary.cpp',
     'src/common/post_processing/post_processor_no.cpp',
     'src/common/pruning/pruning_irep.cpp',
     'src/common/pruning/pruning_no.cpp',
@@ -101,6 +101,18 @@ dependencies = [
 # Directory containing public headers
 include_directories = include_directories('include')
 
-common_lib = library('mlrlcommon', source_files, include_directories : include_directories, dependencies : dependencies,
-                     version : '0.6.2')
+# Directory into which the library should be installed
+install_root = meson.current_source_dir() / '../../../python/subprojects'
+install_dir = install_root / meson.project_name() / 'mlrl' / meson.project_name() / 'cython/'
+
+# Library version
+fs = import('fs')
+version = fs.read('../../../VERSION')
+
+# Library declaration
+lib_name = 'mlrl' + meson.project_name()
+library(lib_name, source_files, include_directories : include_directories, dependencies : dependencies,
+        version : version, install : true, install_dir : install_dir)
+common_lib = static_library(lib_name, source_files, include_directories : include_directories,
+                            dependencies : dependencies)
 common_dep = declare_dependency(include_directories : include_directories, link_with : common_lib)

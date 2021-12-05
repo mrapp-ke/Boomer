@@ -97,6 +97,9 @@ namespace boosting {
                         delete totalCoverableSumVector_;
                     }
 
+                    /**
+                     * @see `IStatisticsSubset::addToMissing`
+                     */
                     void addToMissing(uint32 statisticIndex, float64 weight) override {
                         // Create a vector for storing the totals sums of gradients and Hessians, if necessary...
                         if (totalCoverableSumVector_ == nullptr) {
@@ -110,12 +113,18 @@ namespace boosting {
                                                       statistics_.statisticViewPtr_->row_cend(statisticIndex), -weight);
                     }
 
+                    /**
+                     * @see `IStatisticsSubset::addToSubset`
+                     */
                     void addToSubset(uint32 statisticIndex, float64 weight) override {
                         sumVector_.addToSubset(statistics_.statisticViewPtr_->row_cbegin(statisticIndex),
                                                statistics_.statisticViewPtr_->row_cend(statisticIndex), labelIndices_,
                                                weight);
                     }
 
+                    /**
+                     * @see `IStatisticsSubset::resetSubset`
+                     */
                     void resetSubset() override {
                         // Create a vector for storing the accumulated sums of gradients and Hessians, if necessary...
                         if (accumulatedSumVector_ == nullptr) {
@@ -129,6 +138,9 @@ namespace boosting {
                         sumVector_.clear();
                     }
 
+                    /**
+                     * @see `IStatisticsSubset::calculatePrediction`
+                     */
                     const IScoreVector& calculatePrediction(bool uncovered, bool accumulated) override {
                         StatisticVector& sumsOfStatistics = accumulated ? *accumulatedSumVector_ : sumVector_;
 
@@ -188,10 +200,16 @@ namespace boosting {
 
             }
 
+            /**
+             * @see `IImmutableStatistics::getNumStatistics`
+             */
             uint32 getNumStatistics() const override final {
                 return numStatistics_;
             }
 
+            /**
+             * @see `IImmutableStatistics::getNumLabels`
+             */
             uint32 getNumLabels() const override final {
                 return numLabels_;
             }
@@ -245,15 +263,24 @@ namespace boosting {
 
             }
 
+            /**
+             * @see `IHistogram::clear`
+             */
             void clear() override {
                 this->statisticViewPtr_->clear();
             }
 
+            /**
+             * @see `IHistogram::addToBin`
+             */
             void addToBin(uint32 binIndex, uint32 statisticIndex, uint32 weight) override {
                 this->statisticViewPtr_->addToRow(binIndex, originalStatisticView_.row_cbegin(statisticIndex),
                                                   originalStatisticView_.row_cend(statisticIndex), weight);
             }
 
+            /**
+             * @see `IImmutableStatistics::createSubset`
+             */
             std::unique_ptr<IStatisticsSubset> createSubset(const CompleteIndexVector& labelIndices) const override {
                 std::unique_ptr<IRuleEvaluation<StatisticVector>> ruleEvaluationPtr =
                     this->ruleEvaluationFactoryPtr_->create(*totalSumVector_, labelIndices);
@@ -262,6 +289,9 @@ namespace boosting {
                                                                                      labelIndices);
             }
 
+            /**
+             * @see `IImmutableStatistics::createSubset`
+             */
             std::unique_ptr<IStatisticsSubset> createSubset(const PartialIndexVector& labelIndices) const override {
                 std::unique_ptr<IRuleEvaluation<StatisticVector>> ruleEvaluationPtr =
                     this->ruleEvaluationFactoryPtr_->create(*totalSumVector_, labelIndices);
