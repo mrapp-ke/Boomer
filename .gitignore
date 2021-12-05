@@ -1,0 +1,27 @@
+# Build files
+cpp/build/
+python/**/build/
+python/**/__pycache__/
+python/**/dist/
+python/**/*egg-info/
+python/**/cython/*.so*
+
+# Documentation files
+doc/_build/
+doc/apidoc/
+doc/python/**/*.rst
+
+# Virtual Environment
+venv/
+
+# IntelliJ
+.idea/
+
+# Virtual Studio Code
+.vscode/
+
+# Experiments
+data/
+results/
+models/
+parameters/

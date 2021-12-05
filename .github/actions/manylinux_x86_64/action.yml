@@ -1,0 +1,12 @@
+name: 'Manylinux_x86_64'
+inputs:
+  python-versions:
+    description: 'A space-separated list of Python versions to build against'
+    type: string
+    required: true
+    default: 'cp39-cp39'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.python-versions }}
