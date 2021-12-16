@@ -28,11 +28,9 @@ clean_cython:
 
 clean_compile: clean_cpp clean_cython
 
-clean_cpp_install:
-	rm -f python/subprojects/**/mlrl/**/cython/lib*.so*
-
-clean_cython_install:
-	rm -f python/subprojects/**/mlrl/**/cython/*.so
+clean_install:
+	rm -f python/subprojects/**/mlrl/**/cython/*.so*
+	rm -f python/subprojects/**/mlrl/**/cython/*.dylib
 
 clean_wheel:
 	@echo "Removing Python build files..."
@@ -40,19 +38,17 @@ clean_wheel:
 	rm -rf python/subprojects/**/dist/
 	rm -rf python/subprojects/**/*.egg-info/
 
-clean_install: clean_cpp_install clean_cython_install clean_wheel
-
 clean_doc:
 	@echo "Removing documentation..."
 	rm -rf doc/_build/
 	rm -rf doc/apidoc/
 	rm -f doc/python/**/*.rst
 
-clean: clean_doc clean_compile clean_install clean_venv
+clean: clean_doc clean_wheel clean_compile clean_install clean_venv
 
 venv:
 	@echo "Creating virtual Python environment..."
-	python -m venv venv
+	python3 -m venv venv
 	${VENV_ACTIVATE} && (\
 	   ${PIP_INSTALL} --upgrade pip; \
 	   ${PIP_INSTALL} --upgrade setuptools; \

@@ -21,7 +21,7 @@ namespace boosting {
 
         #pragma omp parallel for firstprivate(numExamples) firstprivate(rulePtr) firstprivate(featureMatrixPtr) \
         firstprivate(predictionMatrixPtr) schedule(dynamic) num_threads(numThreads_)
-        for (uint32 i = 0; i < numExamples; i++) {
+        for (int64 i = 0; i < numExamples; i++) {
             applyRule(*rulePtr, featureMatrixPtr->row_cbegin(i), featureMatrixPtr->row_cend(i),
                       predictionMatrixPtr->row_begin(i));
         }
@@ -38,12 +38,14 @@ namespace boosting {
 
         #pragma omp parallel for firstprivate(numExamples) firstprivate(rulePtr) firstprivate(featureMatrixPtr) \
         firstprivate(predictionMatrixPtr) schedule(dynamic) num_threads(numThreads_)
-        for (uint32 i = 0; i < numExamples; i++) {
-            float32 tmpArray1[numFeatures];
-            uint32 tmpArray2[numFeatures] = {};
+        for (int64 i = 0; i < numExamples; i++) {
+            float32* tmpArray1 = new float32[numFeatures];
+            uint32* tmpArray2 = new uint32[numFeatures] {};
             applyRuleCsr(*rulePtr, featureMatrixPtr->row_indices_cbegin(i), featureMatrixPtr->row_indices_cend(i),
                          featureMatrixPtr->row_values_cbegin(i), featureMatrixPtr->row_values_cend(i),
                          predictionMatrixPtr->row_begin(i), &tmpArray1[0], &tmpArray2[0], 1);
+            delete[] tmpArray1;
+            delete[] tmpArray2;
         }
     }
 
@@ -57,7 +59,7 @@ namespace boosting {
 
         #pragma omp parallel for firstprivate(numExamples) firstprivate(modelPtr) firstprivate(featureMatrixPtr) \
         firstprivate(predictionMatrixPtr) schedule(dynamic) num_threads(numThreads_)
-        for (uint32 i = 0; i < numExamples; i++) {
+        for (int64 i = 0; i < numExamples; i++) {
             for (auto it = modelPtr->used_cbegin(); it != modelPtr->used_cend(); it++) {
                 const Rule& rule = *it;
                 applyRule(rule, featureMatrixPtr->row_cbegin(i), featureMatrixPtr->row_cend(i),
@@ -77,9 +79,9 @@ namespace boosting {
 
         #pragma omp parallel for firstprivate(numExamples) firstprivate(modelPtr) firstprivate(featureMatrixPtr) \
         firstprivate(predictionMatrixPtr) schedule(dynamic) num_threads(numThreads_)
-        for (uint32 i = 0; i < numExamples; i++) {
-            float32 tmpArray1[numFeatures];
-            uint32 tmpArray2[numFeatures] = {};
+        for (int64 i = 0; i < numExamples; i++) {
+            float32* tmpArray1 = new float32[numFeatures];
+            uint32* tmpArray2 = new uint32[numFeatures] {};
             uint32 n = 1;
 
             for (auto it = modelPtr->used_cbegin(); it != modelPtr->used_cend(); it++) {
@@ -89,6 +91,9 @@ namespace boosting {
                              predictionMatrixPtr->row_begin(i), &tmpArray1[0], &tmpArray2[0], n);
                 n++;
             }
+
+            delete[] tmpArray1;
+            delete[] tmpArray2;
         }
     }
 

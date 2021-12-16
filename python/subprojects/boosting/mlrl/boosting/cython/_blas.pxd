@@ -1,5 +1,5 @@
 """
-@author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+@author Michael Rapp (michael.rapp.ml@gmail.com)
 """
 from scipy.linalg.cython_blas cimport ddot, dspmv
 

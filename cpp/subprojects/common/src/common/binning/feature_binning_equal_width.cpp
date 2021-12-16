@@ -64,7 +64,7 @@ EqualWidthFeatureBinning::EqualWidthFeatureBinning(float32 binRatio, uint32 minB
     if (maxBins != 0) { assertGreaterOrEqual<uint32>("maxBins", maxBins, minBins); }
 }
 
-static inline constexpr uint32 getBinIndex(float32 value, float32 min, float32 width, uint32 numBins) {
+static inline uint32 getBinIndex(float32 value, float32 min, float32 width, uint32 numBins) {
     uint32 binIndex = (uint32) std::floor((value - min) / width);
     return binIndex >= numBins ? numBins - 1 : binIndex;
 }
@@ -117,7 +117,7 @@ IFeatureBinning::Result EqualWidthFeatureBinning::createBins(FeatureVector& feat
         }
 
         // Remove empty bins and calculate thresholds...
-        uint32 mapping[numBins];
+        uint32* mapping = new uint32[numBins];
         uint32 n = 0;
 
         for (uint32 i = 0; i < numBins; i++) {
@@ -145,6 +145,8 @@ IFeatureBinning::Result EqualWidthFeatureBinning::createBins(FeatureVector& feat
                 binIndices.setBinIndex(i, mapping[binIndex]);
             }
         }
+
+        delete[] mapping;
     }
 
     return result;

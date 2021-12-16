@@ -41,8 +41,8 @@ void ApproximateRuleRefinement<T>::findRefinement(const AbstractEvaluatedPredict
 
     // In the following, we start by processing the bins in range [0, sparseBinIndex)...
     bool subsetModified = false;
-    intp firstR = 0;
-    intp r;
+    int64 firstR = 0;
+    int64 r;
 
     // Traverse bins in ascending order until the first bin with weight > 0 is encountered...
     for (r = 0; r < sparseBinIndex; r++) {
@@ -139,7 +139,7 @@ void ApproximateRuleRefinement<T>::findRefinement(const AbstractEvaluatedPredict
 
     // We continue by processing the bins in range (sparseBinIndex, numBins)...
     subsetModified = false;
-    firstR = ((intp) numBins) - 1;
+    firstR = ((int64) numBins) - 1;
 
     // Traverse bins in descending order until the first bin with weight > 0 is encountered...
     for (r = firstR; r > sparseBinIndex; r--) {

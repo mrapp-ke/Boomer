@@ -58,14 +58,16 @@ namespace boosting {
         const CContiguousFeatureMatrix* featureMatrixPtr = &featureMatrix;
         CContiguousView<uint8>* predictionMatrixPtr = &predictionMatrix;
         const RuleModel* modelPtr = &model;
+        const float64 threshold = threshold_;
 
-        #pragma omp parallel for firstprivate(numExamples) firstprivate(numLabels) firstprivate(threshold_) \
+        #pragma omp parallel for firstprivate(numExamples) firstprivate(numLabels) firstprivate(threshold) \
         firstprivate(modelPtr) firstprivate(featureMatrixPtr) firstprivate(predictionMatrixPtr) schedule(dynamic) \
         num_threads(numThreads_)
-        for (uint32 i = 0; i < numExamples; i++) {
-            float64 scoreVector[numLabels] = {};
+        for (int64 i = 0; i < numExamples; i++) {
+            float64* scoreVector = new float64[numLabels] {};
             applyRules(*modelPtr, featureMatrixPtr->row_cbegin(i), featureMatrixPtr->row_cend(i), &scoreVector[0]);
-            applyThreshold(&scoreVector[0], predictionMatrixPtr->row_begin(i), numLabels, threshold_);
+            applyThreshold(&scoreVector[0], predictionMatrixPtr->row_begin(i), numLabels, threshold);
+            delete[] scoreVector;
         }
     }
 
@@ -78,20 +80,22 @@ namespace boosting {
         const CsrFeatureMatrix* featureMatrixPtr = &featureMatrix;
         CContiguousView<uint8>* predictionMatrixPtr = &predictionMatrix;
         const RuleModel* modelPtr = &model;
+        const float64 threshold = threshold_;
 
         #pragma omp parallel for firstprivate(numExamples) firstprivate(numFeatures) firstprivate(numLabels) \
-        firstprivate(threshold_) firstprivate(modelPtr) firstprivate(featureMatrixPtr) \
+        firstprivate(threshold) firstprivate(modelPtr) firstprivate(featureMatrixPtr) \
         firstprivate(predictionMatrixPtr) schedule(dynamic) num_threads(numThreads_)
-        for (uint32 i = 0; i < numExamples; i++) {
-            float64 scoreVector[numLabels] = {};
+        for (int64 i = 0; i < numExamples; i++) {
+            float64* scoreVector = new float64[numLabels] {};
             applyRulesCsr(*modelPtr, numFeatures, featureMatrixPtr->row_indices_cbegin(i),
                           featureMatrixPtr->row_indices_cend(i), featureMatrixPtr->row_values_cbegin(i),
                           featureMatrixPtr->row_values_cend(i), &scoreVector[0]);
-            applyThreshold(&scoreVector[0], predictionMatrixPtr->row_begin(i), numLabels, threshold_);
+            applyThreshold(&scoreVector[0], predictionMatrixPtr->row_begin(i), numLabels, threshold);
+            delete[] scoreVector;
         }
     }
 
-    std::unique_ptr<BinarySparsePredictionMatrix> LabelWiseClassificationPredictor::predict(
+    std::unique_ptr<BinarySparsePredictionMatrix> LabelWiseClassificationPredictor::predictSparse(
             const CContiguousFeatureMatrix& featureMatrix, uint32 numLabels, const RuleModel& model,
             const LabelVectorSet* labelVectors) const {
         uint32 numExamples = featureMatrix.getNumRows();
@@ -99,22 +103,24 @@ namespace boosting {
         const CContiguousFeatureMatrix* featureMatrixPtr = &featureMatrix;
         BinaryLilMatrix* predictionMatrixPtr = lilMatrixPtr.get();
         const RuleModel* modelPtr = &model;
+        const float64 threshold = threshold_;
         uint32 numNonZeroElements = 0;
 
         #pragma omp parallel for reduction(+:numNonZeroElements) firstprivate(numExamples) firstprivate(numLabels) \
-        firstprivate(threshold_) firstprivate(modelPtr) firstprivate(featureMatrixPtr) \
+        firstprivate(threshold) firstprivate(modelPtr) firstprivate(featureMatrixPtr) \
         firstprivate(predictionMatrixPtr) schedule(dynamic) num_threads(numThreads_)
-        for (uint32 i = 0; i < numExamples; i++) {
-            float64 scoreVector[numLabels] = {};
+        for (int64 i = 0; i < numExamples; i++) {
+            float64* scoreVector = new float64[numLabels] {};
             applyRules(*modelPtr, featureMatrixPtr->row_cbegin(i), featureMatrixPtr->row_cend(i), &scoreVector[0]);
             numNonZeroElements += applyThreshold(&scoreVector[0], predictionMatrixPtr->getRow(i), numLabels,
-                                                 threshold_);
+                                                 threshold);
+            delete[] scoreVector;
         }
 
         return std::make_unique<BinarySparsePredictionMatrix>(std::move(lilMatrixPtr), numLabels, numNonZeroElements);
     }
 
-    std::unique_ptr<BinarySparsePredictionMatrix> LabelWiseClassificationPredictor::predict(
+    std::unique_ptr<BinarySparsePredictionMatrix> LabelWiseClassificationPredictor::predictSparse(
             const CsrFeatureMatrix& featureMatrix, uint32 numLabels, const RuleModel& model,
             const LabelVectorSet* labelVectors) const {
         uint32 numExamples = featureMatrix.getNumRows();
@@ -123,18 +129,20 @@ namespace boosting {
         const CsrFeatureMatrix* featureMatrixPtr = &featureMatrix;
         BinaryLilMatrix* predictionMatrixPtr = lilMatrixPtr.get();
         const RuleModel* modelPtr = &model;
+        const float64 threshold = threshold_;
         uint32 numNonZeroElements = 0;
 
         #pragma omp parallel for reduction(+:numNonZeroElements) firstprivate(numExamples) firstprivate(numFeatures) \
-        firstprivate(numLabels) firstprivate(threshold_) firstprivate(modelPtr) firstprivate(featureMatrixPtr) \
+        firstprivate(numLabels) firstprivate(threshold) firstprivate(modelPtr) firstprivate(featureMatrixPtr) \
         firstprivate(predictionMatrixPtr) schedule(dynamic) num_threads(numThreads_)
-        for (uint32 i = 0; i < numExamples; i++) {
-            float64 scoreVector[numLabels] = {};
+        for (int64 i = 0; i < numExamples; i++) {
+            float64* scoreVector = new float64[numLabels] {};
             applyRulesCsr(*modelPtr, numFeatures, featureMatrixPtr->row_indices_cbegin(i),
                           featureMatrixPtr->row_indices_cend(i), featureMatrixPtr->row_values_cbegin(i),
                           featureMatrixPtr->row_values_cend(i), &scoreVector[0]);
             numNonZeroElements += applyThreshold(&scoreVector[0], predictionMatrixPtr->getRow(i), numLabels,
-                                                 threshold_);
+                                                 threshold);
+            delete[] scoreVector;
         }
 
         return std::make_unique<BinarySparsePredictionMatrix>(std::move(lilMatrixPtr), numLabels, numNonZeroElements);

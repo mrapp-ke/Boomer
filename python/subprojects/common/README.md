@@ -1,6 +1,7 @@
 # "MLRL-Common": Building-Blocks for Multi-label Rule Learning Algorithms 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI version](https://badge.fury.io/py/mlrl-common.svg)](https://badge.fury.io/py/mlrl-common)
 [![Documentation Status](https://readthedocs.org/projects/mlrl-boomer/badge/?version=latest)](https://mlrl-boomer.readthedocs.io/en/latest/?badge=latest)
 
 This software package provides common modules to be used by different types of **multi-label rule learning (MLRL)** algorithms that integrate with the popular [scikit-learn](https://scikit-learn.org) machine learning framework.

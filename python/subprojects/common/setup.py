@@ -1,13 +1,50 @@
 #!/usr/bin/python
 
 """
-Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Michael Rapp (michael.rapp.ml@gmail.com)
 """
+import os
+import shutil
 from pathlib import Path
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Extension
+from setuptools.command.build_ext import build_ext
 
 VERSION = (Path(__file__).resolve().parent.parent.parent.parent / 'VERSION').read_text()
+
+
+class PrecompiledExtension(Extension):
+
+    def __init__(self, name, path):
+        super().__init__(name, [])
+        self.name = name
+        self.path = path
+
+
+class PrecompiledExtensionBuilder(build_ext):
+
+    def build_extension(self, ext):
+        if isinstance(ext, PrecompiledExtension):
+            build_dir = Path(self.get_ext_fullpath(ext.name)).parent
+            target_file = Path(os.path.join(build_dir, ext.path))
+            os.makedirs(target_file.parent, exist_ok=True)
+            shutil.copy(ext.path, target_file)
+        else:
+            super().build_extension(ext)
+
+
+def find_extensions(directory):
+    extensions = []
+
+    for path, _, file_names in os.walk(directory):
+        for file_name in file_names:
+            if '.so' in file_name or '.pyd' in file_name or '.dylib' in file_name:
+                extension_path = Path(os.path.join(path, file_name))
+                extension_name = file_name[:file_name.find('.')]
+                extensions.append(PrecompiledExtension(extension_name, extension_path))
+
+    return extensions
+
 
 setup(
     name='mlrl-common',
@@ -51,8 +88,7 @@ setup(
         'scikit-learn>=1.0.0'
     ],
     packages=find_packages(),
-    package_data={
-        "": ['*.so*']
-    },
+    ext_modules=find_extensions('mlrl'),
+    cmdclass={'build_ext': PrecompiledExtensionBuilder},
     zip_safe=True
 )

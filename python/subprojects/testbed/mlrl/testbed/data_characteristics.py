@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Michael Rapp (michael.rapp.ml@gmail.com)
 
 Provides functions to determine certain characteristics of multi-label data sets.
 """

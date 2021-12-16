@@ -1,5 +1,5 @@
 /*
- * @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+ * @author Michael Rapp (michael.rapp.ml@gmail.com)
  */
 #pragma once
 
@@ -248,7 +248,7 @@ class LabelWiseStratification final {
             // well as a sorted map that stores all label indices in increasing order of the number of associated
             // examples...
             uint32 numLabels = cscLabelMatrix.getNumCols();
-            uint32 numExamplesPerLabel[numLabels];
+            uint32* numExamplesPerLabel = new uint32[numLabels];
             typedef std::set<IndexedValue<uint32>, IndexedValue<uint32>::Compare> SortedSet;
             SortedSet sortedLabelIndices;
 
@@ -270,7 +270,7 @@ class LabelWiseStratification final {
 
             // Create a boolean array that stores whether individual examples remain to be processed (1) or not (0)...
             uint32 numTotalExamples = labelMatrix.getNumRows();
-            uint8 mask[numTotalExamples] = {};
+            uint8* mask = new uint8[numTotalExamples] {};
 
             for (uint32 i = 0; i < numRows_; i++) {
                 uint32 exampleIndex = indicesBegin[i];
@@ -364,6 +364,9 @@ class LabelWiseStratification final {
 
             colIndices_[numCols - 1] = numNonZeroElements;
             numCols_ = numCols - 1;
+
+            delete[] numExamplesPerLabel;
+            delete[] mask;
         }
 
         /**

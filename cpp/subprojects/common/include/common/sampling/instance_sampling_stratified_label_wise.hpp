@@ -1,6 +1,6 @@
 /*
  * @author Anna Kulischkin (Anna_Kulischkin@web.de)
- * @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+ * @author Michael Rapp (michael.rapp.ml@gmail.com)
  */
 #pragma once
 

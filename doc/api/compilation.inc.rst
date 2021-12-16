@@ -3,14 +3,21 @@
 Building from Source
 --------------------
 
-As discussed in the previous section :ref:`structure`, the algorithm that is provided by this project is mostly implemented in `C++ <https://en.wikipedia.org/wiki/C%2B%2B>`__ to ensure maximum efficiency. In addition, a `Python <https://en.wikipedia.org/wiki/Python_(programming_language)>`__ wrapper that integrates the algorithm with the `scikit-learn <https://scikit-learn.org>`__ framework is provided. To make the underlying C++ implementation accessible from within the Python code, `Cython <https://en.wikipedia.org/wiki/Cython>`__ is used.
+As discussed in the previous section :ref:`structure`, the algorithm that is provided by this project is mostly implemented in `C++ <https://en.wikipedia.org/wiki/C%2B%2B>`__ to ensure maximum efficiency (requires C++ 14 or newer). In addition, a `Python <https://en.wikipedia.org/wiki/Python_(programming_language)>`__ wrapper that integrates the algorithm with the `scikit-learn <https://scikit-learn.org>`__ framework is provided (requires Python 3.7 or newer). To make the underlying C++ implementation accessible from within the Python code, `Cython <https://en.wikipedia.org/wiki/Cython>`__ is used (requires Cython 29 or newer).
 
-Unlike pure Python programs, the C++ and Cython source files must be compiled for a particular target platform. To ease the process of compiling the source code, the project comes with a Makefile that automates the necessary steps. In the following, we discuss the individual steps that are necessary for building the project from scratch.
+Unlike pure Python programs, the C++ and Cython source files must be compiled for a particular target platform. To ease the process of compiling the source code, the project comes with a `Makefile <https://en.wikipedia.org/wiki/Make_(software)>`__ that automates the necessary steps. In the following, we discuss the individual steps that are necessary for building the project from scratch. This is necessary if you intend to modify the library's source code. If you want to use the algorithm without any custom modifications, the :ref:`installation` of pre-built packages is usually a better choice.
 
-.. note::
-    The Makefile that is provided for the compilation of the software package is intended for use on Linux systems. Although compilation should be possible on Windows and MacOS systems, we currently do not officially support compilation on these platforms.
+.. warning::
+    The Makefile that is provided for the compilation of the software package is intended for use on Linux and MacOS systems. Although compilation should be possible on Windows, we currently do not officially support compilation on this platform.
 
-As a prerequisite, Python 3.7 (or a more recent version) must be available on the host system. All remaining compile- or build-time dependencies will automatically be installed when following the instructions below.
+**Prerequisites**
+
+As a prerequisite, a supported version of Python, a suitable C++ compiler, as well as an implementation of the Make build automation tool, must be installed on the host system. The installation of these software components depends on the operation system at hand. In the following, we provide installation instructions for the supported platforms.
+
+* **Linux:** Nowadays, most Linux distributions include a pre-installed version of Python 3. If this is not the case, instructions on how to install a recent Python version can be found in Python's `Beginners Guide <https://wiki.python.org/moin/BeginnersGuide/Download>`__. As noted in this guide, Python should be installed via the distribution's package manager if possible. The most common Linux distributions do also ship with `GNU Make <https://www.gnu.org/software/make/>`__ and the `GNU Compiler Collection <https://gcc.gnu.org/>`__ (GCC) by default. If this is not the case, these software packages can typically be installed via the distribution's default package manager.
+* **MacOS:** Recent versions of MacOS do not include Python by default. A suitable Python version can manually be downloaded from the `project's website <https://www.python.org/downloads/macos/>`__. Alternatively, the package manager `Homebrew <https://en.wikipedia.org/wiki/Homebrew_(package_manager)>`__ can be used for installation via the command ``brew install python``. MacOS relies on the `Clang <https://en.wikipedia.org/wiki/Clang>`__ compiler for building C++ code by default. It is part of the `Xcode <https://developer.apple.com/support/xcode/>`__ developer toolset. In addition, for proper multi-threading support, the `OpenMP <https://en.wikipedia.org/wiki/OpenMP>`__ library must be installed. We recommend to install it via Homebrew by running the command ``brew install libomp``.
+
+Additional compile- or build-time dependencies will automatically be installed when following the instructions below and must not be installed manually.
 
 **Step 1: Creating a virtual environment**
 
@@ -81,17 +88,23 @@ After this final step has completed, the Python packages can be used from within
 
 **Cleanup**
 
-To get rid of any compilation files, as well as of the generated wheel packages, the following command can be used:
+The Makefile allows to delete the files that result from the individual steps that have been described above. To delete the wheel packages that have been created via the command ``make wheel`` the following command can be used:
+
+.. code-block:: text
+
+   make clean_wheel
+
+The following command allows to remove the shared library files and Python extension modules that have been copied into the Python source tree via the commands ``make install_cpp`` and ``make install_cython``:
 
 .. code-block:: text
 
    make clean_install
 
-If you want to delete the virtual environment as well, you should use the following command instead:
+The commands ``make clean_cython`` and ``make clean_cpp`` remove the Cython or C++ compilation files that have been created via the command ``make compile_cython`` or ``make compile_cpp`` from the respective `build/` directories. If you want to delete both, the Cython and C++ compilation files, the following command can be used:
 
 .. code-block:: text
 
-   make clean
+   make clean_compile
 
 .. note::
-    For even more fine-grained control, the Makefile allows to delete the files that result from the individual steps that have been described above. This includes the command ``clean_wheel`` for deleting the wheel packages that are located in the individual `dist/` directories, the commands ``make clean_cython_install`` and ``make clean_cpp_install`` for removing the Cython or C++ compilation files from the Python source tree, as well as ``make clean_cython`` and ``make clean_cpp`` for removing the Cython or C++ compilation files from the respective `build/` directories.
+    If you want to delete all compilation files that have been created via the Makefile, including the virtual environment, you should use the command ``make clean``.

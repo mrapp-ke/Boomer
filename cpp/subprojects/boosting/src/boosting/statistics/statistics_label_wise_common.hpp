@@ -1,5 +1,5 @@
 /*
- * @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+ * @author Michael Rapp (michael.rapp.ml@gmail.com)
  */
 #pragma once
 
@@ -273,7 +273,7 @@ namespace boosting {
             /**
              * @see `IHistogram::addToBin`
              */
-            void addToBin(uint32 binIndex, uint32 statisticIndex, uint32 weight) override {
+            void addToBin(uint32 binIndex, uint32 statisticIndex, float64 weight) override {
                 this->statisticViewPtr_->addToRow(binIndex, originalStatisticView_.row_cbegin(statisticIndex),
                                                   originalStatisticView_.row_cend(statisticIndex), weight);
             }

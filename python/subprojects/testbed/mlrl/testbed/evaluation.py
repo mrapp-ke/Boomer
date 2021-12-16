@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Michael Rapp (michael.rapp.ml@gmail.com)
 
 Provides classes for evaluating the predictions or rankings provided by a multi-label learner according to different
 measures. The evaluation results can be written to one or several outputs, e.g. to the console or to a file.

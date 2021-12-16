@@ -10,8 +10,6 @@ class NoPartitionSampling final : public IPartitionSampling {
 
     private:
 
-        uint32 numExamples_;
-
         SinglePartition partition_;
 
     public:

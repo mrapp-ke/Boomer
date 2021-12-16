@@ -1,5 +1,5 @@
 /*
- * @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+ * @author Michael Rapp (michael.rapp.ml@gmail.com)
  */
 #pragma once
 
@@ -32,6 +32,6 @@ class Refinement final : public Condition {
          * The index of the last element, e.g., example or bin, that has been processed when evaluating the refined
          * rule.
          */
-        intp previous;
+        int64 previous;
 
 };

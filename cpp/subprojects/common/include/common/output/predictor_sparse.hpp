@@ -1,5 +1,5 @@
 /*
- * @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+ * @author Michael Rapp (michael.rapp.ml@gmail.com)
  */
 #pragma once
 
@@ -34,9 +34,9 @@ class ISparsePredictor : public IPredictor<T> {
          * @return                  An unique pointer to an object of type `BinarySparsePredictionMatrix` that stores
          *                          the predictions
          */
-        virtual std::unique_ptr<BinarySparsePredictionMatrix> predict(const CContiguousFeatureMatrix& featureMatrix,
-                                                                      uint32 numLabels, const RuleModel& model,
-                                                                      const LabelVectorSet* labelVectors) const = 0;
+        virtual std::unique_ptr<BinarySparsePredictionMatrix> predictSparse(
+            const CContiguousFeatureMatrix& featureMatrix, uint32 numLabels, const RuleModel& model,
+            const LabelVectorSet* labelVectors) const = 0;
 
         /**
          * Obtains and returns sparse predictions for all examples in a sparse CSR matrix, using a specific rule-based
@@ -52,8 +52,8 @@ class ISparsePredictor : public IPredictor<T> {
          * @return                  An unique pointer to an object of type `BinarySparsePredictionMatrix` that stores
          *                          predictions
          */
-        virtual std::unique_ptr<BinarySparsePredictionMatrix> predict(const CsrFeatureMatrix& featureMatrix,
-                                                                      uint32 numLabels, const RuleModel& model,
-                                                                      const LabelVectorSet* labelVectors) const = 0;
+        virtual std::unique_ptr<BinarySparsePredictionMatrix> predictSparse(
+            const CsrFeatureMatrix& featureMatrix, uint32 numLabels, const RuleModel& model,
+            const LabelVectorSet* labelVectors) const = 0;
 
 };

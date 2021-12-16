@@ -1,5 +1,5 @@
 """
-@author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+@author Michael Rapp (michael.rapp.ml@gmail.com)
 """
 from mlrl.common.cython.feature_sampling cimport FeatureSamplingFactory
 from mlrl.common.cython.instance_sampling cimport InstanceSamplingFactory

@@ -1,5 +1,5 @@
 #include "common/rule_refinement/prediction.hpp"
-#include <algorithm>
+#include "common/data/arrays.hpp"
 
 
 AbstractPrediction::AbstractPrediction(uint32 numElements)
@@ -33,10 +33,10 @@ AbstractPrediction::score_const_iterator AbstractPrediction::scores_cend() const
 
 void AbstractPrediction::set(AbstractPrediction::score_const_iterator begin,
                              AbstractPrediction::score_const_iterator end) {
-    std::copy(begin, end, predictedScoreVector_.begin());
+    copyArray(begin, predictedScoreVector_.begin(), predictedScoreVector_.getNumElements());
 }
 
 void AbstractPrediction::set(DenseBinnedVector<float64>::const_iterator begin,
                              DenseBinnedVector<float64>::const_iterator end) {
-    std::copy(begin, end, predictedScoreVector_.begin());
+    copyArray(begin, predictedScoreVector_.begin(), predictedScoreVector_.getNumElements());
 }

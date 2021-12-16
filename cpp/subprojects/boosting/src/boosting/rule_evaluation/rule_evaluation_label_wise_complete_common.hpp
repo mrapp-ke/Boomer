@@ -1,5 +1,5 @@
 /*
- * @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+ * @author Michael Rapp (michael.rapp.ml@gmail.com)
  */
 #pragma once
 
@@ -43,9 +43,9 @@ namespace boosting {
      * @param l2RegularizationWeight    The weight of the L2 regularization
      * @return                          The quality score that has been calculated
      */
-    static inline constexpr float64 calculateLabelWiseQualityScore(float64 score, float64 gradient, float64 hessian,
-                                                                   float64 l1RegularizationWeight,
-                                                                   float64 l2RegularizationWeight) {
+    static inline float64 calculateLabelWiseQualityScore(float64 score, float64 gradient, float64 hessian,
+                                                         float64 l1RegularizationWeight,
+                                                         float64 l2RegularizationWeight) {
         float64 scorePow = score * score;
         float64 qualityScore =  (gradient * score) + (0.5 * hessian * scorePow);
         float64 l1RegularizationTerm = l1RegularizationWeight * std::abs(score);

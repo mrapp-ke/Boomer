@@ -1,8 +1,9 @@
 /*
- * @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+ * @author Michael Rapp (michael.rapp.ml@gmail.com)
  */
 #pragma once
 
+#include "common/data/types.hpp"
 #include <algorithm>
 
 
@@ -41,7 +42,25 @@ static inline void setArrayToValue(T* a, uint32 numElements, T value) {
  */
 template<typename T>
 static inline void copyArray(const T* from, T* to, uint32 numElements) {
-    std::copy(from, from + numElements, to);
+    for (uint32 i = 0; i < numElements; i++) {
+        to[i] = from[i];
+    }
+}
+
+/**
+ * Copy all elements from an iterator to an array.
+ *
+ * @tparam FromIterator The type of the iterator to copy from
+ * @tparam T            The type of the array to copy to
+ * @param from          The iterator to copy from
+ * @param to            The array to copy to
+ * @param numElements   The number of elements to be copied
+ */
+template<typename FromIterator, typename T>
+static inline void copyArray(FromIterator from, T* to, uint32 numElements) {
+    for (uint32 i = 0; i < numElements; i++) {
+        to[i] = from[i];
+    }
 }
 
 /**

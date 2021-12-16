@@ -1,5 +1,5 @@
 /*
- * @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+ * @author Michael Rapp (michael.rapp.ml@gmail.com)
  */
 #pragma once
 
@@ -58,7 +58,7 @@ template<typename Iterator>
 static inline void sampleWeightsWithoutReplacementViaPool(BitWeightVector& weightVector, Iterator iterator,
                                                           uint32 numTotal, uint32 numSamples, RNG& rng) {
     weightVector.clear();
-    uint32 pool[numTotal];
+    uint32* pool = new uint32[numTotal];
 
     // Initialize pool...
     for (uint32 i = 0; i < numTotal; i++) {
@@ -77,6 +77,7 @@ static inline void sampleWeightsWithoutReplacementViaPool(BitWeightVector& weigh
         pool[randomIndex] = pool[numTotal - i - 1];
     }
 
+    delete[] pool;
     weightVector.setNumNonZeroWeights(numSamples);
 }
 

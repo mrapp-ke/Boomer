@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Michael Rapp (michael.rapp.ml@gmail.com)
 
 Provides a data structure that allows to store and parse options that are provided as key-value pairs.
 """

@@ -1,5 +1,5 @@
 """
-@author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+@author Michael Rapp (michael.rapp.ml@gmail.com)
 """
 from mlrl.boosting.cython.label_binning cimport LabelBinningFactory
 

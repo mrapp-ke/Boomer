@@ -40,11 +40,11 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
 
     // In the following, we start by processing all examples with feature values < 0...
     uint32 numExamples = 0;
-    intp firstR = 0;
-    intp lastNegativeR = -1;
+    int64 firstR = 0;
+    int64 lastNegativeR = -1;
     float32 previousThreshold = 0;
-    intp previousR = 0;
-    intp r;
+    int64 previousR = 0;
+    int64 r;
 
     // Traverse examples with feature values < 0 in ascending order until the first example with weight > 0 is
     // encountered...
@@ -194,12 +194,12 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
     }
 
     float32 previousThresholdNegative = previousThreshold;
-    intp previousRNegative = previousR;
+    int64 previousRNegative = previousR;
     uint32 accumulatedNumExamplesNegative = accumulatedNumExamples;
 
     // We continue by processing all examples with feature values >= 0...
     numExamples = 0;
-    firstR = ((intp) numElements) - 1;
+    firstR = ((int64) numElements) - 1;
 
     // Traverse examples with feature values >= 0 in descending order until the first example with weight > 0 is
     // encountered...
@@ -343,7 +343,7 @@ void ExactRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* c
         // all examples that have been processed so far...
         if (nominal_) {
             statisticsSubsetPtr->resetSubset();
-            firstR = ((intp) numElements) - 1;
+            firstR = ((int64) numElements) - 1;
         }
 
         // Find and evaluate the best head for the current refinement, if the condition `f > previous_threshold / 2` (or

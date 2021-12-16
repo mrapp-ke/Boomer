@@ -60,6 +60,10 @@ install_dir = meson.current_source_dir() / package_dir / cython_dir
 # Extension modules
 rpath = '$ORIGIN'
 
+if host_machine.system() == 'darwin'
+    rpath = '@loader_path'
+endif
+
 foreach module_name : cython_module_names
     pyx_file = package_dir / cython_dir / module_name + '.pyx'
     python.extension_module(module_name, pyx_file, dependencies : dependencies, override_options : cython_options,

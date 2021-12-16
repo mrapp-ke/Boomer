@@ -1,5 +1,5 @@
 /*
- * @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+ * @author Michael Rapp (michael.rapp.ml@gmail.com)
  */
 #pragma once
 
@@ -28,6 +28,6 @@ class IHistogram : virtual public IImmutableStatistics {
          * @param statisticIndex    The index of the statistic
          * @param weight            The weight of the statistic
          */
-        virtual void addToBin(uint32 binIndex, uint32 statisticIndex, uint32 weight) = 0;
+        virtual void addToBin(uint32 binIndex, uint32 statisticIndex, float64 weight) = 0;
 
 };

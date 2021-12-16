@@ -34,11 +34,9 @@ source_files = [
 # Dependencies
 common_project = subproject('common')
 common_dep = common_project.get_variable('common_dep')
-openmp_dep = dependency('openmp')
 
 dependencies = [
-    common_dep,
-    openmp_dep
+    common_dep
 ]
 
 # Directory containing public headers
@@ -52,5 +50,8 @@ install_dir = install_root / meson.project_name() / 'mlrl' / meson.project_name(
 version = common_project.get_variable('version')
 
 # Library declaration
+cpp_args = common_project.get_variable('cpp_args')
+link_args = common_project.get_variable('link_args')
 boosting_lib = library('mlrl' + meson.project_name(), source_files, include_directories : include_directories,
-                       dependencies : dependencies, version : version, install : true, install_dir : install_dir)
+                       dependencies : dependencies, cpp_args : cpp_args, link_args : link_args, version : version,
+                       install : true, install_dir : install_dir)

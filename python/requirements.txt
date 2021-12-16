@@ -5,7 +5,5 @@ wheel
 build
 numpy
 scipy
-numpy
-scipy
 scikit-learn
 liac-arff

@@ -1,19 +1,20 @@
 #include "common/rule_refinement/score_processor.hpp"
 #include "common/rule_refinement/prediction_complete.hpp"
 #include "common/rule_refinement/prediction_partial.hpp"
-#include <algorithm>
+#include "common/data/arrays.hpp"
 
 
 template<typename T>
 const AbstractEvaluatedPrediction* processCompleteScores(std::unique_ptr<AbstractEvaluatedPrediction>& existingHeadPtr,
                                                          const T& scoreVector) {
+    uint32 numElements = scoreVector.getNumElements();
+
     if (existingHeadPtr.get() == nullptr) {
         // Create a new head, if necessary...
-        uint32 numElements = scoreVector.getNumElements();
         existingHeadPtr = std::make_unique<CompletePrediction>(numElements);
     }
 
-    std::copy(scoreVector.scores_cbegin(), scoreVector.scores_cend(), existingHeadPtr->scores_begin());
+    copyArray(scoreVector.scores_cbegin(), existingHeadPtr->scores_begin(), numElements);
     existingHeadPtr->overallQualityScore = scoreVector.overallQualityScore;
     return existingHeadPtr.get();
 }
@@ -22,23 +23,19 @@ template<typename T>
 const AbstractEvaluatedPrediction* processPartialScores(std::unique_ptr<AbstractEvaluatedPrediction>& existingHeadPtr,
                                                         const T& scoreVector) {
     PartialPrediction* existingHead = (PartialPrediction*) existingHeadPtr.get();
+    uint32 numElements = scoreVector.getNumElements();
 
     if (existingHead == nullptr) {
         // Create a new head, if necessary...
-        uint32 numElements = scoreVector.getNumElements();
         existingHeadPtr = std::make_unique<PartialPrediction>(numElements);
         existingHead = (PartialPrediction*) existingHeadPtr.get();
-    } else {
+    } else if (existingHead->getNumElements() != numElements) {
         // Adjust the size of the existing head, if necessary...
-        uint32 numElements = scoreVector.getNumElements();
-
-        if (existingHead->getNumElements() != numElements) {
-            existingHead->setNumElements(numElements, false);
-        }
+        existingHead->setNumElements(numElements, false);
     }
 
-    std::copy(scoreVector.scores_cbegin(), scoreVector.scores_cend(), existingHead->scores_begin());
-    std::copy(scoreVector.indices_cbegin(), scoreVector.indices_cend(), existingHead->indices_begin());
+    copyArray(scoreVector.scores_cbegin(), existingHead->scores_begin(), numElements);
+    copyArray(scoreVector.indices_cbegin(), existingHead->indices_begin(), numElements);
     existingHead->overallQualityScore = scoreVector.overallQualityScore;
     return existingHead;
 }

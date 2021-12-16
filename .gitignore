@@ -5,6 +5,7 @@ python/**/__pycache__/
 python/**/dist/
 python/**/*egg-info/
 python/**/cython/*.so*
+python/**/cython/*.dylib
 
 # Documentation files
 doc/_build/

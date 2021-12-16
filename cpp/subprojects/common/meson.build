@@ -91,13 +91,6 @@ source_files = [
     'src/common/algorithm_builder.cpp'
 ]
 
-# Dependencies
-openmp_dep = dependency('openmp')
-
-dependencies = [
-    openmp_dep
-]
-
 # Directory containing public headers
 include_directories = include_directories('include')
 
@@ -111,8 +104,16 @@ version = fs.read('../../../VERSION')
 
 # Library declaration
 lib_name = 'mlrl' + meson.project_name()
-library(lib_name, source_files, include_directories : include_directories, dependencies : dependencies,
+cpp_args = ['-fopenmp']
+link_args = ['-fopenmp']
+
+if host_machine.system() == 'darwin'
+    cpp_args = ['-Xclang', '-fopenmp']
+    link_args = ['-lomp']
+endif
+
+library(lib_name, source_files, include_directories : include_directories, cpp_args : cpp_args, link_args : link_args,
         version : version, install : true, install_dir : install_dir)
-common_lib = static_library(lib_name, source_files, include_directories : include_directories,
-                            dependencies : dependencies)
+common_lib = static_library(lib_name, source_files, include_directories : include_directories, cpp_args : cpp_args,
+                            link_args : link_args)
 common_dep = declare_dependency(include_directories : include_directories, link_with : common_lib)

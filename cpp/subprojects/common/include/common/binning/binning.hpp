@@ -1,5 +1,5 @@
 /*
- * @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+ * @author Michael Rapp (michael.rapp.ml@gmail.com)
  */
 #pragma once
 
@@ -16,9 +16,9 @@
  * @param minBins   The minimum number of bins
  * @param maxBins   The maximum number of bins or a value < `minBins`, if the maximum number should not be restricted
  */
-static inline constexpr uint32 calculateNumBins(uint32 numValues, float32 binRatio, uint32 minBins, uint32 maxBins) {
+static inline uint32 calculateNumBins(uint32 numValues, float32 binRatio, uint32 minBins, uint32 maxBins) {
     // Calculate number of bins based on the given percentage...
-    uint32 numBins = std::ceil(binRatio * numValues);
+    uint32 numBins = (uint32) std::ceil(binRatio * numValues);
 
     // Prevent the minimum number of bins to exceed the number of available values...
     uint32 min = minBins > numValues ? numValues : minBins;

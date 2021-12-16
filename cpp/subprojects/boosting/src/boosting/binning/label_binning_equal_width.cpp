@@ -33,7 +33,7 @@ namespace boosting {
             EqualWidthLabelBinning(float32 binRatio, uint32 minBins, uint32 maxBins)
                 : binRatio_(binRatio), minBins_(minBins), maxBins_(maxBins) {
                 assertGreater<float32>("binRatio", binRatio, 0.0);
-                assertLess<uint32>("binRatio", binRatio, 1.0);
+                assertLess<float32>("binRatio", binRatio, 1.0);
                 assertGreaterOrEqual<uint32>("minBins", minBins, 1);
                 if (maxBins != 0) { assertGreaterOrEqual<uint32>("maxBins", maxBins, minBins); }
             }
@@ -109,7 +109,7 @@ namespace boosting {
                     float64 criterion = criteria[i];
 
                     if (criterion < 0) {
-                        uint32 binIndex = std::floor((criterion - minNegative) / spanPerNegativeBin);
+                        uint32 binIndex = (uint32) std::floor((criterion - minNegative) / spanPerNegativeBin);
 
                         if (binIndex >= numNegativeBins) {
                             binIndex = numNegativeBins - 1;
@@ -117,7 +117,7 @@ namespace boosting {
 
                         callback(binIndex, i);
                     } else if (criterion > 0) {
-                        uint32 binIndex = std::floor((criterion - minPositive) / spanPerPositiveBin);
+                        uint32 binIndex = (uint32) std::floor((criterion - minPositive) / spanPerPositiveBin);
 
                         if (binIndex >= numPositiveBins) {
                             binIndex = numPositiveBins - 1;

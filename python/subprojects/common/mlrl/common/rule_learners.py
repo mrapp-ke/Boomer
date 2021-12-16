@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Michael Rapp (michael.rapp.ml@gmail.com)
 
 Provides base classes for implementing single- or multi-label rule learning algorithms.
 """
@@ -466,7 +466,7 @@ class MLRuleLearner(Learner, NominalAttributeLearner):
         y_sparse_policy = create_sparse_policy('label_format', self.label_format)
         y_enforce_sparse = should_enforce_sparse(y, sparse_format=y_sparse_format, policy=y_sparse_policy,
                                                  dtype=DTYPE_UINT8, sparse_values=False)
-        y = check_array((y if y_enforce_sparse else np.asarray(y, order='C')),
+        y = check_array((y if y_enforce_sparse else enforce_dense(y, order='C', dtype=DTYPE_UINT8)),
                         accept_sparse=(y_sparse_format.value if y_enforce_sparse else False), ensure_2d=False,
                         dtype=DTYPE_UINT8)
 

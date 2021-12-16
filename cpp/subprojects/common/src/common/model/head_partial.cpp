@@ -1,4 +1,5 @@
 #include "common/model/head_partial.hpp"
+#include "common/data/arrays.hpp"
 
 
 PartialHead::PartialHead(uint32 numElements)
@@ -8,8 +9,8 @@ PartialHead::PartialHead(uint32 numElements)
 
 PartialHead::PartialHead(const PartialPrediction& prediction)
     : PartialHead(prediction.getNumElements()) {
-    std::copy(prediction.scores_cbegin(), prediction.scores_cend(), scores_);
-    std::copy(prediction.indices_cbegin(), prediction.indices_cend(), labelIndices_);
+    copyArray(prediction.scores_cbegin(), scores_, numElements_);
+    copyArray(prediction.indices_cbegin(), labelIndices_, numElements_);
 }
 
 PartialHead::~PartialHead() {

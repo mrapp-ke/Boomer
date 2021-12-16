@@ -1,5 +1,5 @@
 /*
- * @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+ * @author Michael Rapp (michael.rapp.ml@gmail.com)
  */
 #pragma once
 
@@ -46,18 +46,18 @@ namespace boosting {
                          const RuleModel& model, const LabelVectorSet* labelVectors) const override;
 
             /**
-             * @see `ISparsePredictor::predict`
+             * @see `ISparsePredictor::predictSparse`
              */
-            std::unique_ptr<BinarySparsePredictionMatrix> predict(const CContiguousFeatureMatrix& featureMatrix,
-                                                                  uint32 numLabels, const RuleModel& model,
-                                                                  const LabelVectorSet* labelVectors) const override;
+            std::unique_ptr<BinarySparsePredictionMatrix> predictSparse(
+                const CContiguousFeatureMatrix& featureMatrix, uint32 numLabels, const RuleModel& model,
+                const LabelVectorSet* labelVectors) const override;
 
             /**
-             * @see `ISparsePredictor::predict`
+             * @see `ISparsePredictor::predictSparse`
              */
-            std::unique_ptr<BinarySparsePredictionMatrix> predict(const CsrFeatureMatrix& featureMatrix,
-                                                                  uint32 numLabels, const RuleModel& model,
-                                                                  const LabelVectorSet* labelVectors) const override;
+            std::unique_ptr<BinarySparsePredictionMatrix> predictSparse(
+                const CsrFeatureMatrix& featureMatrix, uint32 numLabels, const RuleModel& model,
+                const LabelVectorSet* labelVectors) const override;
 
     };
 

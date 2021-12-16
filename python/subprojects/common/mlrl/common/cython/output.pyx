@@ -1,5 +1,5 @@
 """
-@author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+@author: Michael Rapp (michael.rapp.ml@gmail.com)
 """
 from mlrl.common.cython._arrays cimport array_uint8, array_uint32, c_matrix_uint8, c_matrix_float64
 from mlrl.common.cython._data cimport CContiguousView
@@ -189,7 +189,7 @@ cdef class AbstractBinaryPredictor(SparsePredictor):
         cdef LabelVectorSetImpl* label_vectors_ptr = <LabelVectorSetImpl*>NULL if label_vectors is None \
                                                         else label_vectors.label_vector_set_ptr.get()
         cdef ISparsePredictor[uint8]* predictor_ptr = self.predictor_ptr.get()
-        cdef unique_ptr[BinarySparsePredictionMatrix] prediction_matrix_ptr = predictor_ptr.predict(
+        cdef unique_ptr[BinarySparsePredictionMatrix] prediction_matrix_ptr = predictor_ptr.predictSparse(
             dereference(feature_matrix_ptr), num_labels, dereference(model.model_ptr), label_vectors_ptr)
         return __create_csr_matrix(prediction_matrix_ptr.get())
 
@@ -200,6 +200,6 @@ cdef class AbstractBinaryPredictor(SparsePredictor):
         cdef LabelVectorSetImpl* label_vectors_ptr = <LabelVectorSetImpl*>NULL if label_vectors is None \
                                                         else label_vectors.label_vector_set_ptr.get()
         cdef ISparsePredictor[uint8]* predictor_ptr = self.predictor_ptr.get()
-        cdef unique_ptr[BinarySparsePredictionMatrix] prediction_matrix_ptr = predictor_ptr.predict(
+        cdef unique_ptr[BinarySparsePredictionMatrix] prediction_matrix_ptr = predictor_ptr.predictSparse(
             dereference(feature_matrix_ptr), num_labels, dereference(model.model_ptr), label_vectors_ptr)
         return __create_csr_matrix(prediction_matrix_ptr.get())

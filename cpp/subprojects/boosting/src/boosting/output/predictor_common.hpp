@@ -76,8 +76,8 @@ namespace boosting {
                                      CsrFeatureMatrix::value_const_iterator featureValuesBegin,
                                      CsrFeatureMatrix::value_const_iterator featureValuesEnd,
                                      CContiguousView<float64>::iterator scoreIterator) {
-        float32 tmpArray1[numFeatures];
-        uint32 tmpArray2[numFeatures] = {};
+        float32* tmpArray1 = new float32[numFeatures];
+        uint32* tmpArray2 = new uint32[numFeatures] {};
         uint32 n = 1;
 
         for (auto it = model.used_cbegin(); it != model.used_cend(); it++) {
@@ -86,6 +86,9 @@ namespace boosting {
                          scoreIterator, &tmpArray1[0], &tmpArray2[0], n);
             n++;
         }
+
+        delete[] tmpArray1;
+        delete[] tmpArray2;
     }
 
 }

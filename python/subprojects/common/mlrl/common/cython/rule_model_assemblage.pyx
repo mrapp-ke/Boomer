@@ -1,5 +1,5 @@
 """
-@author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+@author: Michael Rapp (michael.rapp.ml@gmail.com)
 """
 from mlrl.common.cython.input cimport NominalFeatureMask, FeatureMatrix, LabelMatrix
 from mlrl.common.cython.model cimport ModelBuilder, RuleModel

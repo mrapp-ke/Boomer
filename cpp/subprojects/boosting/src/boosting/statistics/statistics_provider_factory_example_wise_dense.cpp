@@ -98,7 +98,7 @@ namespace boosting {
                 #pragma omp parallel for firstprivate(numRows) firstprivate(numCols) \
                 firstprivate(labelWiseStatisticMatrixRawPtr) firstprivate(exampleWiseStatisticViewRawPtr) \
                 schedule(dynamic) num_threads(numThreads)
-                for (uint32 i = 0; i < numRows; i++) {
+                for (int64 i = 0; i < numRows; i++) {
                     DenseLabelWiseStatisticView::iterator iterator = labelWiseStatisticMatrixRawPtr->row_begin(i);
                     DenseExampleWiseStatisticView::gradient_const_iterator gradientIterator =
                         exampleWiseStatisticViewRawPtr->gradients_row_cbegin(i);
@@ -141,7 +141,7 @@ namespace boosting {
         #pragma omp parallel for firstprivate(numExamples) firstprivate(lossFunctionRawPtr) \
         firstprivate(labelMatrixPtr) firstprivate(scoreMatrixRawPtr) firstprivate(statisticMatrixRawPtr) \
         schedule(dynamic) num_threads(numThreads)
-        for (uint32 i = 0; i < numExamples; i++) {
+        for (int64 i = 0; i < numExamples; i++) {
             lossFunctionRawPtr->updateExampleWiseStatistics(i, *labelMatrixPtr, *scoreMatrixRawPtr,
                                                             *statisticMatrixRawPtr);
         }

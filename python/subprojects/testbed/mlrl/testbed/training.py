@@ -2,7 +2,7 @@
 
 
 """
-Author: Michael Rapp (mrapp@ke.tu-darmstadt.de)
+Author: Michael Rapp (michael.rapp.ml@gmail.com)
 
 Provides classes for training and evaluating multi-label classifiers using either cross validation or separate training
 and test sets.

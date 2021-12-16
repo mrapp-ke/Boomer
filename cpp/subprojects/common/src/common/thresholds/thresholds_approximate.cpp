@@ -45,9 +45,10 @@ struct CacheEntry : public IFeatureBinning::Result {
  *                          the individual training examples
  */
 static inline void updateCoveredExamples(const ThresholdVector& thresholdVector, const IBinIndexVector& binIndices,
-                                         intp conditionStart, intp conditionEnd, bool covered, CoverageSet& coverageSet,
-                                         IStatistics& statistics, const IWeightVector& weights) {
-    intp start, end;
+                                         int64 conditionStart, int64 conditionEnd, bool covered,
+                                         CoverageSet& coverageSet, IStatistics& statistics,
+                                         const IWeightVector& weights) {
+    int64 start, end;
 
     if (conditionEnd < conditionStart) {
         start = conditionEnd + 1;
@@ -289,7 +290,7 @@ class ApproximateThresholds final : public AbstractThresholds {
                     coverageSet_.reset();
                 }
 
-                const ICoverageState& getCoverageState() const {
+                const ICoverageState& getCoverageState() const override {
                     return coverageSet_;
                 }
 
@@ -353,7 +354,7 @@ class ApproximateThresholds final : public AbstractThresholds {
 
                     #pragma omp parallel for firstprivate(numCovered) firstprivate(iterator) \
                     firstprivate(predictionPtr) firstprivate(statisticsPtr) schedule(dynamic) num_threads(numThreads)
-                    for (uint32 i = 0; i < numCovered; i++) {
+                    for (int64 i = 0; i < numCovered; i++) {
                         uint32 exampleIndex = iterator[i];
                         predictionPtr->apply(*statisticsPtr, exampleIndex);
                     }

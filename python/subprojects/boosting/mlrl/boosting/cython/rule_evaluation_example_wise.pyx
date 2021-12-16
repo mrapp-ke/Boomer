@@ -1,5 +1,5 @@
 """
-@author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+@author Michael Rapp (michael.rapp.ml@gmail.com)
 """
 from mlrl.boosting.cython._blas cimport init_blas
 from mlrl.boosting.cython._lapack cimport init_lapack

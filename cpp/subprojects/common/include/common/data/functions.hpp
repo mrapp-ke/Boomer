@@ -1,9 +1,10 @@
 /*
- * @author Michael Rapp (mrapp@ke.tu-darmstadt.de)
+ * @author Michael Rapp (michael.rapp.ml@gmail.com)
  */
 #pragma once
 
 #include "common/data/types.hpp"
+#include <cstddef>
 
 
 /**

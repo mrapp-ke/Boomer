@@ -58,8 +58,8 @@ static inline uint32 adjustSplit(FeatureVector::const_iterator iterator, uint32 
  * @return                  The adjusted position that separates the covered from the uncovered examples with respect to
  *                          the examples that are not contained in the current sub-sample
  */
-static inline intp adjustSplit(FeatureVector& featureVector, intp conditionEnd, intp conditionPrevious,
-                               float32 threshold) {
+static inline int64 adjustSplit(FeatureVector& featureVector, int64 conditionEnd, int64 conditionPrevious,
+                                float32 threshold) {
     FeatureVector::const_iterator iterator = featureVector.cbegin();
 
     if (conditionEnd < conditionPrevious) {
@@ -94,10 +94,10 @@ static inline intp adjustSplit(FeatureVector& featureVector, intp conditionEnd, 
  * @param weights               A reference to an an object of type `IWeightVector` that provides access to the weights
  *                              of the individual training examples
  */
-static inline void filterCurrentVector(const FeatureVector& vector, FilteredCacheEntry& cacheEntry, intp conditionStart,
-                                       intp conditionEnd, Comparator conditionComparator, bool covered,
-                                       uint32 numConditions, CoverageMask& coverageMask, IStatistics& statistics,
-                                       const IWeightVector& weights) {
+static inline void filterCurrentVector(const FeatureVector& vector, FilteredCacheEntry& cacheEntry,
+                                       int64 conditionStart, int64 conditionEnd, Comparator conditionComparator,
+                                       bool covered, uint32 numConditions, CoverageMask& coverageMask,
+                                       IStatistics& statistics, const IWeightVector& weights) {
     // Determine the number of elements in the filtered vector...
     uint32 numTotalElements = vector.getNumElements();
     uint32 distance = std::abs(conditionStart - conditionEnd);
@@ -116,7 +116,7 @@ static inline void filterCurrentVector(const FeatureVector& vector, FilteredCach
     CoverageMask::iterator coverageMaskIterator = coverageMask.begin();
 
     bool descending = conditionEnd < conditionStart;
-    intp start, end;
+    int64 start, end;
 
     if (descending) {
         start = conditionEnd + 1;
@@ -133,7 +133,7 @@ static inline void filterCurrentVector(const FeatureVector& vector, FilteredCach
 
         // Retain the indices at positions [start, end) and set the corresponding values in the given `coverageMask` to
         // `numConditions` to mark them as covered...
-        for (intp r = start; r < end; r++) {
+        for (int64 r = start; r < end; r++) {
             uint32 index = iterator[r].index;
             coverageMaskIterator[index] = numConditions;
             filteredIterator[i].index = index;
@@ -145,7 +145,7 @@ static inline void filterCurrentVector(const FeatureVector& vector, FilteredCach
     } else {
         // Discard the indices at positions [start, end) and set the corresponding values in `coverageMask` to
         // `numConditions`, which marks them as uncovered...
-        for (intp r = start; r < end; r++) {
+        for (int64 r = start; r < end; r++) {
             uint32 index = iterator[r].index;
             coverageMaskIterator[index] = numConditions;
             float64 weight = weights.getWeight(index);
@@ -156,7 +156,7 @@ static inline void filterCurrentVector(const FeatureVector& vector, FilteredCach
             // Retain the indices at positions [currentStart, currentEnd), while leaving the corresponding values in
             // `coverageMask` untouched, such that all previously covered examples in said range are still marked
             // as covered, while previously uncovered examples are still marked as uncovered...
-            intp currentStart, currentEnd;
+            int64 currentStart, currentEnd;
             uint32 i;
 
             if (descending) {
@@ -169,7 +169,7 @@ static inline void filterCurrentVector(const FeatureVector& vector, FilteredCach
                 i = 0;
             }
 
-            for (intp r = currentStart; r < currentEnd; r++) {
+            for (int64 r = currentStart; r < currentEnd; r++) {
                 filteredIterator[i].index = iterator[r].index;
                 filteredIterator[i].value = iterator[r].value;
                 i++;
@@ -179,7 +179,7 @@ static inline void filterCurrentVector(const FeatureVector& vector, FilteredCach
         // Retain the indices at positions [currentStart, currentEnd), while leaving the corresponding values in
         // `coverageMask` untouched, such that all previously covered examples in said range are still marked as
         // covered, while previously uncovered examples are still marked as uncovered...
-        intp currentStart, currentEnd;
+        int64 currentStart, currentEnd;
         uint32 i;
 
         if (descending) {
@@ -192,7 +192,7 @@ static inline void filterCurrentVector(const FeatureVector& vector, FilteredCach
             i = start;
         }
 
-        for (intp r = currentStart; r < currentEnd; r++) {
+        for (int64 r = currentStart; r < currentEnd; r++) {
             filteredIterator[i].index = iterator[r].index;
             filteredIterator[i].value = iterator[r].value;
             i++;
@@ -451,7 +451,7 @@ class ExactThresholds final : public AbstractThresholds {
                     coverageMask_.reset();
                 }
 
-                const ICoverageState& getCoverageState() const {
+                const ICoverageState& getCoverageState() const override {
                     return coverageMask_;
                 }
 
@@ -516,7 +516,7 @@ class ExactThresholds final : public AbstractThresholds {
 
                     #pragma omp parallel for firstprivate(numStatistics) firstprivate(coverageMaskPtr) \
                     firstprivate(predictionPtr) firstprivate(statisticsPtr) schedule(dynamic) num_threads(numThreads)
-                    for (uint32 i = 0; i < numStatistics; i++) {
+                    for (int64 i = 0; i < numStatistics; i++) {
                         if (coverageMaskPtr->isCovered(i)) {
                             predictionPtr->apply(*statisticsPtr, i);
                         }

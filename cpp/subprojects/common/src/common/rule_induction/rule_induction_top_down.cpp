@@ -75,7 +75,7 @@ bool TopDownRuleInduction::induceRule(IThresholds& thresholds, const IIndexVecto
         uint32 numSampledFeatures = sampledFeatureIndices.getNumElements();
 
         // For each feature, create an object of type `IRuleRefinement`...
-        for (intp i = 0; i < numSampledFeatures; i++) {
+        for (int64 i = 0; i < numSampledFeatures; i++) {
             uint32 featureIndex = sampledFeatureIndices.getIndex((uint32) i);
             std::unique_ptr<IRuleRefinement> ruleRefinementPtr = currentLabelIndices->createRuleRefinement(
                 *thresholdsSubsetPtr, featureIndex);
@@ -85,14 +85,14 @@ bool TopDownRuleInduction::induceRule(IThresholds& thresholds, const IIndexVecto
         // Search for the best condition among all available features to be added to the current rule...
         #pragma omp parallel for firstprivate(numSampledFeatures) firstprivate(ruleRefinementsPtr) \
         firstprivate(bestHead) schedule(dynamic) num_threads(numThreads_)
-        for (intp i = 0; i < numSampledFeatures; i++) {
+        for (int64 i = 0; i < numSampledFeatures; i++) {
             uint32 featureIndex = sampledFeatureIndices.getIndex((uint32) i);
             std::unique_ptr<IRuleRefinement>& ruleRefinementPtr = ruleRefinementsPtr->find(featureIndex)->second;
             ruleRefinementPtr->findRefinement(bestHead);
         }
 
         // Pick the best refinement among the refinements that have been found for the different features...
-        for (intp i = 0; i < numSampledFeatures; i++) {
+        for (int64 i = 0; i < numSampledFeatures; i++) {
             uint32 featureIndex = sampledFeatureIndices.getIndex((uint32) i);
             std::unique_ptr<IRuleRefinement>& ruleRefinementPtr = ruleRefinements.find(featureIndex)->second;
             std::unique_ptr<Refinement> refinementPtr = ruleRefinementPtr->pollRefinement();

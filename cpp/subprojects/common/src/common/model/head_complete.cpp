@@ -1,4 +1,5 @@
 #include "common/model/head_complete.hpp"
+#include "common/data/arrays.hpp"
 
 
 CompleteHead::CompleteHead(uint32 numElements)
@@ -8,7 +9,7 @@ CompleteHead::CompleteHead(uint32 numElements)
 
 CompleteHead::CompleteHead(const CompletePrediction& prediction)
     : CompleteHead(prediction.getNumElements()) {
-    std::copy(prediction.scores_cbegin(), prediction.scores_cend(), scores_);
+    copyArray(prediction.scores_cbegin(), scores_, numElements_);
 }
 
 CompleteHead::~CompleteHead() {
