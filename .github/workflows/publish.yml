@@ -1,0 +1,80 @@
+name: 'Publish packages'
+on:
+  release:
+    types: [ published ]
+    branches: [ master ]
+jobs:
+  build_pure_wheels:
+    name: Build pure wheels
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build package mlrl-testbed
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade setuptools
+          python3 -m pip install build
+          mkdir wheelhouse
+          python3 -m build --wheel python/subprojects/testbed/
+          cp python/subprojects/testbed/dist/*.whl wheelhouse/
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: './wheelhouse/*.whl'
+          if-no-files-found: error
+      - name: Upload to PyPI
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          TWINE_REPOSITORY: ${{ secrets.PYPI_REPOSITORY }}
+        run: |
+          python3 -m pip install twine
+          python3 -m twine upload --non-interactive wheelhouse/*
+        continue-on-error: true
+  build_platform_wheels:
+    name: Build platform wheels
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build package mlrl-common
+        uses: pypa/cibuildwheel@v2.3.0
+        env:
+          CIBW_BEFORE_ALL: make install_cpp
+          CIBW_BEFORE_ALL_MACOS: brew install libomp
+          CIBW_BEFORE_BUILD: make clean_install clean_wheel clean_cython install_cpp install_cython
+          CIBW_BUILD_FRONTEND: build
+          CIBW_ARCHS: auto64
+          CIBW_SKIP: 'pp* *musllinux*'
+        with:
+          package-dir: python/subprojects/common
+      - name: Build package mlrl-boosting
+        uses: pypa/cibuildwheel@v2.3.0
+        env:
+          CIBW_BEFORE_ALL: make install_cpp
+          CIBW_BEFORE_ALL_MACOS: brew install libomp
+          CIBW_BEFORE_BUILD: make clean_install clean_wheel clean_cython install_cpp install_cython
+          CIBW_BUILD_FRONTEND: build
+          CIBW_ARCHS: auto64
+          CIBW_SKIP: 'pp* *musllinux*'
+        with:
+          package-dir: python/subprojects/boosting
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: './wheelhouse/*.whl'
+          if-no-files-found: error
+      - name: Upload to PyPI
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          TWINE_REPOSITORY: ${{ secrets.PYPI_REPOSITORY }}
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install twine
+          python3 -m twine upload --non-interactive wheelhouse/*
+        continue-on-error: true
