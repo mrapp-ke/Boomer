@@ -28,6 +28,11 @@ typename CscConstView<T>::index_const_iterator CscConstView<T>::column_indices_c
 }
 
 template<typename T>
+uint32 CscConstView<T>::getNumNonZeroElements() const {
+    return colIndices_[numCols_];
+}
+
+template<typename T>
 uint32 CscConstView<T>::getNumRows() const {
     return numRows_;
 }
@@ -35,11 +40,6 @@ uint32 CscConstView<T>::getNumRows() const {
 template<typename T>
 uint32 CscConstView<T>::getNumCols() const {
     return numCols_;
-}
-
-template<typename T>
-uint32 CscConstView<T>::getNumNonZeroElements() const {
-    return colIndices_[numCols_];
 }
 
 template class CscConstView<uint8>;

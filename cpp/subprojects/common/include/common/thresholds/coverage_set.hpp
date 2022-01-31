@@ -32,7 +32,7 @@ class CoverageSet final : public ICoverageState {
          */
         CoverageSet(const CoverageSet& coverageSet);
 
-        ~CoverageSet();
+        ~CoverageSet() override;
 
         /**
          * An iterator that provides access to the indices of the covered examples and allows to modify them.

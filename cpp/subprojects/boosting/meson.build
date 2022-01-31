@@ -2,7 +2,10 @@ project('boosting', 'cpp')
 
 # Source files
 source_files = [
+    'src/boosting/binning/feature_binning_auto.cpp',
+    'src/boosting/binning/label_binning_auto.cpp',
     'src/boosting/binning/label_binning_equal_width.cpp',
+    'src/boosting/binning/label_binning_no.cpp',
     'src/boosting/data/matrix_dense_numeric.cpp',
     'src/boosting/data/statistic_vector_example_wise_dense.cpp',
     'src/boosting/data/statistic_vector_label_wise_dense.cpp',
@@ -10,25 +13,33 @@ source_files = [
     'src/boosting/data/statistic_view_label_wise_dense.cpp',
     'src/boosting/iterator/diagonal_iterator.cpp',
     'src/boosting/losses/loss_example_wise_logistic.cpp',
-    'src/boosting/losses/loss_label_wise.cpp',
     'src/boosting/losses/loss_label_wise_logistic.cpp',
     'src/boosting/losses/loss_label_wise_squared_error.cpp',
     'src/boosting/losses/loss_label_wise_squared_hinge.cpp',
     'src/boosting/math/blas.cpp',
     'src/boosting/math/lapack.cpp',
-    'src/boosting/model/rule_list.cpp',
+    'src/boosting/model/rule_list_builder.cpp',
+    'src/boosting/multi_threading/parallel_rule_refinement_auto.cpp',
+    'src/boosting/multi_threading/parallel_statistic_update_auto.cpp',
+    'src/boosting/output/predictor_classification_auto.cpp',
     'src/boosting/output/predictor_classification_example_wise.cpp',
     'src/boosting/output/predictor_classification_label_wise.cpp',
     'src/boosting/output/predictor_probability_label_wise.cpp',
     'src/boosting/output/predictor_regression_label_wise.cpp',
     'src/boosting/post_processing/shrinkage_constant.cpp',
+    'src/boosting/rule_evaluation/head_type_auto.cpp',
+    'src/boosting/rule_evaluation/head_type_complete.cpp',
+    'src/boosting/rule_evaluation/head_type_single.cpp',
+    'src/boosting/rule_evaluation/regularization_manual.cpp',
+    'src/boosting/rule_evaluation/regularization_no.cpp',
     'src/boosting/rule_evaluation/rule_evaluation_example_wise_complete.cpp',
     'src/boosting/rule_evaluation/rule_evaluation_example_wise_complete_binned.cpp',
     'src/boosting/rule_evaluation/rule_evaluation_label_wise_complete.cpp',
     'src/boosting/rule_evaluation/rule_evaluation_label_wise_complete_binned.cpp',
     'src/boosting/rule_evaluation/rule_evaluation_label_wise_single.cpp',
-    'src/boosting/statistics/statistics_provider_factory_example_wise_dense.cpp',
-    'src/boosting/statistics/statistics_provider_factory_label_wise_dense.cpp'
+    'src/boosting/statistics/statistics_provider_example_wise_dense.cpp',
+    'src/boosting/statistics/statistics_provider_label_wise_dense.cpp',
+    'src/boosting/learner.cpp'
 ]
 
 # Dependencies
@@ -52,6 +63,11 @@ version = common_project.get_variable('version')
 # Library declaration
 cpp_args = common_project.get_variable('cpp_args')
 link_args = common_project.get_variable('link_args')
+
+if host_machine.system() == 'windows'
+    cpp_args += '-DMLRLBOOSTING_EXPORTS'
+endif
+
 boosting_lib = library('mlrl' + meson.project_name(), source_files, include_directories : include_directories,
                        dependencies : dependencies, cpp_args : cpp_args, link_args : link_args, version : version,
                        install : true, install_dir : install_dir)

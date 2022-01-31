@@ -3,20 +3,34 @@
  */
 #pragma once
 
-#include "common/data/view_csr_binary.hpp"
-#include "common/data/functions.hpp"
-#include "common/input/label_matrix.hpp"
+#ifdef _WIN32
+    #pragma warning( push )
+    #pragma warning( disable : 4250 )
+#endif
 
+#include "common/input/label_matrix_row_wise.hpp"
+#include "common/data/view_csr_binary.hpp"
+#include "common/data/view_vector.hpp"
+#include "common/data/functions.hpp"
+
+
+/**
+ * Defines an interface for all label matrices that provide row-wise access to the labels of individual examples that
+ * are stored in a sparse matrix in the compressed sparse row (CSR) format.
+ */
+class MLRLCOMMON_API ICsrLabelMatrix : virtual public IRowWiseLabelMatrix {
+
+    public:
+
+        virtual ~ICsrLabelMatrix() override { };
+
+};
 
 /**
  * Implements row-wise read-only access to the labels of individual training examples that are stored in a pre-allocated
  * sparse matrix in the compressed sparse row (CSR) format.
  */
-class CsrLabelMatrix final : public ILabelMatrix {
-
-    private:
-
-        BinaryCsrConstView view_;
+class CsrLabelMatrix final : public BinaryCsrConstView, virtual public ICsrLabelMatrix {
 
     public:
 
@@ -87,55 +101,6 @@ class CsrLabelMatrix final : public ILabelMatrix {
         typedef const View view_type;
 
         /**
-         * An iterator that provides read-only access to the indices of the relevant labels.
-         */
-        typedef BinaryCsrConstView::index_const_iterator index_const_iterator;
-
-        /**
-         * An iterator that provides read-only access to the values in the label matrix.
-         */
-        typedef BinaryCsrConstView::value_const_iterator value_const_iterator;
-
-        /**
-         * Returns an `index_const_iterator` to the beginning of the indices at a specific row.
-         *
-         * @param row   The row
-         * @return      An `index_const_iterator` to the beginning of the indices
-         */
-        index_const_iterator row_indices_cbegin(uint32 row) const;
-
-        /**
-         * Returns an `index_const_iterator` to the end of the indices at a specific row.
-         *
-         * @param row   The row
-         * @return      An `index_const_iterator` to the end of the indices
-         */
-        index_const_iterator row_indices_cend(uint32 row) const;
-
-        /**
-         * Returns a `value_const_iterator` to the beginning of the values at a specific row.
-         *
-         * @param row   The row
-         * @return      A `value_const_iterator` to the beginning of the values
-         */
-        value_const_iterator row_values_cbegin(uint32 row) const;
-
-        /**
-         * Returns a `value_const_iterator` to the end of the values at a specific row.
-         *
-         * @param row   The row
-         * @return      A `value_const_iterator` to the end of the values
-         */
-        value_const_iterator row_values_cend(uint32 row) const;
-
-        /**
-         * Returns the number of relevant labels.
-         *
-         * @return The number of relevant labels
-         */
-        uint32 getNumNonZeroElements() const;
-
-        /**
          * Creates and returns a view that provides access to the values at a specific row of the label matrix.
          *
          * @param row   The row
@@ -143,9 +108,7 @@ class CsrLabelMatrix final : public ILabelMatrix {
          */
         view_type createView(uint32 row) const;
 
-        uint32 getNumRows() const override;
-
-        uint32 getNumCols() const override;
+        bool isSparse() const override;
 
         float64 calculateLabelCardinality() const override;
 
@@ -166,3 +129,22 @@ class CsrLabelMatrix final : public ILabelMatrix {
                                                                   IStatistics& statistics) const override;
 
 };
+
+/**
+ * Creates and returns a new object of the type `ICsrLabelMatrix`.
+ *
+ * @param numRows       The number of rows in the label matrix
+ * @param numCols       The number of columns in the label matrix
+ * @param rowIndices    A pointer to an array of type `uint32`, shape `(numRows + 1)`, that stores the indices
+ *                      of the first element in `colIndices` that corresponds to a certain row. The index at the last
+ *                      position is equal to `num_non_zero_values`
+ * @param colIndices    A pointer to an array of type `uint32`, shape `(num_non_zero_values)`, that stores the
+ *                      column-indices, the relevant labels correspond to
+ * @return              An unique pointer to an object of type `ICsrLabelMatrix` that has been created
+ */
+MLRLCOMMON_API std::unique_ptr<ICsrLabelMatrix> createCsrLabelMatrix(uint32 numRows, uint32 numCols, uint32* rowIndices,
+                                                                     uint32* colIndices);
+
+#ifdef _WIN32
+    #pragma warning ( pop )
+#endif

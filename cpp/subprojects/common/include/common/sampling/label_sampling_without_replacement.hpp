@@ -4,13 +4,41 @@
 #pragma once
 
 #include "common/sampling/label_sampling.hpp"
+#include "common/macros.hpp"
 
 
 /**
- * Allows to create objects of type `ILabelSampling` that select a random subset of the available features without
- * replacement.
+ * Defines an interface for all classes that allow to configure a method for sampling labels without replacement.
  */
-class LabelSamplingWithoutReplacementFactory final : public ILabelSamplingFactory {
+class MLRLCOMMON_API ILabelSamplingWithoutReplacementConfig {
+
+    public:
+
+        virtual ~ILabelSamplingWithoutReplacementConfig() { };
+
+        /**
+         * Returns the number of labels that are included in a sample.
+         *
+         * @return The number of labels that are included in a sample
+         */
+        virtual uint32 getNumSamples() const = 0;
+
+        /**
+         * Sets the number of labels that should be included in a sample.
+         *
+         * @param numSamples    The number of labels that should be included in a sample. Must be at least 1
+         * @return              A reference to an object of type `ILabelSamplingWithoutReplacementConfig` that allows
+         *                      further configuration of the method for sampling labels
+         */
+        virtual ILabelSamplingWithoutReplacementConfig& setNumSamples(uint32 numSamples) = 0;
+
+};
+
+/**
+ * Allows to configure a method for sampling labels without replacement.
+ */
+class LabelSamplingWithoutReplacementConfig final : public ILabelSamplingConfig,
+                                                    public ILabelSamplingWithoutReplacementConfig {
 
     private:
 
@@ -18,11 +46,13 @@ class LabelSamplingWithoutReplacementFactory final : public ILabelSamplingFactor
 
     public:
 
-        /**
-         * @param numSamples The number of labels to be included in the sample. Must be at least 1
-         */
-        LabelSamplingWithoutReplacementFactory(uint32 numSamples);
+        LabelSamplingWithoutReplacementConfig();
 
-        std::unique_ptr<ILabelSampling> create(uint32 numLabels) const override;
+        uint32 getNumSamples() const override;
+
+        ILabelSamplingWithoutReplacementConfig& setNumSamples(uint32 numSamples) override;
+
+        std::unique_ptr<ILabelSamplingFactory> createLabelSamplingFactory(
+            const ILabelMatrix& labelMatrix) const override;
 
 };

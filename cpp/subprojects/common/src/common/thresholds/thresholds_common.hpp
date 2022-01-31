@@ -139,10 +139,10 @@ class AbstractThresholds : public IThresholds {
     protected:
 
         /**
-         * A reference to an object of type `IFeatureMatrix` that provides access to the feature values of the training
-         * examples.
+         * A reference to an object of type `IColumnWiseFeatureMatrix` that provides column-wise access to the feature
+         * values of the training examples.
          */
-        const IFeatureMatrix& featureMatrix_;
+        const IColumnWiseFeatureMatrix& featureMatrix_;
 
         /**
          * A reference to an object of type `INominalFeatureMask` that provides access to the information whether
@@ -159,33 +159,21 @@ class AbstractThresholds : public IThresholds {
     public:
 
         /**
-         * @param featureMatrix         A reference to an object of type `IFeatureMatrix` that provides access to the
-         *                              feature values of the training examples
+         * @param featureMatrix         A reference to an object of type `IColumnWiseFeatureMatrix` that provides
+         *                              column-wise access to the feature values of individual training examples
          * @param nominalFeatureMask    A reference  to an object of type `INominalFeatureMask` that provides access to
          *                              the information whether individual features are nominal or not
          * @param statisticsProvider    A reference to an object of type `IStatisticsProvider` that provides access to
          *                              statistics about the labels of the training examples
          */
-        AbstractThresholds(const IFeatureMatrix& featureMatrix, const INominalFeatureMask& nominalFeatureMask,
+        AbstractThresholds(const IColumnWiseFeatureMatrix& featureMatrix, const INominalFeatureMask& nominalFeatureMask,
                            IStatisticsProvider& statisticsProvider)
             : featureMatrix_(featureMatrix), nominalFeatureMask_(nominalFeatureMask),
               statisticsProvider_(statisticsProvider) {
 
         }
 
-        virtual ~AbstractThresholds() { };
-
-        uint32 getNumExamples() const override final {
-            return featureMatrix_.getNumRows();
-        }
-
-        uint32 getNumFeatures() const override final {
-            return featureMatrix_.getNumCols();
-        }
-
-        uint32 getNumLabels() const override final {
-            return statisticsProvider_.get().getNumLabels();
-        }
+        virtual ~AbstractThresholds() override { };
 
         IStatisticsProvider& getStatisticsProvider() const override final {
             return statisticsProvider_;

@@ -2,6 +2,7 @@
 #include "common/rule_refinement/rule_refinement.hpp"
 #include "common/statistics/statistics.hpp"
 #include "common/model/head_partial.hpp"
+#include "common/data/arrays.hpp"
 
 
 PartialPrediction::PartialPrediction(uint32 numElements)
@@ -51,6 +52,10 @@ void PartialPrediction::apply(IStatistics& statistics, uint32 statisticIndex) co
     statistics.applyPrediction(statisticIndex, *this);
 }
 
-std::unique_ptr<IHead> PartialPrediction::toHead() const {
-    return std::make_unique<PartialHead>(*this);
+std::unique_ptr<IHead> PartialPrediction::createHead() const {
+    uint32 numElements = this->getNumElements();
+    std::unique_ptr<PartialHead> headPtr = std::make_unique<PartialHead>(numElements);
+    copyArray(this->scores_cbegin(), headPtr->scores_begin(), numElements);
+    copyArray(this->indices_cbegin(), headPtr->indices_begin(), numElements);
+    return headPtr;
 }

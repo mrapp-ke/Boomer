@@ -3,25 +3,21 @@ project('common', 'cython', 'cpp')
 # Source files
 cython_dir = 'cython'
 cython_module_names = [
-    'algorithm_builder',
     'feature_binning',
+    'feature_matrix',
     'feature_sampling',
-    'input',
     'instance_sampling',
     'label_sampling',
-    'measures',
-    'model',
-    'output',
+    'label_matrix',
+    'label_space_info',
+    'learner',
+    'multi_threading',
+    'nominal_feature_mask',
     'partition_sampling',
-    'post_processing',
-    'pruning',
     'rule_induction',
+    'rule_model',
     'rule_model_assemblage',
-    'statistics',
-    'stopping',
-    'thresholds',
-    'thresholds_approximate',
-    'thresholds_exact'
+    'stopping_criterion'
 ]
 
 # Dependencies
@@ -52,6 +48,12 @@ cython_args = [
     '-I', meson.current_source_dir()
 ]
 
+# C++ compiler arguments
+
+cpp_args = [
+    '-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION'
+]
+
 # Directory into which the extension modules and Python source files should be installed
 python_version = python.language_version()
 package_dir = 'mlrl' / meson.project_name()
@@ -67,5 +69,5 @@ endif
 foreach module_name : cython_module_names
     pyx_file = package_dir / cython_dir / module_name + '.pyx'
     python.extension_module(module_name, pyx_file, dependencies : dependencies, override_options : cython_options,
-                            install : true, install_dir : install_dir, install_rpath : rpath)
+                            cpp_args : cpp_args, install : true, install_dir : install_dir, install_rpath : rpath)
 endforeach

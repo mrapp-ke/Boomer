@@ -97,8 +97,8 @@ class Experiment(CrossValidation, ABC):
             current_learner.fit(train_x, train_y)
             log.info('Successfully fit model in %s seconds', current_learner.train_time_)
 
-        # Save model to disk...
-        self.__save_model(current_learner, current_fold=current_fold, num_folds=num_folds)
+            # Save model to disk...
+            self.__save_model(current_learner, current_fold=current_fold, num_folds=num_folds)
 
         # Obtain and evaluate predictions for training data, if necessary...
         evaluation = self.train_evaluation

@@ -9,7 +9,7 @@ const AbstractEvaluatedPrediction* processCompleteScores(std::unique_ptr<Abstrac
                                                          const T& scoreVector) {
     uint32 numElements = scoreVector.getNumElements();
 
-    if (existingHeadPtr.get() == nullptr) {
+    if (!existingHeadPtr) {
         // Create a new head, if necessary...
         existingHeadPtr = std::make_unique<CompletePrediction>(numElements);
     }
@@ -25,7 +25,7 @@ const AbstractEvaluatedPrediction* processPartialScores(std::unique_ptr<Abstract
     PartialPrediction* existingHead = (PartialPrediction*) existingHeadPtr.get();
     uint32 numElements = scoreVector.getNumElements();
 
-    if (existingHead == nullptr) {
+    if (!existingHead) {
         // Create a new head, if necessary...
         existingHeadPtr = std::make_unique<PartialPrediction>(numElements);
         existingHead = (PartialPrediction*) existingHeadPtr.get();

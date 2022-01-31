@@ -4,13 +4,45 @@
 #pragma once
 
 #include "common/sampling/partition_sampling.hpp"
+#include "common/macros.hpp"
 
 
 /**
- * Allows to create objects of the type `IPartitionSampling` that randomly split the training examples into two mutually
- * exclusive sets that may be used as a training set and a holdout set.
+ * Defines an interface for all classes that allow to configure a method for partitioning the available training
+ * examples into a training set and a holdout set that randomly splits the training examples into two mutually exclusive
+ * sets.
  */
-class RandomBiPartitionSamplingFactory final : public IPartitionSamplingFactory {
+class MLRLCOMMON_API IRandomBiPartitionSamplingConfig {
+
+    public:
+
+        virtual ~IRandomBiPartitionSamplingConfig() { };
+
+        /**
+         * Returns the fraction of examples that are included in the holdout set.
+         *
+         * @return The fraction of examples that are included in the holdout set
+         */
+        virtual float32 getHoldoutSetSize() const = 0;
+
+        /**
+         * Sets the fraction of examples that should be included in the holdout set.
+         *
+         * @param holdoutSetSize    The fraction of examples that should be included in the holdout set, e.g. a value of
+         *                          0.6 corresponds to 60 % of the available examples. Must be in (0, 1)
+         * @return                  A reference to an object of type `IRandomBiPartitionSamplingConfig` that allows
+         *                          further configuration of the method for partitioning the available training examples
+         *                          into a training set and a holdout set
+         */
+        virtual IRandomBiPartitionSamplingConfig& setHoldoutSetSize(float32 holdoutSetSize) = 0;
+
+};
+
+/**
+ * Allows to configure a method for partitioning the available training examples into a training set and a holdout set
+ * that randomly splits the training examples into two mutually exclusive sets.
+ */
+class RandomBiPartitionSamplingConfig final : public IPartitionSamplingConfig, public IRandomBiPartitionSamplingConfig {
 
     private:
 
@@ -18,14 +50,12 @@ class RandomBiPartitionSamplingFactory final : public IPartitionSamplingFactory 
 
     public:
 
-        /**
-         * @param holdoutSetSize The fraction of examples to be included in the holdout set (e.g. a value of 0.6
-         *                       corresponds to 60 % of the available examples). Must be in (0, 1)
-         */
-        RandomBiPartitionSamplingFactory(float32 holdoutSetSize);
+        RandomBiPartitionSamplingConfig();
 
-        std::unique_ptr<IPartitionSampling> create(const CContiguousLabelMatrix& labelMatrix) const override;
+        float32 getHoldoutSetSize() const override;
 
-        std::unique_ptr<IPartitionSampling> create(const CsrLabelMatrix& labelMatrix) const override;
+        IRandomBiPartitionSamplingConfig& setHoldoutSetSize(float32 holdoutSetSize) override;
+
+        std::unique_ptr<IPartitionSamplingFactory> createPartitionSamplingFactory() const override;
 
 };

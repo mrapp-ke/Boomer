@@ -1,5 +1,6 @@
 #include "common/sampling/partition_single.hpp"
 #include "common/sampling/instance_sampling.hpp"
+#include "common/stopping/stopping_criterion.hpp"
 #include "common/thresholds/thresholds_subset.hpp"
 #include "common/rule_refinement/refinement.hpp"
 #include "common/rule_refinement/prediction.hpp"
@@ -22,8 +23,12 @@ uint32 SinglePartition::getNumElements() const {
     return numElements_;
 }
 
+std::unique_ptr<IStoppingCriterion> SinglePartition::createStoppingCriterion(const IStoppingCriterionFactory& factory) {
+    return factory.create(*this);
+}
+
 std::unique_ptr<IInstanceSampling> SinglePartition::createInstanceSampling(const IInstanceSamplingFactory& factory,
-                                                                           const ILabelMatrix& labelMatrix,
+                                                                           const IRowWiseLabelMatrix& labelMatrix,
                                                                            IStatistics& statistics) {
     return labelMatrix.createInstanceSampling(factory, *this, statistics);
 }

@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include "common/data/types.hpp"
+#include "common/data/view_two_dimensional.hpp"
 
 
 /**
@@ -12,7 +12,7 @@
  * @tparam T The type of the values
  */
 template<typename T>
-class CContiguousConstView {
+class MLRLCOMMON_API CContiguousConstView : virtual public ITwoDimensionalView {
 
     protected:
 
@@ -44,37 +44,33 @@ class CContiguousConstView {
         /**
          * An iterator that provides read-only access to the elements in the view.
          */
-        typedef const T* const_iterator;
+        typedef const T* value_const_iterator;
 
         /**
-         * Returns a `const_iterator` to the beginning of a specific row.
+         * Returns a `value_const_iterator` to the beginning of a specific row.
          *
          * @param row   The row
-         * @return      A `const_iterator` to the beginning of the given row
+         * @return      A `value_const_iterator` to the beginning of the given row
          */
-        const_iterator row_cbegin(uint32 row) const;
+        value_const_iterator row_values_cbegin(uint32 row) const;
 
         /**
-         * Returns a `const_iterator` to the end of a specific row.
+         * Returns a `value_const_iterator` to the end of a specific row.
          *
          * @param row   The row
-         * @return      A `const_iterator` to the end of the given row
+         * @return      A `value_const_iterator` to the end of the given row
          */
-        const_iterator row_cend(uint32 row) const;
+        value_const_iterator row_values_cend(uint32 row) const;
 
         /**
-         * Returns the number of rows in the view.
-         *
-         * @return The number of rows
+         * @see `ITwoDimensionalView::getNumRows`
          */
-        uint32 getNumRows() const;
+        uint32 getNumRows() const override final;
 
         /**
-         * Returns the number of columns in the view.
-         *
-         * @return The number of columns
+         * @see `ITwoDimensionalView::getNumCols`
          */
-        uint32 getNumCols() const;
+        uint32 getNumCols() const override final;
 
 };
 
@@ -84,7 +80,7 @@ class CContiguousConstView {
  * @tparam T The type of the values
  */
 template<typename T>
-class CContiguousView : public CContiguousConstView<T> {
+class MLRLCOMMON_API CContiguousView : public CContiguousConstView<T> {
 
     public:
 
@@ -99,22 +95,22 @@ class CContiguousView : public CContiguousConstView<T> {
         /**
          * An iterator that provides access to the elements in the view and allows to modify them.
          */
-        typedef T* iterator;
+        typedef T* value_iterator;
 
         /**
-         * Returns an `iterator` to the beginning of a specific row.
+         * Returns a `value_iterator` to the beginning of a specific row.
          *
          * @param row   The row
-         * @return      An `iterator` to the beginning of the given row
+         * @return      A `value_iterator` to the beginning of the given row
          */
-        iterator row_begin(uint32 row);
+        value_iterator row_values_begin(uint32 row);
 
         /**
-         * Returns an `iterator` to the end of a specific row.
+         * Returns a `value_iterator` to the end of a specific row.
          *
          * @param row   The row
-         * @return      An `iterator` to the end of the given row
+         * @return      A `value_iterator` to the end of the given row
          */
-        iterator row_end(uint32 row);
+        value_iterator row_values_end(uint32 row);
 
 };

@@ -43,8 +43,8 @@ namespace boosting {
              * @param indicesBegin  An iterator to the beginning of the indices
              * @param indicesEnd    An iterator to the end of the indices
              */
-            void addToRowFromSubset(uint32 row, typename DenseVector<T>::const_iterator begin,
-                                    typename DenseVector<T>::const_iterator end,
+            void addToRowFromSubset(uint32 row, typename VectorConstView<T>::const_iterator begin,
+                                    typename VectorConstView<T>::const_iterator end,
                                     CompleteIndexVector::const_iterator indicesBegin,
                                     CompleteIndexVector::const_iterator indicesEnd);
 
@@ -58,8 +58,8 @@ namespace boosting {
              * @param indicesBegin  An iterator to the beginning of the indices
              * @param indicesEnd    An iterator to the end of the indices
              */
-            void addToRowFromSubset(uint32 row, typename DenseVector<T>::const_iterator begin,
-                                    typename DenseVector<T>::const_iterator end,
+            void addToRowFromSubset(uint32 row, typename VectorConstView<T>::const_iterator begin,
+                                    typename VectorConstView<T>::const_iterator end,
                                     PartialIndexVector::const_iterator indicesBegin,
                                     PartialIndexVector::const_iterator indicesEnd);
 

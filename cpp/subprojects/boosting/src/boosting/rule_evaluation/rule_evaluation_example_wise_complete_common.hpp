@@ -124,7 +124,7 @@ namespace boosting {
                 dsysvTmpArray3_ = new double[dsysvLwork_];
             }
 
-            virtual ~AbstractExampleWiseRuleEvaluation() {
+            virtual ~AbstractExampleWiseRuleEvaluation() override {
                 delete[] dsysvTmpArray1_;
                 delete[] dsysvTmpArray2_;
                 delete[] dsysvTmpArray3_;

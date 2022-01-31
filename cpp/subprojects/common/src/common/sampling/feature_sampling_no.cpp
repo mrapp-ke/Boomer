@@ -27,6 +27,32 @@ class NoFeatureSampling final : public IFeatureSampling {
 
 };
 
-std::unique_ptr<IFeatureSampling> NoFeatureSamplingFactory::create(uint32 numFeatures) const {
-    return std::make_unique<NoFeatureSampling>(numFeatures);
+/**
+ * Allows to create instances of the type `IFeatureSampling` that do not perform any sampling, but include all features.
+ */
+class NoFeatureSamplingFactory final : public IFeatureSamplingFactory {
+
+    private:
+
+        uint32 numFeatures_;
+
+    public:
+
+        /**
+         * @param numFeatures The total number of available features
+         */
+        NoFeatureSamplingFactory(uint32 numFeatures)
+            : numFeatures_(numFeatures) {
+
+        }
+
+        std::unique_ptr<IFeatureSampling> create() const override {
+            return std::make_unique<NoFeatureSampling>(numFeatures_);
+        }
+
+};
+
+std::unique_ptr<IFeatureSamplingFactory> NoFeatureSamplingConfig::createFeatureSamplingFactory(
+        const IFeatureMatrix& featureMatrix) const {
+    return std::make_unique<NoFeatureSamplingFactory>(featureMatrix.getNumCols());
 }

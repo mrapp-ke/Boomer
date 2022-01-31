@@ -7,24 +7,13 @@
 
 
 /**
- * Allows to create instances of the type `IInstanceSampling` that do not perform any sampling, but assign equal weights
- * to all examples.
+ * Allows to configure a method for sampling training examples that does not perform any sampling, but assigns equal
+ * weights to all examples.
  */
-class NoInstanceSamplingFactory final : public IInstanceSamplingFactory {
+class NoInstanceSamplingConfig final : public IInstanceSamplingConfig {
 
     public:
 
-        std::unique_ptr<IInstanceSampling> create(const CContiguousLabelMatrix& labelMatrix,
-                                                  const SinglePartition& partition,
-                                                  IStatistics& statistics) const override;
-
-        std::unique_ptr<IInstanceSampling> create(const CContiguousLabelMatrix& labelMatrix, BiPartition& partition,
-                                                  IStatistics& statistics) const override;
-
-        std::unique_ptr<IInstanceSampling> create(const CsrLabelMatrix& labelMatrix, const SinglePartition& partition,
-                                                  IStatistics& statistics) const override;
-
-        std::unique_ptr<IInstanceSampling> create(const CsrLabelMatrix& labelMatrix, BiPartition& partition,
-                                                  IStatistics& statistics) const override;
+        std::unique_ptr<IInstanceSamplingFactory> createInstanceSamplingFactory() const override;
 
 };

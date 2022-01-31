@@ -7,17 +7,13 @@
 
 
 /**
- * Implements incremental reduced error pruning (IREP) for pruning classification rules.
- *
- * Given `n` conditions in the order of their induction, IREP allows to remove up to `n - 1` trailing conditions,
- * depending on which of the resulting rules improves the most over the quality score of the original rules as measured
- * on the prune set.
+ * Allows to configure a strategy for pruning classification rules that prunes rules by following the ideas of
+ * "incremental reduced error pruning" (IREP).
  */
-class IREP final : public IPruning {
+class IrepConfig final : public IPruningConfig {
 
     public:
 
-        std::unique_ptr<ICoverageState> prune(IThresholdsSubset& thresholdsSubset, IPartition& partition,
-                                              ConditionList& conditions, const AbstractPrediction& head) const override;
+        std::unique_ptr<IPruningFactory> createPruningFactory() const override;
 
 };

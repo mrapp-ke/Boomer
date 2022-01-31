@@ -5,7 +5,7 @@
 
 namespace boosting {
 
-    static inline void applyCompleteHead(const CompleteHead& head, CContiguousView<float64>::iterator iterator) {
+    static inline void applyCompleteHead(const CompleteHead& head, CContiguousView<float64>::value_iterator iterator) {
         CompleteHead::score_const_iterator scoreIterator = head.scores_cbegin();
         uint32 numElements = head.getNumElements();
 
@@ -14,7 +14,7 @@ namespace boosting {
         }
     }
 
-    static inline void applyPartialHead(const PartialHead& head, CContiguousView<float64>::iterator iterator) {
+    static inline void applyPartialHead(const PartialHead& head, CContiguousView<float64>::value_iterator iterator) {
         PartialHead::score_const_iterator scoreIterator = head.scores_cbegin();
         PartialHead::index_const_iterator indexIterator = head.indices_cbegin();
         uint32 numElements = head.getNumElements();
@@ -25,7 +25,7 @@ namespace boosting {
         }
     }
 
-    static inline void applyHead(const IHead& head, CContiguousView<float64>::iterator scoreIterator) {
+    static inline void applyHead(const IHead& head, CContiguousView<float64>::value_iterator scoreIterator) {
         auto completeHeadVisitor = [=](const CompleteHead& head) {
             applyCompleteHead(head, scoreIterator);
         };
@@ -35,9 +35,10 @@ namespace boosting {
         head.visit(completeHeadVisitor, partialHeadVisitor);
     }
 
-    static inline void applyRule(const Rule& rule, CContiguousFeatureMatrix::const_iterator featureValuesBegin,
-                                 CContiguousFeatureMatrix::const_iterator featureValuesEnd,
-                                 CContiguousView<float64>::iterator scoreIterator) {
+    static inline void applyRule(const RuleList::Rule& rule,
+                                 CContiguousConstView<const float32>::value_const_iterator featureValuesBegin,
+                                 CContiguousConstView<const float32>::value_const_iterator featureValuesEnd,
+                                 CContiguousView<float64>::value_iterator scoreIterator) {
         const IBody& body = rule.getBody();
 
         if (body.covers(featureValuesBegin, featureValuesEnd)) {
@@ -46,20 +47,22 @@ namespace boosting {
         }
     }
 
-    static inline void applyRules(const RuleModel& model, CContiguousFeatureMatrix::const_iterator featureValuesBegin,
-                                  CContiguousFeatureMatrix::const_iterator featureValuesEnd,
-                                  CContiguousView<float64>::iterator scoreIterator) {
+    static inline void applyRules(const RuleList& model,
+                                  CContiguousConstView<const float32>::value_const_iterator featureValuesBegin,
+                                  CContiguousConstView<const float32>::value_const_iterator featureValuesEnd,
+                                  CContiguousView<float64>::value_iterator scoreIterator) {
         for (auto it = model.used_cbegin(); it != model.used_cend(); it++) {
-            const Rule& rule = *it;
+            const RuleList::Rule& rule = *it;
             applyRule(rule, featureValuesBegin, featureValuesEnd, scoreIterator);
         }
     }
 
-    static inline void applyRuleCsr(const Rule& rule, CsrFeatureMatrix::index_const_iterator featureIndicesBegin,
-                                    CsrFeatureMatrix::index_const_iterator featureIndicesEnd,
-                                    CsrFeatureMatrix::value_const_iterator featureValuesBegin,
-                                    CsrFeatureMatrix::value_const_iterator featureValuesEnd,
-                                    CContiguousView<float64>::iterator scoreIterator, float32* tmpArray1,
+    static inline void applyRuleCsr(const RuleList::Rule& rule,
+                                    CsrConstView<const float32>::index_const_iterator featureIndicesBegin,
+                                    CsrConstView<const float32>::index_const_iterator featureIndicesEnd,
+                                    CsrConstView<const float32>::value_const_iterator featureValuesBegin,
+                                    CsrConstView<const float32>::value_const_iterator featureValuesEnd,
+                                    CContiguousView<float64>::value_iterator scoreIterator, float32* tmpArray1,
                                     uint32* tmpArray2, uint32 n) {
         const IBody& body = rule.getBody();
 
@@ -70,18 +73,18 @@ namespace boosting {
         }
     }
 
-    static inline void applyRulesCsr(const RuleModel& model, uint32 numFeatures,
-                                     CsrFeatureMatrix::index_const_iterator featureIndicesBegin,
-                                     CsrFeatureMatrix::index_const_iterator featureIndicesEnd,
-                                     CsrFeatureMatrix::value_const_iterator featureValuesBegin,
-                                     CsrFeatureMatrix::value_const_iterator featureValuesEnd,
-                                     CContiguousView<float64>::iterator scoreIterator) {
+    static inline void applyRulesCsr(const RuleList& model, uint32 numFeatures,
+                                     CsrConstView<const float32>::index_const_iterator featureIndicesBegin,
+                                     CsrConstView<const float32>::index_const_iterator featureIndicesEnd,
+                                     CsrConstView<const float32>::value_const_iterator featureValuesBegin,
+                                     CsrConstView<const float32>::value_const_iterator featureValuesEnd,
+                                     CContiguousView<float64>::value_iterator scoreIterator) {
         float32* tmpArray1 = new float32[numFeatures];
         uint32* tmpArray2 = new uint32[numFeatures] {};
         uint32 n = 1;
 
         for (auto it = model.used_cbegin(); it != model.used_cend(); it++) {
-            const Rule& rule = *it;
+            const RuleList::Rule& rule = *it;
             applyRuleCsr(rule, featureIndicesBegin, featureIndicesEnd, featureValuesBegin, featureValuesEnd,
                          scoreIterator, &tmpArray1[0], &tmpArray2[0], n);
             n++;

@@ -4,67 +4,42 @@
 #pragma once
 
 #include "boosting/losses/loss_example_wise.hpp"
+#include "boosting/rule_evaluation/head_type.hpp"
 
 
 namespace boosting {
 
     /**
-     * A multi-label variant of the logistic loss that is applied example-wise.
+     * Allows to configure a loss function that implements a multi-label variant of the logistic loss that is applied
+     * example-wise.
      */
-    class ExampleWiseLogisticLoss final : public IExampleWiseLoss {
+    class ExampleWiseLogisticLossConfig final : public IExampleWiseLossConfig {
+
+        private:
+
+            const std::unique_ptr<IHeadConfig>& headConfigPtr_;
 
         public:
 
-            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
-                                                   const CContiguousConstView<float64>& scoreMatrix,
-                                                   CompleteIndexVector::const_iterator labelIndicesBegin,
-                                                   CompleteIndexVector::const_iterator labelIndicesEnd,
-                                                   DenseLabelWiseStatisticView& statisticView) const override;
-
-            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
-                                                   const CContiguousConstView<float64>& scoreMatrix,
-                                                   PartialIndexVector::const_iterator labelIndicesBegin,
-                                                   PartialIndexVector::const_iterator labelIndicesEnd,
-                                                   DenseLabelWiseStatisticView& statisticView) const override;
-
-            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
-                                                   const CContiguousConstView<float64>& scoreMatrix,
-                                                   CompleteIndexVector::const_iterator labelIndicesBegin,
-                                                   CompleteIndexVector::const_iterator labelIndicesEnd,
-                                                   DenseLabelWiseStatisticView& statisticView) const override;
-
-            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
-                                                   const CContiguousConstView<float64> scoreMatrix,
-                                                   PartialIndexVector::const_iterator labelIndicesBegin,
-                                                   PartialIndexVector::const_iterator labelIndicesEnd,
-                                                   DenseLabelWiseStatisticView& statisticView) const override;
-
-            void updateExampleWiseStatistics(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
-                                             const CContiguousConstView<float64>& scoreMatrix,
-                                             DenseExampleWiseStatisticView& statisticView) const override;
-
-            void updateExampleWiseStatistics(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
-                                             const CContiguousConstView<float64>& scoreMatrix,
-                                             DenseExampleWiseStatisticView& statisticView) const override;
-
             /**
-             * @see `IEvaluationMeasure::evaluate`
+             * @param headConfigPtr A reference to an unique pointer that stores the configuration of rules heads
              */
-            float64 evaluate(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
-                             const CContiguousConstView<float64>& scoreMatrix) const override;
+            ExampleWiseLogisticLossConfig(const std::unique_ptr<IHeadConfig>& headConfigPtr);
 
-            /**
-             * @see `IEvaluationMeasure::evaluate`
-             */
-            float64 evaluate(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
-                             const CContiguousConstView<float64>& scoreMatrix) const override;
+            std::unique_ptr<IStatisticsProviderFactory> createStatisticsProviderFactory(
+                const IFeatureMatrix& featureMatrix, const ILabelMatrix& labelMatrix, const Blas& blas,
+                const Lapack& lapack) const override;
 
-            /**
-             * @see `ISimilarityMeasure::measureSimilarity`
-             */
-            float64 measureSimilarity(const LabelVector& labelVector,
-                                      CContiguousView<float64>::const_iterator scoresBegin,
-                                      CContiguousView<float64>::const_iterator scoresEnd) const override;
+            std::unique_ptr<IEvaluationMeasureFactory> createEvaluationMeasureFactory() const override;
+
+            std::unique_ptr<ISimilarityMeasureFactory> createSimilarityMeasureFactory() const override;
+
+            std::unique_ptr<IProbabilityFunctionFactory> createProbabilityFunctionFactory() const override;
+
+            float64 getDefaultPrediction() const override;
+
+            std::unique_ptr<IExampleWiseLossFactory> createExampleWiseLossFactory() const override;
+
 
     };
 

@@ -27,6 +27,31 @@ class NoLabelSampling final : public ILabelSampling {
 
 };
 
-std::unique_ptr<ILabelSampling> NoLabelSamplingFactory::create(uint32 numLabels) const {
-    return std::make_unique<NoLabelSampling>(numLabels);
+/**
+ * Allows to create objects of the class `ILabelSampling` that do not perform any sampling, but include all labels.
+ */
+class NoLabelSamplingFactory final : public ILabelSamplingFactory {
+
+    private:
+
+        uint32 numLabels_;
+
+    public:
+
+        /**
+         * @param numLabels The total number of available labels
+         */
+        NoLabelSamplingFactory(uint32 numLabels)
+            : numLabels_(numLabels) {
+
+        }
+
+        std::unique_ptr<ILabelSampling> create() const override {
+            return std::make_unique<NoLabelSampling>(numLabels_);
+        }
+
+};
+
+std::unique_ptr<ILabelSamplingFactory> NoLabelSamplingConfig::createLabelSamplingFactory(const ILabelMatrix& labelMatrix) const {
+    return std::make_unique<NoLabelSamplingFactory>(labelMatrix.getNumCols());
 }

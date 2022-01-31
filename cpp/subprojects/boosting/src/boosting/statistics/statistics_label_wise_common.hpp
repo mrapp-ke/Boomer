@@ -92,7 +92,7 @@ namespace boosting {
 
                     }
 
-                    ~StatisticsSubset() {
+                    ~StatisticsSubset() override {
                         delete accumulatedSumVector_;
                         delete totalCoverableSumVector_;
                     }
@@ -102,7 +102,7 @@ namespace boosting {
                      */
                     void addToMissing(uint32 statisticIndex, float64 weight) override {
                         // Create a vector for storing the totals sums of gradients and Hessians, if necessary...
-                        if (totalCoverableSumVector_ == nullptr) {
+                        if (!totalCoverableSumVector_) {
                             totalCoverableSumVector_ = new StatisticVector(*totalSumVector_);
                             totalSumVector_ = totalCoverableSumVector_;
                         }
@@ -127,7 +127,7 @@ namespace boosting {
                      */
                     void resetSubset() override {
                         // Create a vector for storing the accumulated sums of gradients and Hessians, if necessary...
-                        if (accumulatedSumVector_ == nullptr) {
+                        if (!accumulatedSumVector_) {
                             uint32 numPredictions = labelIndices_.getNumElements();
                             accumulatedSumVector_ = new StatisticVector(numPredictions, true);
                         }
@@ -330,9 +330,9 @@ namespace boosting {
 
             std::unique_ptr<StatisticVector> totalSumVectorPtr_;
 
-            const LossFunction& lossFunction_;
+            const std::unique_ptr<LossFunction> lossPtr_;
 
-            const EvaluationMeasure& evaluationMeasure_;
+            const std::unique_ptr<EvaluationMeasure> evaluationMeasurePtr_;
 
             const LabelMatrix& labelMatrix_;
 
@@ -341,9 +341,10 @@ namespace boosting {
         public:
 
             /**
-             * @param lossFunction          A reference to an object of template type `LossFunction`, representing the
-             *                              loss function to be used for calculating gradients and Hessians
-             * @param evaluationMeasure     A reference to an object of template type `EvaluationMeasure` that
+             * @param lossPtr               An unique pointer to an object of template type `LossFunction` that
+             *                              implements the loss function that should be used for calculating gradients
+             *                              and Hessians
+             * @param evaluationMeasurePtr  An unique pointer to an object of template type `EvaluationMeasure` that
              *                              implements the evaluation measure that should be used to assess the quality
              *                              of predictions for a specific statistic
              * @param ruleEvaluationFactory A reference to an object of type `RuleEvaluationFactory`, that allows to
@@ -356,7 +357,8 @@ namespace boosting {
              * @param scoreMatrixPtr        An unique pointer to an object of template type `ScoreMatrix` that stores
              *                              the currently predicted scores
              */
-            AbstractLabelWiseStatistics(const LossFunction& lossFunction, const EvaluationMeasure& evaluationMeasure,
+            AbstractLabelWiseStatistics(std::unique_ptr<LossFunction> lossPtr,
+                                        std::unique_ptr<EvaluationMeasure> evaluationMeasurePtr,
                                         const RuleEvaluationFactory& ruleEvaluationFactory,
                                         const LabelMatrix& labelMatrix, std::unique_ptr<StatisticView> statisticViewPtr,
                                         std::unique_ptr<ScoreMatrix> scoreMatrixPtr)
@@ -364,8 +366,8 @@ namespace boosting {
                                                        RuleEvaluationFactory>(
                       std::move(statisticViewPtr), ruleEvaluationFactory),
                   totalSumVectorPtr_(std::make_unique<StatisticVector>(this->statisticViewPtr_->getNumCols())),
-                  lossFunction_(lossFunction), evaluationMeasure_(evaluationMeasure), labelMatrix_(labelMatrix),
-                  scoreMatrixPtr_(std::move(scoreMatrixPtr)) {
+                  lossPtr_(std::move(lossPtr)), evaluationMeasurePtr_(std::move(evaluationMeasurePtr)),
+                  labelMatrix_(labelMatrix), scoreMatrixPtr_(std::move(scoreMatrixPtr)) {
 
             }
 
@@ -414,8 +416,7 @@ namespace boosting {
             void applyPrediction(uint32 statisticIndex, const CompletePrediction& prediction) override final {
                 applyLabelWisePredictionInternally<CompletePrediction, LabelMatrix, StatisticView, ScoreMatrix,
                                                    LossFunction>(
-                    statisticIndex, prediction, labelMatrix_, *this->statisticViewPtr_, *scoreMatrixPtr_,
-                    lossFunction_);
+                    statisticIndex, prediction, labelMatrix_, *this->statisticViewPtr_, *scoreMatrixPtr_, *lossPtr_);
             }
 
             /**
@@ -424,15 +425,14 @@ namespace boosting {
             void applyPrediction(uint32 statisticIndex, const PartialPrediction& prediction) override final {
                 applyLabelWisePredictionInternally<PartialPrediction, LabelMatrix, StatisticView, ScoreMatrix,
                                                    LossFunction>(
-                    statisticIndex, prediction, labelMatrix_, *this->statisticViewPtr_, *scoreMatrixPtr_,
-                    lossFunction_);
+                    statisticIndex, prediction, labelMatrix_, *this->statisticViewPtr_, *scoreMatrixPtr_, *lossPtr_);
             }
 
             /**
              * @see `IStatistics::evaluatePrediction`
              */
             float64 evaluatePrediction(uint32 statisticIndex) const override final {
-                return evaluationMeasure_.evaluate(statisticIndex, labelMatrix_, *scoreMatrixPtr_);
+                return evaluationMeasurePtr_->evaluate(statisticIndex, labelMatrix_, *scoreMatrixPtr_);
             }
 
             /**

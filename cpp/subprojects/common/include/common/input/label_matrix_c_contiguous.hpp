@@ -3,20 +3,34 @@
  */
 #pragma once
 
-#include "common/data/view_c_contiguous.hpp"
-#include "common/data/functions.hpp"
-#include "common/input/label_matrix.hpp"
+#ifdef _WIN32
+    #pragma warning( push )
+    #pragma warning( disable : 4250 )
+#endif
 
+#include "common/input/label_matrix_row_wise.hpp"
+#include "common/data/view_c_contiguous.hpp"
+#include "common/data/view_vector.hpp"
+#include "common/data/functions.hpp"
+
+
+/**
+ * Defines an interface for all label matrices that provide row-wise access to the labels of individual examples that
+ * are stored in a C-contiguous array.
+ */
+class MLRLCOMMON_API ICContiguousLabelMatrix : virtual public IRowWiseLabelMatrix {
+
+    public:
+
+        virtual ~ICContiguousLabelMatrix() override { };
+
+};
 
 /**
  * Implements random read-only access to the labels of individual training examples that are stored in a pre-allocated
  * C-contiguous array.
  */
-class CContiguousLabelMatrix final : public ILabelMatrix {
-
-    private:
-
-        CContiguousConstView<const uint8> view_;
+class CContiguousLabelMatrix final : public CContiguousConstView<const uint8>, virtual public ICContiguousLabelMatrix {
 
     public:
 
@@ -94,27 +108,6 @@ class CContiguousLabelMatrix final : public ILabelMatrix {
         typedef const View view_type;
 
         /**
-         * An iterator that provides read-only access to the values in the label matrix.
-         */
-        typedef CContiguousConstView<const uint8>::const_iterator value_const_iterator;
-
-        /**
-         * Returns a `value_const_iterator` to the beginning of a specific row.
-         *
-         * @param row   The row
-         * @return      A `value_const_iterator` to the beginning of the given row
-         */
-        value_const_iterator row_values_cbegin(uint32 row) const;
-
-        /**
-         * Returns a `value_const_iterator` to the end of a specific row.
-         *
-         * @param row   The row
-         * @return      A `value_const_iterator` to the end of the given row
-         */
-        value_const_iterator row_values_cend(uint32 row) const;
-
-        /**
          * Creates and returns a view that provides access to the values at a specific row of the label matrix.
          *
          * @param row   The row
@@ -122,9 +115,7 @@ class CContiguousLabelMatrix final : public ILabelMatrix {
          */
         view_type createView(uint32 row) const;
 
-        uint32 getNumRows() const override;
-
-        uint32 getNumCols() const override;
+        bool isSparse() const override;
 
         float64 calculateLabelCardinality() const override;
 
@@ -145,3 +136,18 @@ class CContiguousLabelMatrix final : public ILabelMatrix {
                                                                   IStatistics& statistics) const override;
 
 };
+
+/**
+ * Creates and returns a new object of the type `ICContiguousLabelMatrix`.
+
+ * @param numRows   The number of rows in the label matrix
+ * @param numCols   The number of columns in the label matrix
+ * @param array     A pointer to a C-contiguous array of type `uint8` that stores the labels
+ * @return          An unique pointer to an object of type `ICContiguousLabelMatrix` that has been created
+ */
+MLRLCOMMON_API std::unique_ptr<ICContiguousLabelMatrix> createCContiguousLabelMatrix(uint32 numRows, uint32 numCols,
+                                                                                     const uint8* array);
+
+#ifdef _WIN32
+    #pragma warning ( pop )
+#endif

@@ -5,14 +5,14 @@
 
 namespace boosting {
 
-    Lapack::Lapack(dsysv_t dsysvFunction)
+    Lapack::Lapack(DsysvFunction dsysvFunction)
         : dsysvFunction_(dsysvFunction) {
 
     }
 
     int Lapack::queryDsysvLworkParameter(float64* tmpArray1, float64* output, int n) const {
         // "U" if the upper-right triangle of A should be used, "L" if the lower-left triangle should be used
-        char* uplo = "U";
+        char* uplo = const_cast<char*>("U");
         // The number of right-hand sides, i.e, the number of columns of the matrix B
         int nrhs = 1;
         // Set "lwork" parameter to -1, which indicates that the optimal value should be queried
@@ -36,7 +36,7 @@ namespace boosting {
 
     void Lapack::dsysv(float64* tmpArray1, int* tmpArray2, double* tmpArray3, float64* output, int n, int lwork) const {
         // "U" if the upper-right triangle of A should be used, "L" if the lower-left triangle should be used
-        char* uplo = "U";
+        char* uplo = const_cast<char*>("U");
         // The number of right-hand sides, i.e, the number of columns of the matrix B
         int nrhs = 1;
         // Variable to hold the result of the solver. Will be 0 when terminated successfully, unlike 0 otherwise

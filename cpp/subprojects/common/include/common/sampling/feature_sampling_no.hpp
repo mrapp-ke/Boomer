@@ -7,12 +7,13 @@
 
 
 /**
- * Allows to create instances of the type `IFeatureSampling` that do not perform any sampling, but include all features.
+ * Allows to configure a method for sampling features that does not perform any sampling, but includes all features.
  */
-class NoFeatureSamplingFactory final : public IFeatureSamplingFactory {
+class NoFeatureSamplingConfig final : public IFeatureSamplingConfig {
 
     public:
 
-        std::unique_ptr<IFeatureSampling> create(uint32 numFeatures) const override;
+        std::unique_ptr<IFeatureSamplingFactory> createFeatureSamplingFactory(
+            const IFeatureMatrix& featureMatrix) const override;
 
 };

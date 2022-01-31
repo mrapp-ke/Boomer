@@ -32,7 +32,7 @@ class BinaryLilMatrix final {
          */
         BinaryLilMatrix(uint32 numRows);
 
-        virtual ~BinaryLilMatrix();
+        ~BinaryLilMatrix();
 
         /**
          * An iterator that provides access to the elements at a row and allows to modify them.

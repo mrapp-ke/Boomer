@@ -16,12 +16,10 @@ class BooleanOption(Enum):
     FALSE = 'false'
 
     @staticmethod
-    def parse(s):
-        lower = str(s).lower()
-
-        if lower == BooleanOption.TRUE.value:
+    def parse(s) -> bool:
+        if s == BooleanOption.TRUE.value:
             return True
-        elif lower == BooleanOption.FALSE.value:
+        elif s == BooleanOption.FALSE.value:
             return False
         raise ValueError(
             'Invalid boolean value given. Must be one of ' + format_enum_values(BooleanOption) + ', but is "' + str(

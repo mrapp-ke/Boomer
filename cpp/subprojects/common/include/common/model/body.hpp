@@ -3,8 +3,9 @@
  */
 #pragma once
 
-#include "common/input/feature_matrix_c_contiguous.hpp"
-#include "common/input/feature_matrix_csr.hpp"
+#include "common/data/view_c_contiguous.hpp"
+#include "common/data/view_csr.hpp"
+#include "common/macros.hpp"
 #include <functional>
 
 // Forward declarations
@@ -15,7 +16,7 @@ class ConjunctiveBody;
 /**
  * Defines an interface for all classes that represent the body of a rule.
  */
-class IBody {
+class MLRLCOMMON_API IBody {
 
     public:
 
@@ -39,8 +40,8 @@ class IBody {
          * @param end   An iterator to the end of the example's feature values
          * @return      True, if the example is covered, false otherwise
          */
-        virtual bool covers(CContiguousFeatureMatrix::const_iterator begin,
-                            CContiguousFeatureMatrix::const_iterator end) const = 0;
+        virtual bool covers(CContiguousConstView<const float32>::value_const_iterator begin,
+                            CContiguousConstView<const float32>::value_const_iterator end) const = 0;
 
         /**
          * Returns whether an individual example, which is stored in a CSR sparse matrix, is covered by the body or not.
@@ -59,11 +60,11 @@ class IBody {
          *                      invocations
          * @return              True, if the example is covered, false otherwise
          */
-        virtual bool covers(CsrFeatureMatrix::index_const_iterator indicesBegin,
-                            CsrFeatureMatrix::index_const_iterator indicesEnd,
-                            CsrFeatureMatrix::value_const_iterator valuesBegin,
-                            CsrFeatureMatrix::value_const_iterator valuesEnd, float32* tmpArray1, uint32* tmpArray2,
-                            uint32 n) const = 0;
+        virtual bool covers(CsrConstView<const float32>::index_const_iterator indicesBegin,
+                            CsrConstView<const float32>::index_const_iterator indicesEnd,
+                            CsrConstView<const float32>::value_const_iterator valuesBegin,
+                            CsrConstView<const float32>::value_const_iterator valuesEnd, float32* tmpArray1,
+                            uint32* tmpArray2, uint32 n) const = 0;
 
         /**
          * Invokes one of the given visitor functions, depending on which one is able to handle this particular type of

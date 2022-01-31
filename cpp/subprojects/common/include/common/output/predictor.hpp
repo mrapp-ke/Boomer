@@ -3,10 +3,10 @@
  */
 #pragma once
 
-#include "common/input/feature_matrix_c_contiguous.hpp"
-#include "common/input/feature_matrix_csr.hpp"
-#include "common/input/label_vector_set.hpp"
-#include "common/model/rule_model.hpp"
+#include "common/data/view_c_contiguous.hpp"
+#include "common/data/view_csr.hpp"
+#include "common/output/prediction_matrix_dense.hpp"
+#include <memory>
 
 
 /**
@@ -23,35 +23,27 @@ class IPredictor {
         virtual ~IPredictor() { };
 
         /**
-         * Obtains predictions for all examples in a C-contiguous matrix, using a specific rule-based model, and writes
-         * them to a given C-contiguous prediction matrix.
+         * Obtains dense predictions for all examples in a C-contiguous matrix, using a specific rule-based model.
          *
-         * @param featureMatrix     A reference to an object of type `CContiguousFeatureMatrix` that stores the feature
+         * @param featureMatrix     A reference to an object of type `CContiguousConstView` that stores the feature
          *                          values of the examples
-         * @param predictionMatrix  A reference to an object of type `CContiguousView`, the predictions should be
-         *                          written to. May contain arbitrary values
-         * @param model             A reference to an object of type `RuleModel` that should be used to obtain the
+         * @param numLabels         The number of labels to predict for
+         * @return                  An unique pointer to an object of type `DensePredictionMatrix` that stores the
          *                          predictions
-         * @param labelVectors      A pointer to an object of type `LabelVectorSet` that stores all known label vectors
-         *                          or a null pointer, if no such set is available
          */
-        virtual void predict(const CContiguousFeatureMatrix& featureMatrix, CContiguousView<T>& predictionMatrix,
-                             const RuleModel& model, const LabelVectorSet* labelVectors) const = 0;
+        virtual std::unique_ptr<DensePredictionMatrix<T>> predict(
+            const CContiguousConstView<const float32>& featureMatrix, uint32 numLabels) const = 0;
 
         /**
-         * Obtains predictions for all examples in a sparse CSR matrix, using a specific rule-based model, and writes
-         * them to a given C-contiguous prediction matrix.
+         * Obtains dense predictions for all examples in a sparse CSR matrix, using a specific rule-based model.
          *
-         * @param featureMatrix     A reference to an object of type `CsrFeatureMatrix` that stores the feature values
-         *                          of the examples
-         * @param predictionMatrix  A reference to an object of type `CContiguousView`, the predictions should be
-         *                          written to. May contain arbitrary values
-         * @param model             A reference to an object of type `RuleModel` that should be used to obtain the
+         * @param featureMatrix     A reference to an object of type `CsrConstView` that stores the feature values of
+         *                          the examples
+         * @param numLabels         The number of labels to predict for
+         * @return                  An unique pointer to an object of type `DensePredictionMatrix` that stores the
          *                          predictions
-         * @param labelVectors      A pointer to an object of type `LabelVectorSet` that stores all known label vectors
-         *                          or a null pointer, if no such set is available
          */
-        virtual void predict(const CsrFeatureMatrix& featureMatrix, CContiguousView<T>& predictionMatrix,
-                             const RuleModel& model, const LabelVectorSet* labelVectors) const = 0;
+        virtual std::unique_ptr<DensePredictionMatrix<T>> predict(const CsrConstView<const float32>& featureMatrix,
+                                                                  uint32 numLabels) const = 0;
 
 };

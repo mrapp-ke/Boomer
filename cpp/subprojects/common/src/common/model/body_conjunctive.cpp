@@ -9,49 +9,6 @@ ConjunctiveBody::ConjunctiveBody(uint32 numLeq, uint32 numGr, uint32 numEq, uint
 
 }
 
-ConjunctiveBody::ConjunctiveBody(const ConditionList& conditionList)
-    : ConjunctiveBody(conditionList.getNumConditions(LEQ), conditionList.getNumConditions(GR),
-                      conditionList.getNumConditions(EQ), conditionList.getNumConditions(NEQ)) {
-    uint32 leqIndex = 0;
-    uint32 grIndex = 0;
-    uint32 eqIndex = 0;
-    uint32 neqIndex = 0;
-
-    for (auto it = conditionList.cbegin(); it != conditionList.cend(); it++) {
-        const Condition& condition = *it;
-        uint32 featureIndex = condition.featureIndex;
-        float32 threshold = condition.threshold;
-
-        switch (condition.comparator) {
-            case LEQ: {
-                leqFeatureIndices_[leqIndex] = featureIndex;
-                leqThresholds_[leqIndex] = threshold;
-                leqIndex++;
-                break;
-            }
-            case GR: {
-                grFeatureIndices_[grIndex] = featureIndex;
-                grThresholds_[grIndex] = threshold;
-                grIndex++;
-                break;
-            }
-            case EQ: {
-                eqFeatureIndices_[eqIndex] = featureIndex;
-                eqThresholds_[eqIndex] = threshold;
-                eqIndex++;
-                break;
-            }
-            case NEQ: {
-                neqFeatureIndices_[neqIndex] = featureIndex;
-                neqThresholds_[neqIndex] = threshold;
-                neqIndex++;
-                break;
-            }
-            default: { }
-        }
-    }
-}
-
 ConjunctiveBody::~ConjunctiveBody() {
     delete[] leqFeatureIndices_;
     delete[] leqThresholds_;
@@ -207,8 +164,8 @@ ConjunctiveBody::index_const_iterator ConjunctiveBody::neq_indices_cend() const 
     return &neqFeatureIndices_[numLeq_];
 }
 
-bool ConjunctiveBody::covers(CContiguousFeatureMatrix::const_iterator begin,
-                             CContiguousFeatureMatrix::const_iterator end) const {
+bool ConjunctiveBody::covers(CContiguousConstView<const float32>::value_const_iterator begin,
+                             CContiguousConstView<const float32>::value_const_iterator end) const {
     // Test conditions using the <= operator...
     for (uint32 i = 0; i < numLeq_; i++) {
         uint32 featureIndex = leqFeatureIndices_[i];
@@ -252,11 +209,11 @@ bool ConjunctiveBody::covers(CContiguousFeatureMatrix::const_iterator begin,
     return true;
 }
 
-bool ConjunctiveBody::covers(CsrFeatureMatrix::index_const_iterator indicesBegin,
-                             CsrFeatureMatrix::index_const_iterator indicesEnd,
-                             CsrFeatureMatrix::value_const_iterator valuesBegin,
-                             CsrFeatureMatrix::value_const_iterator valuesEnd, float32* tmpArray1, uint32* tmpArray2,
-                             uint32 n) const {
+bool ConjunctiveBody::covers(CsrConstView<const float32>::index_const_iterator indicesBegin,
+                             CsrConstView<const float32>::index_const_iterator indicesEnd,
+                             CsrConstView<const float32>::value_const_iterator valuesBegin,
+                             CsrConstView<const float32>::value_const_iterator valuesEnd, float32* tmpArray1,
+                             uint32* tmpArray2, uint32 n) const {
     // Copy non-zero feature values to the temporary arrays...
     auto valueIterator = valuesBegin;
 

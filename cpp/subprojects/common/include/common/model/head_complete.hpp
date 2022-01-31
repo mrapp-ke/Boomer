@@ -3,14 +3,14 @@
  */
 #pragma once
 
+#include "common/data/types.hpp"
 #include "common/model/head.hpp"
-#include "common/rule_refinement/prediction_complete.hpp"
 
 
 /**
  * A head that contains a numerical score for each available label.
  */
-class CompleteHead final : public IHead {
+class MLRLCOMMON_API CompleteHead final : public IHead {
 
     private:
 
@@ -25,13 +25,7 @@ class CompleteHead final : public IHead {
          */
         CompleteHead(uint32 numElements);
 
-        /**
-         * @param prediction A reference to an object of type `CompletePrediction` that stores the scores to be
-         *                   contained by the head
-         */
-        CompleteHead(const CompletePrediction& prediction);
-
-        ~CompleteHead();
+        ~CompleteHead() override;
 
         /**
          * An iterator that provides access to the scores the are contained by the head and allows to modify them.

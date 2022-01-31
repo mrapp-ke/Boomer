@@ -4,6 +4,8 @@
 #pragma once
 
 #include "common/model/condition.hpp"
+#include "common/model/body_conjunctive.hpp"
+#include <memory>
 #include <list>
 #include <array>
 
@@ -53,14 +55,6 @@ class ConditionList final {
         size_type getNumConditions() const;
 
         /**
-         * Returns how many conditions with a specific comparator are contained by the list.
-         *
-         * @param comparator The comparator
-         * @return           The number of conditions with the given comparator that are contained by the list
-         */
-        uint32 getNumConditions(Comparator comparator) const;
-
-        /**
          * Adds a new condition to the end of the list.
          *
          * @param condition A reference to an object of type `Condition` that should be added
@@ -71,5 +65,12 @@ class ConditionList final {
          * Removes the last condition from the list.
          */
         void removeLast();
+
+        /**
+         * Creates and returns a new object of type `ConjunctiveBody` from the conditions that contained by this list.
+         *
+         * @return An unique pointer to an object of type `ConjunctiveBody` that has been created
+         */
+        std::unique_ptr<ConjunctiveBody> createConjunctiveBody() const;
 
 };

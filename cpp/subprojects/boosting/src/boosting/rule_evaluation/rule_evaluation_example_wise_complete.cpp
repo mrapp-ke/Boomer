@@ -1,7 +1,6 @@
 #include "boosting/rule_evaluation/rule_evaluation_example_wise_complete.hpp"
 #include "boosting/math/math.hpp"
 #include "common/rule_evaluation/score_vector_dense.hpp"
-#include "common/validation.hpp"
 #include "rule_evaluation_example_wise_complete_common.hpp"
 #include "rule_evaluation_label_wise_common.hpp"
 
@@ -54,10 +53,10 @@ namespace boosting {
              *                                  scores to be predicted by rules
              * @param l2RegularizationWeight    The weight of the L2 regularization that is applied for calculating the
              *                                  scores to be predicted by rules
-             * @param blas                      A reference to an object of type `Blas` that allows to execute different
-             *                                  BLAS routines
-             * @param lapack                    A reference to an object of type `Lapack` that allows to execute
-             *                                  different LAPACK routines
+             * @param blas                      A reference to an object of type `Blas` that allows to execute BLAS
+             *                                  routines
+             * @param lapack                    A reference to an object of type `Lapack` that allows to execute LAPACK
+             *                                  routines
              */
             DenseExampleWiseCompleteRuleEvaluation(const T& labelIndices, float64 l1RegularizationWeight,
                                                    float64 l2RegularizationWeight, const Blas& blas,
@@ -104,14 +103,10 @@ namespace boosting {
     };
 
     ExampleWiseCompleteRuleEvaluationFactory::ExampleWiseCompleteRuleEvaluationFactory(
-            float64 l1RegularizationWeight, float64 l2RegularizationWeight, std::unique_ptr<Blas> blasPtr,
-            std::unique_ptr<Lapack> lapackPtr)
-        : l1RegularizationWeight_(l1RegularizationWeight), l2RegularizationWeight_(l2RegularizationWeight),
-          blasPtr_(std::move(blasPtr)), lapackPtr_(std::move(lapackPtr)) {
-        assertGreaterOrEqual<float64>("l1RegularizationWeight", l1RegularizationWeight, 0);
-        assertGreaterOrEqual<float64>("l2RegularizationWeight", l2RegularizationWeight, 0);
-        assertNotNull("blasPtr", blasPtr_.get());
-        assertNotNull("lapackPtr", lapackPtr_.get());
+            float64 l1RegularizationWeight, float64 l2RegularizationWeight, const Blas& blas, const Lapack& lapack)
+        : l1RegularizationWeight_(l1RegularizationWeight), l2RegularizationWeight_(l2RegularizationWeight), blas_(blas),
+          lapack_(lapack) {
+
     }
 
     std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> ExampleWiseCompleteRuleEvaluationFactory::create(
@@ -119,7 +114,7 @@ namespace boosting {
         return std::make_unique<DenseExampleWiseCompleteRuleEvaluation<CompleteIndexVector>>(indexVector,
                                                                                              l1RegularizationWeight_,
                                                                                              l2RegularizationWeight_,
-                                                                                             *blasPtr_, *lapackPtr_);
+                                                                                             blas_, lapack_);
     }
 
     std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> ExampleWiseCompleteRuleEvaluationFactory::create(
@@ -127,7 +122,7 @@ namespace boosting {
         return std::make_unique<DenseExampleWiseCompleteRuleEvaluation<PartialIndexVector>>(indexVector,
                                                                                             l1RegularizationWeight_,
                                                                                             l2RegularizationWeight_,
-                                                                                            *blasPtr_, *lapackPtr_);
+                                                                                            blas_, lapack_);
     }
 
 }

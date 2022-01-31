@@ -33,7 +33,7 @@ class CoverageMask final : public ICoverageState {
          */
         CoverageMask(const CoverageMask& coverageMask);
 
-        ~CoverageMask();
+        ~CoverageMask() override;
 
         /**
          * An iterator that provides access to the values in the mask and allows to modify them.

@@ -21,9 +21,9 @@ namespace boosting {
 
             float64 l2RegularizationWeight_;
 
-            std::unique_ptr<Blas> blasPtr_;
+            const Blas& blas_;
 
-            std::unique_ptr<Lapack> lapackPtr_;
+            const Lapack& lapack_;
 
         public:
 
@@ -32,13 +32,13 @@ namespace boosting {
              *                                  scores to be predicted by rules
              * @param l2RegularizationWeight    The weight of the L2 regularization that is applied for calculating the
              *                                  scores to be predicted by rules
-             * @param blasPtr                   An unique pointer to an object of type `Blas` that allows to execute
-             *                                  different BLAS routines
-             * @param lapackPtr                 An unique pointer to an object of type `Lapack` that allows to execute
-             *                                  different LAPACK routines
+             * @param blas                      A reference to an object of type `Blas` that allows to execute BLAS
+             *                                  routines
+             * @param lapack                    An reference to an object of type `Lapack` that allows to execute BLAS
+             *                                  routines
              */
             ExampleWiseCompleteRuleEvaluationFactory(float64 l1RegularizationWeight, float64 l2RegularizationWeight,
-                                                     std::unique_ptr<Blas> blasPtr, std::unique_ptr<Lapack> lapackPtr);
+                                                     const Blas& blas, const Lapack& lapack);
 
             std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> create(
                 const DenseExampleWiseStatisticVector& statisticVector,

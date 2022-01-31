@@ -96,7 +96,7 @@ class AbstractPrediction : public IIndexVector {
          *
          * @return An unique pointer to an object of type `IHead` that has been created
          */
-        virtual std::unique_ptr<IHead> toHead() const = 0;
+        virtual std::unique_ptr<IHead> createHead() const = 0;
 
         /**
          * Sets the number of labels for which the rule predict.

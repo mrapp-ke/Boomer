@@ -4,15 +4,9 @@ project('boosting', 'cython', 'cpp')
 cython_dir = 'cython'
 cython_module_names = [
     'label_binning',
-    'losses_example_wise',
-    'losses_label_wise',
-    'model',
-    'output',
-    'post_processing',
-    'rule_evaluation_example_wise',
-    'rule_evaluation_label_wise',
-    'statistics_example_wise',
-    'statistics_label_wise'
+    'learner',
+    'post_processor',
+    'regularization'
 ]
 
 # Dependencies
@@ -38,6 +32,9 @@ dependencies = [
 cython_options = common_project.get_variable('cython_options')
 cython_args = common_project.get_variable('cython_args')
 
+# C++ compiler arguments
+cpp_args = common_project.get_variable('cpp_args')
+
 # Directory into which the extension modules and Python source files should be installed
 package_dir = 'mlrl' / meson.project_name()
 install_dir = meson.current_source_dir() / package_dir / cython_dir
@@ -50,5 +47,5 @@ add_project_arguments(cython_args, language : 'cython')
 foreach module_name : cython_module_names
     pyx_file = package_dir / cython_dir / module_name + '.pyx'
     python.extension_module(module_name, pyx_file, dependencies : dependencies, override_options : cython_options,
-                            install : true, install_dir : install_dir, install_rpath : rpath)
+                            cpp_args : cpp_args, install : true, install_dir : install_dir, install_rpath : rpath)
 endforeach

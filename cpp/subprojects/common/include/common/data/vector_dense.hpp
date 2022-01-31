@@ -12,7 +12,7 @@
  * @tparam T The type of the data that is stored in the vector
  */
 template<typename T>
-class DenseVector final : public VectorView<T> {
+class MLRLCOMMON_API DenseVector : public VectorView<T> {
 
     private:
 
@@ -31,7 +31,7 @@ class DenseVector final : public VectorView<T> {
          */
         DenseVector(uint32 numElements, bool init);
 
-        virtual ~DenseVector();
+        ~DenseVector();
 
         /**
          * Sets the number of elements in the vector.

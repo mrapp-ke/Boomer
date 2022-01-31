@@ -5,27 +5,31 @@
 
 #include "common/data/types.hpp"
 
-// A function pointer to the DSYSV routine
-typedef void (*dsysv_t)(char* uplo, int* n, int* nrhs, double* a, int* lda, int* ipiv, double* b, int* ldb, double* work, int* lwork, int* info);
-
 
 namespace boosting {
 
     /**
-     * A wrapper that allows to execute different LAPACK routines.
+     * Allows to execute LAPACK routines.
      */
     class Lapack final {
 
+        public:
+
+            /**
+             * A function pointer to LAPACK'S DSYSV routine.
+             */
+            typedef void (*DsysvFunction)(char* uplo, int* n, int* nrhs, double* a, int* lda, int* ipiv, double* b, int* ldb, double* work, int* lwork, int* info);
+
         private:
 
-            dsysv_t dsysvFunction_;
+            DsysvFunction dsysvFunction_;
 
         public:
 
             /**
              * @param dsysvFunction A function pointer to LAPACK's DSYSV routine
              */
-            Lapack(dsysv_t dsysvFunction);
+            Lapack(DsysvFunction dsysvFunction);
 
             /**
              * Determines and returns the optimal value for the parameter "lwork" as used by LAPACK'S DSYSV routine.

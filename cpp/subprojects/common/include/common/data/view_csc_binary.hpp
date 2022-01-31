@@ -3,6 +3,7 @@
  */
 #pragma once
 
+#include "common/data/view_two_dimensional.hpp"
 #include "common/iterator/binary_forward_iterator.hpp"
 
 
@@ -10,7 +11,7 @@
  * Implements column-wise read-only access to binary values that are stored in a pre-allocated matrix in the compressed
  * sparse column (CSC) format.
  */
-class BinaryCscConstView {
+class BinaryCscConstView : virtual public ITwoDimensionalView {
 
     protected:
 
@@ -91,25 +92,15 @@ class BinaryCscConstView {
         value_const_iterator column_values_cend(uint32 col) const;
 
         /**
-         * Returns the number of rows in the view.
-         *
-         * @return The number of rows
-         */
-        uint32 getNumRows() const;
-
-        /**
-         * Returns the number of columns in the view.
-         *
-         * @return The number of columns
-         */
-        uint32 getNumCols() const;
-
-        /**
          * Returns the number of non-zero elements in the view.
          *
          * @return The number of non-zero elements
          */
         uint32 getNumNonZeroElements() const;
+
+        uint32 getNumRows() const override final;
+
+        uint32 getNumCols() const override final;
 
 };
 
@@ -117,7 +108,7 @@ class BinaryCscConstView {
  * Implements column-wise read and write access to binary values that are stored in a pre-allocated matrix in the
  * compressed sparse column (CSC) format.
  */
-class BinaryCscView final : public BinaryCscConstView {
+class BinaryCscView : public BinaryCscConstView {
 
     public:
 

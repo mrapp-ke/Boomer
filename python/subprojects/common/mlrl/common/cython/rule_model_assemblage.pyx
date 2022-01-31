@@ -1,36 +1,29 @@
 """
 @author: Michael Rapp (michael.rapp.ml@gmail.com)
 """
-from mlrl.common.cython.input cimport NominalFeatureMask, FeatureMatrix, LabelMatrix
-from mlrl.common.cython.model cimport ModelBuilder, RuleModel
-
-from cython.operator cimport dereference
-
-from libcpp.utility cimport move
-from libcpp.memory cimport make_unique
 
 
-cdef class RuleModelAssemblage:
+cdef class SequentialRuleModelAssemblageConfig:
     """
-    A wrapper for the pure virtual C++ class `IRuleModelAssemblage`.
+    Allows to configure an algorithm that sequentially induces several rules, optionally starting with a default rule,
+    that are added to a rule-based model.
     """
 
-    def induce_rules(self, NominalFeatureMask nominal_feature_mask not None, FeatureMatrix feature_matrix not None,
-                     LabelMatrix label_matrix not None, int random_state,
-                     ModelBuilder model_builder not None) -> RuleModel:
-        cdef unique_ptr[RuleModelImpl] rule_model_ptr = self.rule_model_assemblage_ptr.get().induceRules(
-            dereference(nominal_feature_mask.nominal_feature_mask_ptr), dereference(feature_matrix.feature_matrix_ptr),
-            dereference(label_matrix.label_matrix_ptr), random_state,
-            dereference(model_builder.model_builder_ptr))
-        cdef RuleModel model = RuleModel.__new__(RuleModel)
-        model.model_ptr = move(rule_model_ptr)
-        return model
+    def get_use_default_rule(self) -> bool:
+        """
+        Returns whether a default rule should be used or not.
 
+        :return: True, if a default rule should be used, False otherwise
+        """
+        return self.config_ptr.getUseDefaultRule()
 
-cdef class SequentialRuleModelAssemblageFactory(RuleModelAssemblageFactory):
-    """
-    A wrapper for the C++ class `SequentialRuleModelAssemblageFactory`.
-    """
+    def set_use_default_rule(self, use_default_rule: bool) -> SequentialRuleModelAssemblageConfig:
+        """
+        Sets whether a default rule should be used or not.
 
-    def __cinit__(self):
-        self.rule_model_assemblage_factory_ptr = <unique_ptr[IRuleModelAssemblageFactory]>make_unique[SequentialRuleModelAssemblageFactoryImpl]()
+        :param use_default_rule:    True, if a default rule should be used, False otherwise
+        :return:                    A `SequentialRuleModelAssemblageConfig` that allows further configuration of the
+                                    algorithm for the induction of several rules that are added to a rule-based model
+        """
+        self.config_ptr.setUseDefaultRule(use_default_rule)
+        return self

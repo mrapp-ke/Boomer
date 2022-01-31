@@ -3,77 +3,52 @@
  */
 #pragma once
 
-#include "common/output/predictor_sparse.hpp"
+#include "common/output/predictor_classification.hpp"
 #include "common/measures/measure_similarity.hpp"
+#include "common/multi_threading/multi_threading.hpp"
+#include "boosting/losses/loss.hpp"
 
 
 namespace boosting {
 
     /**
-     * Allows to predict the labels of given query examples using an existing rule-based model that has been learned
-     * using a boosting algorithm.
-     *
-     * For prediction, the scores that are provided by the individual rules, are summed up. For each query example, the
-     * aggregated score vector is then compared to known label vectors in order to obtain a distance measure. The label
-     * vector that is closest to the aggregated score vector is finally predicted.
+     * Allows to configure a predictor that predicts known label vectors for given query examples by summing up the
+     * scores that are provided by an existing rule-based model and comparing the aggregated score vector to the known
+     * label vectors according to a certain distance measure. The label vector that is closest to the aggregated score
+     * vector is finally predicted.
      */
-    class ExampleWiseClassificationPredictor : public ISparsePredictor<uint8> {
+    class ExampleWiseClassificationPredictorConfig final : public IClassificationPredictorConfig {
 
         private:
 
-            std::unique_ptr<ISimilarityMeasure> measurePtr_;
+            const std::unique_ptr<ILossConfig>& lossConfigPtr_;
 
-            uint32 numThreads_;
+            const std::unique_ptr<IMultiThreadingConfig>& multiThreadingConfigPtr_;
 
         public:
 
             /**
-             * @param measurePtr    An unique pointer to an object of type `ISimilarityMeasure` that should be used to
-             *                      quantify the similarity between predictions and known label vectors
-             * @param numThreads    The number of CPU threads to be used to make predictions for different query
-             *                      examples in parallel. Must be at least 1
+             * @param lossConfigPtr             A reference to an unique pointer that stores the configuration of the
+             *                                  loss function
+             * @param multiThreadingConfigPtr   A reference to an unique pointer that stores the configuration of the
+             *                                  multi-threading behavior that should be used to predict for several
+             *                                  query examples in parallel
              */
-            ExampleWiseClassificationPredictor(std::unique_ptr<ISimilarityMeasure> measurePtr, uint32 numThreads);
+            ExampleWiseClassificationPredictorConfig(
+                const std::unique_ptr<ILossConfig>& lossConfigPtr,
+                const std::unique_ptr<IMultiThreadingConfig>& multiThreadingConfigPtr);
 
             /**
-             * Obtains predictions for different examples, based on predicted scores, and writes them to a given
-             * prediction matrix.
-             *
-             * @param scoreMatrix       A reference to an object of type `CContiguousConstView` that stores the 
-             *                          predicted scores
-             * @param predictionMatrix  A reference to an object of type `CContiguousView`, the predictions should be
-             *                          written to. May contain arbitrary values
-             * @param labelVectors      A pointer to an object of type `LabelVectorSet` that stores all known label
-             *                          vectors or a null pointer, if no such set is available
+             * @see `IClassificationPredictorConfig::createClassificationPredictorFactory`
              */
-            void transform(const CContiguousConstView<float64>& scoreMatrix,
-                           CContiguousView<uint8>& predictionMatrix, const LabelVectorSet* labelVectors) const;
+            std::unique_ptr<IClassificationPredictorFactory> createClassificationPredictorFactory(
+                const IFeatureMatrix& featureMatrix, uint32 numLabels) const override;
 
             /**
-             * @see `IPredictor::predict`
+             * @see `IClassificationPredictorConfig::createLabelSpaceInfo`
              */
-            void predict(const CContiguousFeatureMatrix& featureMatrix, CContiguousView<uint8>& predictionMatrix,
-                         const RuleModel& model, const LabelVectorSet* labelVectors) const override;
-
-            /**
-             * @see `IPredictor::predict`
-             */
-            void predict(const CsrFeatureMatrix& featureMatrix, CContiguousView<uint8>& predictionMatrix,
-                         const RuleModel& model, const LabelVectorSet* labelVectors) const override;
-
-            /**
-             * @see `ISparsePredictor::predictSparse`
-             */
-            std::unique_ptr<BinarySparsePredictionMatrix> predictSparse(
-                const CContiguousFeatureMatrix& featureMatrix, uint32 numLabels, const RuleModel& model,
-                const LabelVectorSet* labelVectors) const override;
-
-            /**
-             * @see `ISparsePredictor::predictSparse`
-             */
-            std::unique_ptr<BinarySparsePredictionMatrix> predictSparse(
-                const CsrFeatureMatrix& featureMatrix, uint32 numLabels, const RuleModel& model,
-                const LabelVectorSet* labelVectors) const override;
+            std::unique_ptr<ILabelSpaceInfo> createLabelSpaceInfo(
+                const IRowWiseLabelMatrix& labelMatrix) const override;
 
     };
 

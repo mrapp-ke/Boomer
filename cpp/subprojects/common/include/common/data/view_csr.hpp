@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include "common/data/types.hpp"
+#include "common/data/view_two_dimensional.hpp"
 
 
 /**
@@ -13,7 +13,7 @@
  * @tparam T The type of the values
  */
 template<typename T>
-class CsrConstView {
+class CsrConstView : virtual public ITwoDimensionalView {
 
     protected:
 
@@ -101,25 +101,21 @@ class CsrConstView {
         index_const_iterator row_indices_cend(uint32 row) const;
 
         /**
-         * Returns the number of rows in the view.
-         *
-         * @return The number of rows
-         */
-        uint32 getNumRows() const;
-
-        /**
-         * Returns the number of columns in the view.
-         *
-         * @return The number of columns
-         */
-        uint32 getNumCols() const;
-
-        /**
          * Returns the number of non-zero elements in the view.
          *
          * @return The number of non-zero elements
          */
         uint32 getNumNonZeroElements() const;
+
+        /**
+         * @see `ITwoDimensionalView::getNumRows`
+         */
+        uint32 getNumRows() const override final;
+
+        /**
+         * @see `ITwoDimensionalView::getNumCols`
+         */
+        uint32 getNumCols() const override final;
 
 };
 
@@ -130,7 +126,7 @@ class CsrConstView {
  * @tparam T The type of the values
  */
 template<typename T>
-class CsrView final : public CsrConstView<T> {
+class CsrView : public CsrConstView<T> {
 
     public:
 

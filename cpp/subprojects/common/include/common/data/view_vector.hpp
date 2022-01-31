@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include "common/data/types.hpp"
+#include "common/data/view_one_dimensional.hpp"
 
 
 /**
@@ -12,7 +12,7 @@
  * @tparam T The type of the values
  */
 template<typename T>
-class VectorConstView {
+class MLRLCOMMON_API VectorConstView : public IOneDimensionalView {
 
     protected:
 
@@ -63,11 +63,9 @@ class VectorConstView {
         const T& operator[](uint32 pos) const;
 
         /**
-         * Returns the number of elements in the view.
-         *
-         * @return The number of elements in the view
+         * @see `IOneDimensionalView::getNumElements`
          */
-        uint32 getNumElements() const;
+        uint32 getNumElements() const override final;
 
 };
 
@@ -77,7 +75,7 @@ class VectorConstView {
  * @tparam T The type of the values
  */
 template<typename T>
-class VectorView : public VectorConstView<T> {
+class MLRLCOMMON_API VectorView : public VectorConstView<T> {
 
     public:
 

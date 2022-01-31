@@ -38,7 +38,8 @@ def find_extensions(directory):
 
     for path, _, file_names in os.walk(directory):
         for file_name in file_names:
-            if '.so' in file_name or '.pyd' in file_name or '.dylib' in file_name:
+            if '.so' in file_name or '.pyd' in file_name or '.dylib' in file_name or '.lib' in file_name \
+                    or '.dll' in file_name:
                 extension_path = Path(os.path.join(path, file_name))
                 extension_name = file_name[:file_name.find('.')]
                 extensions.append(PrecompiledExtension(extension_name, extension_path))

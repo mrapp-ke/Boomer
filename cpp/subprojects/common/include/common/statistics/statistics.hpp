@@ -18,7 +18,7 @@ class IStatistics : virtual public IImmutableStatistics {
 
     public:
 
-        virtual ~IStatistics() { };
+        virtual ~IStatistics() override { };
 
         /**
          * Resets the statistics which should be considered in the following for learning a new rule. The indices of the

@@ -3,82 +3,44 @@
  */
 #pragma once
 
-#include "common/output/predictor.hpp"
+#include "common/output/predictor_probability.hpp"
+#include "common/multi_threading/multi_threading.hpp"
+#include "boosting/losses/loss.hpp"
 
 
 namespace boosting {
 
     /**
-     * Defines an interface for all classes that implement a transformation function that is applied to the scores that
-     * are predicted for individual labels.
+     * Allows to configure a predictor that predicts label-wise probabilities for given query examples, which estimate
+     * the chance of individual labels to be relevant, by summing up the scores that are provided by individual rules of
+     * an existing rule-based models and transforming the aggregated scores into probabilities in [0, 1] according to a
+     * certain transformation function that is applied to each label individually.
      */
-    class ILabelWiseTransformationFunction {
-
-        public:
-
-            virtual ~ILabelWiseTransformationFunction() { };
-
-            /**
-             * Transforms the score that is predicted for an individual label.
-             *
-             * @param predictedScore    The predicted score
-             * @return                  The result of the transformation
-             */
-            virtual float64 transform(float64 predictedScore) const = 0;
-
-    };
-
-    /**
-     * Allows to transform the score that is predicted for an individual label into a probability by applying the
-     * logistic sigmoid function.
-     */
-    class LogisticFunction : public ILabelWiseTransformationFunction {
-
-        public:
-
-            float64 transform(float64 predictedScore) const override;
-
-    };
-
-    /**
-     * Allows to predict probabilities for given query examples, which estimate the chance of individual labels to be
-     * relevant, using an existing rule-based model that has been learned using a boosting algorithm.
-     *
-     * For prediction, the scores that are provided by the individual rules, are summed up. The aggregated scores are
-     * then transformed into probabilities in [0, 1] according to a certain transformation function that is applied to
-     * the labels individually.
-     */
-    class LabelWiseProbabilityPredictor : public IPredictor<float64> {
+    class LabelWiseProbabilityPredictorConfig final : public IProbabilityPredictorConfig {
 
         private:
 
-            std::unique_ptr<ILabelWiseTransformationFunction> transformationFunctionPtr_;
+            const std::unique_ptr<ILossConfig>& lossConfigPtr_;
 
-            uint32 numThreads_;
+            const std::unique_ptr<IMultiThreadingConfig>& multiThreadingConfigPtr_;
 
         public:
 
             /**
-             * @param transformationFunctionPtr An unique pointer to an object of type
-             *                                  `ILabelWiseTransformationFunction` that should be used to transform
-             *                                  predicted scores into probabilities
-             * @param numThreads                The number of CPU threads to be used to make predictions for different
-             *                                  query examples in parallel. Must be at least 1
+             * @param lossConfigPtr             A reference to an unique pointer that stores the configuration of the
+             *                                  loss function
+             * @param multiThreadingConfigPtr   A reference to an unique pointer that stores the configuration of the
+             *                                  multi-threading behavior that should be used to predict for several
+             *                                  query examples in parallel
              */
-            LabelWiseProbabilityPredictor(std::unique_ptr<ILabelWiseTransformationFunction> transformationFunctionPtr,
-                                          uint32 numThreads);
+            LabelWiseProbabilityPredictorConfig(const std::unique_ptr<ILossConfig>& lossConfigPtr,
+                                                const std::unique_ptr<IMultiThreadingConfig>& multiThreadingConfigPtr);
 
             /**
-             * @see `IPredictor::predict`
+             * @see `IProbabilityPredictorConfig::createProbabilityPredictorFactory`
              */
-            void predict(const CContiguousFeatureMatrix& featureMatrix, CContiguousView<float64>& predictionMatrix,
-                         const RuleModel& model, const LabelVectorSet* labelVectors) const override;
-
-            /**
-             * @see `IPredictor::predict`
-             */
-            void predict(const CsrFeatureMatrix& featureMatrix, CContiguousView<float64>& predictionMatrix,
-                         const RuleModel& model, const LabelVectorSet* labelVectors) const override;
+            std::unique_ptr<IProbabilityPredictorFactory> createProbabilityPredictorFactory(
+                const IFeatureMatrix& featureMatrix, uint32 numLabels) const override;
 
     };
 

@@ -1,7 +1,5 @@
 #include "common/thresholds/thresholds_approximate.hpp"
-#include "common/binning/feature_binning_nominal.hpp"
 #include "common/rule_refinement/rule_refinement_approximate.hpp"
-#include "common/validation.hpp"
 #include "thresholds_common.hpp"
 #include <unordered_map>
 
@@ -191,17 +189,18 @@ class ApproximateThresholds final : public AbstractThresholds {
                             ThresholdVector* thresholdVector = cacheIterator->second.thresholdVectorPtr.get();
                             IBinIndexVector* binIndices = cacheIterator->second.binIndicesPtr.get();
 
-                            if (thresholdVector == nullptr) {
+                            if (!thresholdVector) {
                                 // Fetch feature vector...
                                 std::unique_ptr<FeatureVector> featureVectorPtr;
-                                const IFeatureMatrix& featureMatrix = thresholdsSubset_.thresholds_.featureMatrix_;
+                                const IColumnWiseFeatureMatrix& featureMatrix =
+                                    thresholdsSubset_.thresholds_.featureMatrix_;
                                 uint32 numExamples = featureMatrix.getNumRows();
                                 featureMatrix.fetchFeatureVector(featureIndex_, featureVectorPtr);
 
                                 // Apply binning method...
                                 const IFeatureBinning& binning =
-                                    nominal_ ? thresholdsSubset_.thresholds_.nominalBinning_
-                                             : thresholdsSubset_.thresholds_.binning_;
+                                    nominal_ ? *thresholdsSubset_.thresholds_.nominalFeatureBinningPtr_
+                                             : *thresholdsSubset_.thresholds_.numericalFeatureBinningPtr_;
                                 IFeatureBinning::Result result = binning.createBins(*featureVectorPtr, numExamples);
                                 cacheIterator->second.thresholdVectorPtr = std::move(result.thresholdVectorPtr);
                                 thresholdVector = cacheIterator->second.thresholdVectorPtr.get();
@@ -252,7 +251,7 @@ class ApproximateThresholds final : public AbstractThresholds {
                  */
                 ThresholdsSubset(ApproximateThresholds& thresholds, const IWeightVector& weights)
                     : thresholds_(thresholds), weights_(weights),
-                      coverageSet_(CoverageSet(thresholds.getNumExamples())) {
+                      coverageSet_(CoverageSet(thresholds.featureMatrix_.getNumRows())) {
 
                 }
 
@@ -362,9 +361,9 @@ class ApproximateThresholds final : public AbstractThresholds {
 
         };
 
-        NominalFeatureBinning nominalBinning_;
+        std::unique_ptr<IFeatureBinning> numericalFeatureBinningPtr_;
 
-        const IFeatureBinning& binning_;
+        std::unique_ptr<IFeatureBinning> nominalFeatureBinningPtr_;
 
         uint32 numThreads_;
 
@@ -373,21 +372,26 @@ class ApproximateThresholds final : public AbstractThresholds {
     public:
 
         /**
-         * @param featureMatrix         A reference to an object of type `IFeatureMatrix` that provides access to the
-         *                              feature values of the training examples
-         * @param nominalFeatureMask    A reference  to an object of type `INominalFeatureMask` that provides access to
-         *                              the information whether individual features are nominal or not
-         * @param statisticsProvider    A reference to an object of type `IStatisticsProvider` that provides access to
-         *                              statistics about the labels of the training examples
-         * @param binning               A reference to an object of type `IFeatureBinning` that implements the binning
-         *                              method to be used
-         * @param numThreads            The number of CPU threads to be used to update statistics in parallel
+         * @param featureMatrix                 A reference to an object of type `IColumnWiseFeatureMatrix` that
+         *                                      provides column-wise access to the feature values of individual training
+         *                                      examples
+         * @param nominalFeatureMask            A reference  to an object of type `INominalFeatureMask` that provides
+         *                                      access to the information whether individual features are nominal or not
+         * @param statisticsProvider            A reference to an object of type `IStatisticsProvider` that provides
+         *                                      access to statistics about the labels of the training examples
+         * @param numericalFeatureBinningPtr    An unique pointer to an object of type `IFeatureBinning` that should be
+         *                                      used to assign numerical feature values to bins
+         * @param nominalFeatureBinningPtr      An unique pointer to an object of type `IFeatureBinning` that should be
+         *                                      used to assign nominal feature values to bins
+         * @param numThreads                    The number of CPU threads to be used to update statistics in parallel
          */
-        ApproximateThresholds(const IFeatureMatrix& featureMatrix, const INominalFeatureMask& nominalFeatureMask,
-                              IStatisticsProvider& statisticsProvider, const IFeatureBinning& binning,
-                              uint32 numThreads)
+        ApproximateThresholds(const IColumnWiseFeatureMatrix& featureMatrix,
+                              const INominalFeatureMask& nominalFeatureMask, IStatisticsProvider& statisticsProvider,
+                              std::unique_ptr<IFeatureBinning> numericalFeatureBinningPtr,
+                              std::unique_ptr<IFeatureBinning> nominalFeatureBinningPtr, uint32 numThreads)
             : AbstractThresholds(featureMatrix, nominalFeatureMask, statisticsProvider),
-              binning_(binning), numThreads_(numThreads) {
+              numericalFeatureBinningPtr_(std::move(numericalFeatureBinningPtr)),
+              nominalFeatureBinningPtr_(std::move(nominalFeatureBinningPtr)), numThreads_(numThreads) {
 
         }
 
@@ -398,16 +402,20 @@ class ApproximateThresholds final : public AbstractThresholds {
 
 };
 
-ApproximateThresholdsFactory::ApproximateThresholdsFactory(std::unique_ptr<IFeatureBinning> binningPtr,
-                                                           uint32 numThreads)
-    : binningPtr_(std::move(binningPtr)), numThreads_(numThreads) {
-    assertNotNull("binningPtr", binningPtr_.get());
-    assertGreaterOrEqual<uint32>("numThreads", numThreads, 1);
+ApproximateThresholdsFactory::ApproximateThresholdsFactory(
+        std::unique_ptr<IFeatureBinningFactory> numericalFeatureBinningFactoryPtr,
+        std::unique_ptr<IFeatureBinningFactory> nominalFeatureBinningFactoryPtr, uint32 numThreads)
+    : numericalFeatureBinningFactoryPtr_(std::move(numericalFeatureBinningFactoryPtr)),
+      nominalFeatureBinningFactoryPtr_(std::move(nominalFeatureBinningFactoryPtr)), numThreads_(numThreads) {
+
 }
 
 std::unique_ptr<IThresholds> ApproximateThresholdsFactory::create(
-        const IFeatureMatrix& featureMatrix, const INominalFeatureMask& nominalFeatureMask,
+        const IColumnWiseFeatureMatrix& featureMatrix, const INominalFeatureMask& nominalFeatureMask,
         IStatisticsProvider& statisticsProvider) const {
-    return std::make_unique<ApproximateThresholds>(featureMatrix, nominalFeatureMask, statisticsProvider, *binningPtr_,
-                                                   numThreads_);
+    std::unique_ptr<IFeatureBinning> numericalFeatureBinningPtr = numericalFeatureBinningFactoryPtr_->create();
+    std::unique_ptr<IFeatureBinning> nominalFeatureBinningPtr = nominalFeatureBinningFactoryPtr_->create();
+    return std::make_unique<ApproximateThresholds>(featureMatrix, nominalFeatureMask, statisticsProvider,
+                                                   std::move(numericalFeatureBinningPtr),
+                                                   std::move(nominalFeatureBinningPtr), numThreads_);
 }

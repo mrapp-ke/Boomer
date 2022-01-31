@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "common/thresholds/thresholds_factory.hpp"
+#include "common/thresholds/thresholds.hpp"
 #include "common/binning/feature_binning.hpp"
 
 
@@ -15,20 +15,29 @@ class ApproximateThresholdsFactory final : public IThresholdsFactory {
 
     private:
 
-        std::unique_ptr<IFeatureBinning> binningPtr_;
+        std::unique_ptr<IFeatureBinningFactory> numericalFeatureBinningFactoryPtr_;
+
+        std::unique_ptr<IFeatureBinningFactory> nominalFeatureBinningFactoryPtr_;
 
         uint32 numThreads_;
 
     public:
 
         /**
-         * @param binningPtr An unique pointer to an object of type `IFeatureBinning` that implements the binning method
-         *                   to be used
-         * @param numThreads The number of CPU threads to be used to update statistics in parallel. Must be at least 1
+         * @param numericalFeatureBinningFactoryPtr An unique pointer to an object of type `IFeatureBinningFactory` that
+         *                                          allows to create implementations of the binning method to be used
+         *                                          for assigning numerical feature values to bins
+         * @param nominalFeatureBinningFactoryPtr   An unique pointer to an object of type `IFeatureBinningFactory` that
+         *                                          allows to create implementations of the binning method to be used
+         *                                          for assigning nominal feature values to bins
+         * @param numThreads                        The number of CPU threads to be used to update statistics in
+         *                                          parallel. Must be at least 1
          */
-        ApproximateThresholdsFactory(std::unique_ptr<IFeatureBinning> binningPtr, uint32 numThreads);
+        ApproximateThresholdsFactory(std::unique_ptr<IFeatureBinningFactory> numericalFeatureBinningFactoryPtr,
+                                     std::unique_ptr<IFeatureBinningFactory> nominalFeatureBinningFactoryPtr,
+                                     uint32 numThreads);
 
-        std::unique_ptr<IThresholds> create(const IFeatureMatrix& featureMatrix,
+        std::unique_ptr<IThresholds> create(const IColumnWiseFeatureMatrix& featureMatrix,
                                             const INominalFeatureMask& nominalFeatureMask,
                                             IStatisticsProvider& statisticsProvider) const override;
 

@@ -11,7 +11,7 @@
  * An implementation of the class `IPartition` that provides random access to the indices of elements that are included
  * in a single set.
  */
-class SinglePartition : public IPartition {
+class SinglePartition final : public IPartition {
 
     private:
 
@@ -50,8 +50,10 @@ class SinglePartition : public IPartition {
          */
         uint32 getNumElements() const;
 
+        std::unique_ptr<IStoppingCriterion> createStoppingCriterion(const IStoppingCriterionFactory& factory) override;
+
         std::unique_ptr<IInstanceSampling> createInstanceSampling(const IInstanceSamplingFactory& factory,
-                                                                  const ILabelMatrix& labelMatrix,
+                                                                  const IRowWiseLabelMatrix& labelMatrix,
                                                                   IStatistics& statistics) override;
 
         float64 evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, const ICoverageState& coverageState,

@@ -1,35 +1,33 @@
 """
 @author: Michael Rapp (michael.rapp.ml@gmail.com)
 """
-from libcpp.memory cimport make_unique
+from mlrl.common.cython._validation import assert_greater_or_equal, assert_less
 
 
-cdef class FeatureSamplingFactory:
+cdef class FeatureSamplingWithoutReplacementConfig:
     """
-    A wrapper for the pure virtual C++ class `IFeatureSamplingFactory`.
-    """
-    pass
-
-
-cdef class FeatureSamplingWithoutReplacementFactory(FeatureSamplingFactory):
-    """
-    A wrapper for the C++ class `FeatureSamplingWithoutReplacementFactory`.
+    Allows to configure a method for sampling features without replacement.
     """
 
-    def __cinit__(self, float32 sample_size):
+    def get_sample_size(self) -> float:
         """
-        :param sample_size: The fraction of features to be included in the sample (e.g. a value of 0.6 corresponds to
-                            60 % of the available features). Must be in (0, 1) or 0, if the default sample size
-                            `floor(log2(num_features - 1) + 1)` should be used
+        Returns the fraction of features that are included in a sample.
+
+        :return: The fraction of features that are included in a sample
         """
-        self.feature_sampling_factory_ptr = <unique_ptr[IFeatureSamplingFactory]>make_unique[FeatureSamplingWithoutReplacementFactoryImpl](
-            sample_size)
+        return self.config_ptr.getSampleSize()
 
+    def set_sample_size(self, sample_size: float) -> FeatureSamplingWithoutReplacementConfig:
+        """
+        Sets the fraction of features that should be included in a sample.
 
-cdef class NoFeatureSamplingFactory(FeatureSamplingFactory):
-    """
-    A wrapper for the C++ class `NoFeatureSamplingFactory`.
-    """
-
-    def __cinit__(self):
-        self.feature_sampling_factory_ptr = <unique_ptr[IFeatureSamplingFactory]>make_unique[NoFeatureSamplingFactoryImpl]()
+        :param sample_size: The fraction of features that should be included in a sample, e.g., a value of 0.6
+                            corresponds to 60 % of the available features. Must be in (0, 1) or 0, if the default sample
+                            size `floor(log2(numFeatures - 1) + 1)` should be used
+        :return:            A `FeatureSamplingWithoutReplacementConfig` that allows further configuration of the method
+                            for sampling features
+        """
+        assert_greater_or_equal('sample_size', sample_size, 0)
+        assert_less('sample_size', sample_size, 1)
+        self.config_ptr.setSampleSize(sample_size)
+        return self

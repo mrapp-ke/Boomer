@@ -3,6 +3,7 @@
  */
 #pragma once
 
+#include "common/macros.hpp"
 #include <functional>
 
 // Forward declarations
@@ -13,7 +14,7 @@ class PartialHead;
 /**
  * Defines an interface for all classes that represent the head of a rule.
  */
-class IHead {
+class MLRLCOMMON_API IHead {
 
     public:
 

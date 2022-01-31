@@ -13,7 +13,7 @@
  * An implementation of the class `IPartition` that provides random access to the indices of elements that are included
  * two, mutually exclusive, sets.
  */
-class BiPartition : public IPartition {
+class BiPartition final : public IPartition {
 
     private:
 
@@ -33,7 +33,7 @@ class BiPartition : public IPartition {
          */
         BiPartition(uint32 numFirst, uint32 numSecond);
 
-        ~BiPartition();
+        ~BiPartition() override;
 
         /**
          * An iterator that provides access to the indices that are contained by the first or second set and allows to
@@ -139,8 +139,10 @@ class BiPartition : public IPartition {
          */
         uint32 getNumElements() const;
 
+        std::unique_ptr<IStoppingCriterion> createStoppingCriterion(const IStoppingCriterionFactory& factory) override;
+
         std::unique_ptr<IInstanceSampling> createInstanceSampling(const IInstanceSamplingFactory& factory,
-                                                                  const ILabelMatrix& labelMatrix,
+                                                                  const IRowWiseLabelMatrix& labelMatrix,
                                                                   IStatistics& statistics) override;
 
         float64 evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, const ICoverageState& coverageState,

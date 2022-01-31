@@ -3,7 +3,10 @@
  */
 #pragma once
 
-#include "common/data/types.hpp"
+#include "boosting/math/blas.hpp"
+#include "boosting/math/lapack.hpp"
+#include "boosting/rule_evaluation/rule_evaluation_example_wise.hpp"
+#include "boosting/rule_evaluation/rule_evaluation_label_wise.hpp"
 #include <functional>
 #include <memory>
 
@@ -126,6 +129,37 @@ namespace boosting {
              * @return An unique pointer to an object of type `ILabelBinning` that has been created
              */
             virtual std::unique_ptr<ILabelBinning> create() const = 0;
+
+    };
+
+    /**
+     * Defines an interface for all classes that allow to configure a method that assigns labels to bins.
+     */
+    class ILabelBinningConfig {
+
+        public:
+
+            virtual ~ILabelBinningConfig() { };
+
+            /**
+             * Creates and returns a new object of type `ILabelWiseRuleEvaluationFactory` according to the specified
+             * configuration.
+             *
+             * @return An unique pointer to an object of type `ILabelWiseRuleEvaluationFactory` that has been created
+             */
+            virtual std::unique_ptr<ILabelWiseRuleEvaluationFactory> createLabelWiseRuleEvaluationFactory() const = 0;
+
+            /**
+             * Creates and returns a new object of type `IExampleWiseRuleEvaluationFactory` according to the specified
+             * configuration.
+             *
+             * @param blas      A reference to an object of type `Blas` that allows to execute BLAS routines
+             * @param lapack    A reference to an object of type `Lapack` that allows to execute LAPACK routines
+             * @return          An unique pointer to an object of type `IExampleWiseRuleEvaluationFactory` that has been
+             *                  created
+             */
+            virtual std::unique_ptr<IExampleWiseRuleEvaluationFactory> createExampleWiseRuleEvaluationFactory(
+                const Blas& blas, const Lapack& lapack) const = 0;
 
     };
 

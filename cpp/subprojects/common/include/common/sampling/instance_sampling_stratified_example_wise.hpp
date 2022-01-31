@@ -5,13 +5,44 @@
 #pragma once
 
 #include "common/sampling/instance_sampling.hpp"
+#include "common/macros.hpp"
 
 
 /**
- * Allows to create instances of the type `IInstanceSampling` that implement stratified sampling, where distinct label
- * vectors are treated as individual classes.
+ * Defines an interface for all classes that allow to configure a method for selecting a subset of the available
+ * training examples using stratification, where distinct label vectors are treated as individual classes.
  */
-class ExampleWiseStratifiedSamplingFactory final : public IInstanceSamplingFactory {
+class MLRLCOMMON_API IExampleWiseStratifiedInstanceSamplingConfig {
+
+    public:
+
+        virtual ~IExampleWiseStratifiedInstanceSamplingConfig() { };
+
+        /**
+         * Returns the fraction of examples that are included in a sample.
+         *
+         * @return The fraction of examples that are included in a sample
+         */
+        virtual float32 getSampleSize() const = 0;
+
+        /**
+         * Sets the fraction of examples that should be included in a sample.
+         *
+         * @param sampleSize    The fraction of examples that should be included in a sample, e.g., a value of 0.6
+         *                      corresponds to 60 % of the available training examples. Must be in (0, 1)
+         * @return              A reference to an object of type `IExampleWiseStratifiedInstanceSamplingConfig` that
+         *                      allows further configuration of the method for sampling instances
+         */
+        virtual IExampleWiseStratifiedInstanceSamplingConfig& setSampleSize(float32 sampleSize) = 0;
+
+};
+
+/**
+ * Allows to configure a method for selecting a subset of the available training examples using stratification, where
+ * distinct label vectors are treated as individual classes.
+ */
+class ExampleWiseStratifiedInstanceSamplingConfig final : public IInstanceSamplingConfig,
+                                                          public IExampleWiseStratifiedInstanceSamplingConfig {
 
     private:
 
@@ -19,23 +50,12 @@ class ExampleWiseStratifiedSamplingFactory final : public IInstanceSamplingFacto
 
     public:
 
-        /**
-         * @param sampleSize The fraction of examples to be included in the sample (e.g. a value of 0.6 corresponds to
-         *                   60 % of the available examples). Must be in (0, 1]
-         */
-        ExampleWiseStratifiedSamplingFactory(float32 sampleSize);
+        ExampleWiseStratifiedInstanceSamplingConfig();
 
-        std::unique_ptr<IInstanceSampling> create(const CContiguousLabelMatrix& labelMatrix,
-                                                  const SinglePartition& partition,
-                                                  IStatistics& statistics) const override;
+        float32 getSampleSize() const override;
 
-        std::unique_ptr<IInstanceSampling> create(const CContiguousLabelMatrix& labelMatrix, BiPartition& partition,
-                                                  IStatistics& statistics) const override;
+        IExampleWiseStratifiedInstanceSamplingConfig& setSampleSize(float32 sampleSize) override;
 
-        std::unique_ptr<IInstanceSampling> create(const CsrLabelMatrix& labelMatrix, const SinglePartition& partition,
-                                                  IStatistics& statistics) const override;
-
-        std::unique_ptr<IInstanceSampling> create(const CsrLabelMatrix& labelMatrix, BiPartition& partition,
-                                                  IStatistics& statistics) const override;
+        std::unique_ptr<IInstanceSamplingFactory> createInstanceSamplingFactory() const override;
 
 };

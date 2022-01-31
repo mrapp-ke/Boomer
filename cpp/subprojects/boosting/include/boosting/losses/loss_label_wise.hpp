@@ -3,11 +3,10 @@
  */
 #pragma once
 
+#include "boosting/losses/loss.hpp"
+#include "boosting/data/statistic_view_label_wise_dense.hpp"
 #include "common/indices/index_vector_complete.hpp"
 #include "common/indices/index_vector_partial.hpp"
-#include "common/measures/measure_evaluation.hpp"
-#include "common/measures/measure_similarity.hpp"
-#include "boosting/data/statistic_view_label_wise_dense.hpp"
 
 
 namespace boosting {
@@ -15,18 +14,18 @@ namespace boosting {
     /**
      * Defines an interface for all (decomposable) loss functions that are applied label-wise.
      */
-    class ILabelWiseLoss : public IEvaluationMeasure, public ISimilarityMeasure {
+    class ILabelWiseLoss : public ILoss {
 
         public:
 
-            virtual ~ILabelWiseLoss() { };
+            virtual ~ILabelWiseLoss() override { };
 
             /**
              * Updates the statistics of the example at a specific index, considering only the labels, whose indices are
              * provided by a `CompleteIndexVector`.
              *
              * @param exampleIndex      The index of the example for which the gradients and Hessians should be updated
-             * @param labelMatrix       A reference to an object of type `CContiguousLabelMatrix` that provides random
+             * @param labelMatrix       A reference to an object of type `CContiguousConstView` that provides random
              *                          access to the labels of the training examples
              * @param scoreMatrix       A reference to an object of type `CContiguousConstView` that stores the
              *                          currently predicted scores
@@ -34,7 +33,8 @@ namespace boosting {
              * @param labelIndicesEnd   A `CompleteIndexVector::const_iterator` to the end of the label indices
              * @param statisticView     A reference to an object of type `DenseLabelWiseStatisticView` to be updated
              */
-            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
+            virtual void updateLabelWiseStatistics(uint32 exampleIndex,
+                                                   const CContiguousConstView<const uint8>& labelMatrix,
                                                    const CContiguousConstView<float64>& scoreMatrix,
                                                    CompleteIndexVector::const_iterator labelIndicesBegin,
                                                    CompleteIndexVector::const_iterator labelIndicesEnd,
@@ -45,7 +45,7 @@ namespace boosting {
              * provided by a `PartialIndexVector`.
              *
              * @param exampleIndex      The index of the example for which the gradients and Hessians should be updated
-             * @param labelMatrix       A reference to an object of type `CContiguousLabelMatrix` that provides random
+             * @param labelMatrix       A reference to an object of type `CContiguousConstView` that provides random
              *                          access to the labels of the training examples
              * @param scoreMatrix       A reference to an object of type `CContiguousConstView` that stores the
              *                          currently predicted scores
@@ -53,7 +53,8 @@ namespace boosting {
              * @param labelIndicesEnd   A `PartialIndexVector::const_iterator` to the end of the label indices
              * @param statisticView     A reference to an object of type `DenseLabelWiseStatisticView` to be updated
              */
-            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
+            virtual void updateLabelWiseStatistics(uint32 exampleIndex,
+                                                   const CContiguousConstView<const uint8>& labelMatrix,
                                                    const CContiguousConstView<float64>& scoreMatrix,
                                                    PartialIndexVector::const_iterator labelIndicesBegin,
                                                    PartialIndexVector::const_iterator labelIndicesEnd,
@@ -64,15 +65,15 @@ namespace boosting {
              * provided by a `CompleteIndexVector`.
              *
              * @param exampleIndex      The index of the example for which the gradients and Hessians should be updated
-             * @param labelMatrix       A reference to an object of type `CsrLabelMatrix` that provides row-wise access
-             *                          to the labels of the training examples
+             * @param labelMatrix       A reference to an object of type `BinaryCsrConstView` that provides row-wise
+             *                          access to the labels of the training examples
              * @param scoreMatrix       A reference to an object of type `CContiguousConstView` that stores the
              *                          currently predicted scores
              * @param labelIndicesBegin A `PartialIndexVector::const_iterator` to the beginning of the label indices
              * @param labelIndicesEnd   A `PartialIndexVector::const_iterator` to the end of the label indices
              * @param statisticView     A reference to an object of type `DenseLabelWiseStatisticView` to be updated
              */
-            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
+            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const BinaryCsrConstView& labelMatrix,
                                                    const CContiguousConstView<float64>& scoreMatrix,
                                                    CompleteIndexVector::const_iterator labelIndicesBegin,
                                                    CompleteIndexVector::const_iterator labelIndicesEnd,
@@ -83,15 +84,15 @@ namespace boosting {
              * provided by a `PartialIndexVector`.
              *
              * @param exampleIndex      The index of the example for which the gradients and Hessians should be updated
-             * @param labelMatrix       A reference to an object of type `CsrLabelMatrix` that provides row-wise access
-             *                          to the labels of the training examples
+             * @param labelMatrix       A reference to an object of type `BinaryCsrConstView` that provides row-wise
+             *                          access to the labels of the training examples
              * @param scoreMatrix       A reference to an object of type `CContiguousConstView` that stores the
              *                          currently predicted scores
              * @param labelIndicesBegin A `PartialIndexVector::const_iterator` to the beginning of the label indices
              * @param labelIndicesEnd   A `PartialIndexVector::const_iterator` to the end of the label indices
              * @param statisticView     A reference to an object of type `DenseLabelWiseStatisticView` to be updated
              */
-            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
+            virtual void updateLabelWiseStatistics(uint32 exampleIndex, const BinaryCsrConstView& labelMatrix,
                                                    const CContiguousConstView<float64> scoreMatrix,
                                                    PartialIndexVector::const_iterator labelIndicesBegin,
                                                    PartialIndexVector::const_iterator labelIndicesEnd,
@@ -100,84 +101,54 @@ namespace boosting {
     };
 
     /**
-     * An abstract base class for all (decomposable) loss functions that are applied label-wise.
+     * Defines an interface for all factories that allow to create instances of the type `ILabelWiseLoss`.
      */
-    class AbstractLabelWiseLoss : public ILabelWiseLoss {
-
-        private:
-
-            /**
-             * A function that allows to update the gradient and Hessian for a single example and label. The function
-             * accepts the true label, the predicted score, as well as pointers to the gradient and Hessian to be
-             * updated, as arguments.
-             */
-            typedef void (*UpdateFunction)(bool trueLabel, float64 predictedScore, float64* gradient, float64* hessian);
-
-            /**
-             * A function that allows to calculate a numerical score that assesses the quality of the prediction for a
-             * single example and label. The function accepts the true label and the predicted score as arguments and
-             * returns a numerical score.
-             */
-            typedef float64 (*EvaluateFunction)(bool trueLabel, float64 predictedScore);
-
-            UpdateFunction updateFunction_;
-
-            EvaluateFunction evaluateFunction_;
-
-        protected:
-
-            /**
-             * @param updateFunction    The function to be used for updating gradients and Hessians
-             * @param evaluateFunction  The function to be used for evaluating predictions
-             */
-            AbstractLabelWiseLoss(UpdateFunction updateFunction, EvaluateFunction evaluateFunction);
+    class ILabelWiseLossFactory : public IEvaluationMeasureFactory, public ISimilarityMeasureFactory {
 
         public:
 
-            virtual ~AbstractLabelWiseLoss() { };
-
-            void updateLabelWiseStatistics(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
-                                           const CContiguousConstView<float64>& scoreMatrix,
-                                           CompleteIndexVector::const_iterator labelIndicesBegin,
-                                           CompleteIndexVector::const_iterator labelIndicesEnd,
-                                           DenseLabelWiseStatisticView& statisticView) const override final;
-
-            void updateLabelWiseStatistics(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
-                                           const CContiguousConstView<float64>& scoreMatrix,
-                                           PartialIndexVector::const_iterator labelIndicesBegin,
-                                           PartialIndexVector::const_iterator labelIndicesEnd,
-                                           DenseLabelWiseStatisticView& statisticView) const override final;
-
-            void updateLabelWiseStatistics(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
-                                           const CContiguousConstView<float64>& scoreMatrix,
-                                           CompleteIndexVector::const_iterator labelIndicesBegin,
-                                           CompleteIndexVector::const_iterator labelIndicesEnd,
-                                           DenseLabelWiseStatisticView& statisticView) const override final;
-
-            void updateLabelWiseStatistics(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
-                                            const CContiguousConstView<float64> scoreMatrix,
-                                            PartialIndexVector::const_iterator labelIndicesBegin,
-                                            PartialIndexVector::const_iterator labelIndicesEnd,
-                                            DenseLabelWiseStatisticView& statisticView) const override final;
+            virtual ~ILabelWiseLossFactory() override { };
 
             /**
-             * @see `IEvaluationMeasure::evaluate`
+             * Creates and returns a new object of type `ILabelWiseLoss`.
+             *
+             * @return An unique pointer to an object of type `ILabelWiseLoss` that has been created
              */
-            float64 evaluate(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
-                             const CContiguousConstView<float64>& scoreMatrix) const override final;
+            virtual std::unique_ptr<ILabelWiseLoss> createLabelWiseLoss() const = 0;
 
             /**
-             * @see `IEvaluationMeasure::evaluate`
+             * @see `IEvaluationMeasureFactory::createEvaluationMeasure`
              */
-            float64 evaluate(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
-                             const CContiguousConstView<float64>& scoreMatrix) const override final;
+            std::unique_ptr<IEvaluationMeasure> createEvaluationMeasure() const override final {
+                return this->createLabelWiseLoss();
+            }
 
             /**
-             * @see `ISimilarityMeasure::measureSimilarity`
+             * @see `ISimilarityMeasureFactory::createSimilarityMeasure`
              */
-            float64 measureSimilarity(const LabelVector& labelVector,
-                                      CContiguousView<float64>::const_iterator scoresBegin,
-                                      CContiguousView<float64>::const_iterator scoresEnd) const override final;
+            std::unique_ptr<ISimilarityMeasure> createSimilarityMeasure() const override final {
+                return this->createLabelWiseLoss();
+            }
+
+    };
+
+    /**
+     * Defines an interface for all classes that allow to configure a (decomposable) loss function that is applied
+     * label-wise.
+     */
+    class ILabelWiseLossConfig : public ILossConfig {
+
+        public:
+
+            virtual ~ILabelWiseLossConfig() override { };
+
+            /**
+             * Creates and returns a new object of type `ILabelWiseLossFactory` according to the specified
+             * configuration.
+             *
+             * @return An unique pointer to an object of type `ILabelWiseLossFactory` that has been created
+             */
+            virtual std::unique_ptr<ILabelWiseLossFactory> createLabelWiseLossFactory() const = 0;
 
     };
 

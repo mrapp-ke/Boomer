@@ -19,5 +19,5 @@
  */
 static inline constexpr bool isBetterThanBestHead(const IScoreVector& scoreVector,
                                                   const AbstractEvaluatedPrediction* bestHead) {
-    return bestHead == nullptr || scoreVector.overallQualityScore < bestHead->overallQualityScore;
+    return !bestHead || scoreVector.overallQualityScore < bestHead->overallQualityScore;
 }

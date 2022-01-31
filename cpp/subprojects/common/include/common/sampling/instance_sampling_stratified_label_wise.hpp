@@ -5,14 +5,45 @@
 #pragma once
 
 #include "common/sampling/instance_sampling.hpp"
+#include "common/macros.hpp"
 
 
 /**
- * Allows to create instances of the type `IInstanceSampling` that implement stratified sampling for selecting a subset
- * of the available training examples, such that for each label the proportion of relevant and irrelevant examples is
- * maintained.
+ * Defines an interface for all classes that allow to configure a method for selecting a subset of the available
+ * training examples using stratification, such that for each label the proportion of relevant and irrelevant examples
+ * is maintained.
  */
-class LabelWiseStratifiedSamplingFactory final : public IInstanceSamplingFactory {
+class MLRLCOMMON_API ILabelWiseStratifiedInstanceSamplingConfig {
+
+    public:
+
+        virtual ~ILabelWiseStratifiedInstanceSamplingConfig() { };
+
+        /**
+         * Returns the fraction of examples that are included in a sample.
+         *
+         * @return The fraction of examples that are included in a sample
+         */
+        virtual float32 getSampleSize() const = 0;
+
+        /**
+         * Sets the fraction of examples that should be included in a sample.
+         *
+         * @param sampleSize    The fraction of examples that should be included in a sample, e.g., a value of 0.6
+         *                      corresponds to 60 % of the available training examples. Must be in (0, 1)
+         * @return              A reference to an object of type `ILabelWiseStratifiedInstanceSamplingConfig` that
+         *                      allows further configuration of the method for sampling instances
+         */
+        virtual ILabelWiseStratifiedInstanceSamplingConfig& setSampleSize(float32 sampleSize) = 0;
+
+};
+
+/**
+ * Allows to configure a method for selecting a subset of the available training examples using stratification, such
+ * that for each label the proportion of relevant and irrelevant examples is maintained.
+ */
+class LabelWiseStratifiedInstanceSamplingConfig final : public IInstanceSamplingConfig,
+                                                        public ILabelWiseStratifiedInstanceSamplingConfig {
 
     private:
 
@@ -20,23 +51,12 @@ class LabelWiseStratifiedSamplingFactory final : public IInstanceSamplingFactory
 
     public:
 
-        /**
-         * @param sampleSize The fraction of examples to be included in the sample (e.g. a value of 0.6 corresponds to
-         *                   60 % of the available examples). Must be in (0, 1]
-         */
-        LabelWiseStratifiedSamplingFactory(float32 sampleSize);
+        LabelWiseStratifiedInstanceSamplingConfig();
 
-        std::unique_ptr<IInstanceSampling> create(const CContiguousLabelMatrix& labelMatrix,
-                                                  const SinglePartition& partition,
-                                                  IStatistics& statistics) const override;
+        float32 getSampleSize() const override;
 
-        std::unique_ptr<IInstanceSampling> create(const CContiguousLabelMatrix& labelMatrix, BiPartition& partition,
-                                                  IStatistics& statistics) const override;
+        ILabelWiseStratifiedInstanceSamplingConfig& setSampleSize(float32 sampleSize) override;
 
-        std::unique_ptr<IInstanceSampling> create(const CsrLabelMatrix& labelMatrix, const SinglePartition& partition,
-                                                  IStatistics& statistics) const override;
-
-        std::unique_ptr<IInstanceSampling> create(const CsrLabelMatrix& labelMatrix, BiPartition& partition,
-                                                  IStatistics& statistics) const override;
+        std::unique_ptr<IInstanceSamplingFactory> createInstanceSamplingFactory() const override;
 
 };

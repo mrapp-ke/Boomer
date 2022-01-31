@@ -3,8 +3,9 @@
  */
 #pragma once
 
-#include "common/input/label_matrix_c_contiguous.hpp"
-#include "common/input/label_matrix_csr.hpp"
+#include "common/data/view_c_contiguous.hpp"
+#include "common/data/view_csr_binary.hpp"
+#include <memory>
 
 
 /**
@@ -23,13 +24,13 @@ class IEvaluationMeasure {
          * provides random access to the labels of the training examples.
          *
          * @param exampleIndex  The index of the example for which the predictions should be evaluated
-         * @param labelMatrix   A reference to an object of type `CContiguousLabelMatrix` that provides random access to
+         * @param labelMatrix   A reference to an object of type `CContiguousConstView` that provides random access to
          *                      the labels of the training examples
          * @param scoreMatrix   A reference to an object of type `CContiguousConstView` that stores the currently 
          *                      predicted scores
          * @return              The numerical score that has been calculated
          */
-        virtual float64 evaluate(uint32 exampleIndex, const CContiguousLabelMatrix& labelMatrix,
+        virtual float64 evaluate(uint32 exampleIndex, const CContiguousConstView<const uint8>& labelMatrix,
                                  const CContiguousConstView<float64>& scoreMatrix) const = 0;
 
         /**
@@ -38,13 +39,31 @@ class IEvaluationMeasure {
          * provides row-wise access to the labels of the training examples.
          *
          * @param exampleIndex  The index of the example for which the predictions should be evaluated
-         * @param labelMatrix   A reference to an object of type `CsrLabelMatrix` that provides row-wise access to the
-         *                      labels of the training examples
+         * @param labelMatrix   A reference to an object of type `BinaryCsrConstView` that provides row-wise access to
+         *                      the labels of the training examples
          * @param scoreMatrix   A reference to an object of type `CContiguousConstView` that stores the currently 
          *                      predicted scores
          * @return              The numerical score that has been calculated
          */
-        virtual float64 evaluate(uint32 exampleIndex, const CsrLabelMatrix& labelMatrix,
+        virtual float64 evaluate(uint32 exampleIndex, const BinaryCsrConstView& labelMatrix,
                                  const CContiguousConstView<float64>& scoreMatrix) const = 0;
+
+};
+
+/**
+ * Defines an interface for all factories that allow to create instances of the type `IEvaluationMeasure`.
+ */
+class IEvaluationMeasureFactory {
+
+    public:
+
+        virtual ~IEvaluationMeasureFactory() { };
+
+        /**
+         * Creates and returns a new object of type `IEvaluationMeasure`.
+         *
+         * @return An unique pointer to an object of type `IEvaluationMeasure` that has been created
+         */
+        virtual std::unique_ptr<IEvaluationMeasure> createEvaluationMeasure() const = 0;
 
 };

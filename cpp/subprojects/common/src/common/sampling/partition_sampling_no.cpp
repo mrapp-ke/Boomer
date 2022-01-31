@@ -28,11 +28,24 @@ class NoPartitionSampling final : public IPartitionSampling {
 
 };
 
-std::unique_ptr<IPartitionSampling> NoPartitionSamplingFactory::create(
-        const CContiguousLabelMatrix& labelMatrix) const {
-    return std::make_unique<NoPartitionSampling>(labelMatrix.getNumRows());
-}
+/**
+ * Allows to create objects of the type `IPartitionSampling` that do not split the training examples, but include all of
+ * them in the training set.
+ */
+class NoPartitionSamplingFactory final : public IPartitionSamplingFactory {
 
-std::unique_ptr<IPartitionSampling> NoPartitionSamplingFactory::create(const CsrLabelMatrix& labelMatrix) const {
-    return std::make_unique<NoPartitionSampling>(labelMatrix.getNumRows());
+    public:
+
+        std::unique_ptr<IPartitionSampling> create(const CContiguousLabelMatrix& labelMatrix) const override {
+            return std::make_unique<NoPartitionSampling>(labelMatrix.getNumRows());
+        }
+
+        std::unique_ptr<IPartitionSampling> create(const CsrLabelMatrix& labelMatrix) const override {
+            return std::make_unique<NoPartitionSampling>(labelMatrix.getNumRows());
+        }
+
+};
+
+std::unique_ptr<IPartitionSamplingFactory> NoPartitionSamplingConfig::createPartitionSamplingFactory() const {
+    return std::make_unique<NoPartitionSamplingFactory>();
 }

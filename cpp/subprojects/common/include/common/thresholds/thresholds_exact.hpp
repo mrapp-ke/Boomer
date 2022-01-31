@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include "common/thresholds/thresholds_factory.hpp"
+#include "common/thresholds/thresholds.hpp"
 
 
 /**
@@ -22,7 +22,7 @@ class ExactThresholdsFactory final : public IThresholdsFactory {
          */
         ExactThresholdsFactory(uint32 numThreads);
 
-        std::unique_ptr<IThresholds> create(const IFeatureMatrix& featureMatrix,
+        std::unique_ptr<IThresholds> create(const IColumnWiseFeatureMatrix& featureMatrix,
                                             const INominalFeatureMask& nominalFeatureMask,
                                             IStatisticsProvider& statisticsProvider) const override;
 

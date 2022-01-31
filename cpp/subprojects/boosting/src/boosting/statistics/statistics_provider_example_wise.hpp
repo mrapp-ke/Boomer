@@ -20,7 +20,7 @@ namespace boosting {
      *                                          rules
      */
     template<typename ExampleWiseRuleEvaluationFactory, typename LabelWiseRuleEvaluationFactory>
-    class ExampleWiseStatisticsProvider : public IStatisticsProvider {
+    class ExampleWiseStatisticsProvider final : public IStatisticsProvider {
 
         private:
 
@@ -86,7 +86,7 @@ namespace boosting {
      *                                          rules
      */
     template<typename ExampleWiseRuleEvaluationFactory, typename LabelWiseRuleEvaluationFactory>
-    class ConvertibleExampleWiseStatisticsProvider : public IStatisticsProvider {
+    class ConvertibleExampleWiseStatisticsProvider final : public IStatisticsProvider {
 
         private:
 
@@ -132,7 +132,7 @@ namespace boosting {
                 IExampleWiseStatistics<ExampleWiseRuleEvaluationFactory, LabelWiseRuleEvaluationFactory>* exampleWiseStatistics =
                     exampleWiseStatisticsPtr_.get();
 
-                if (exampleWiseStatistics != nullptr) {
+                if (exampleWiseStatistics) {
                     return *exampleWiseStatistics;
                 } else {
                     return *labelWiseStatisticsPtr_;
@@ -146,7 +146,7 @@ namespace boosting {
                 IExampleWiseStatistics<ExampleWiseRuleEvaluationFactory, LabelWiseRuleEvaluationFactory>* exampleWiseStatistics =
                     exampleWiseStatisticsPtr_.get();
 
-                if (exampleWiseStatistics != nullptr) {
+                if (exampleWiseStatistics) {
                     labelWiseStatisticsPtr_ = exampleWiseStatistics->toLabelWiseStatistics(
                         regularRuleEvaluationFactory_, numThreads_);
                     exampleWiseStatisticsPtr_.reset();
@@ -162,7 +162,7 @@ namespace boosting {
                 IExampleWiseStatistics<ExampleWiseRuleEvaluationFactory, LabelWiseRuleEvaluationFactory>* exampleWiseStatistics =
                     exampleWiseStatisticsPtr_.get();
 
-                if (exampleWiseStatistics != nullptr) {
+                if (exampleWiseStatistics) {
                     labelWiseStatisticsPtr_ = exampleWiseStatistics->toLabelWiseStatistics(
                         pruningRuleEvaluationFactory_, numThreads_);
                     exampleWiseStatisticsPtr_.reset();

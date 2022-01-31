@@ -1,76 +1,118 @@
 """
 @author: Michael Rapp (michael.rapp.ml@gmail.com)
 """
-from libcpp.memory cimport make_unique
+from mlrl.common.cython._validation import assert_greater, assert_less
 
 
-cdef class InstanceSamplingFactory:
+cdef class ExampleWiseStratifiedInstanceSamplingConfig:
     """
-    A wrapper for the pure virtual C++ class `IInstanceSamplingFactory`.
-    """
-    pass
-
-
-cdef class InstanceSamplingWithReplacementFactory(InstanceSamplingFactory):
-    """
-    A wrapper for the C++ class `InstanceSamplingWithReplacementFactory`.
+    Allows to configure a method for selecting a subset of the available training examples using stratification, where
+    distinct label vectors are treated as individual classes.
     """
 
-    def __cinit__(self, float32 sample_size):
+    def get_sample_size(self) -> float:
         """
-        :param sample_size: The fraction of examples to be included in the sample (e.g. a value of 0.6 corresponds to
-                            60 % of the available examples). Must be in (0, 1]
+        Returns the fraction of examples that are included in a sample.
+
+        :return: The fraction of examples that are included in a sample
         """
-        self.instance_sampling_factory_ptr = <unique_ptr[IInstanceSamplingFactory]>make_unique[InstanceSamplingWithReplacementFactoryImpl](
-            sample_size)
+        return self.config_ptr.getSampleSize()
 
-
-cdef class InstanceSamplingWithoutReplacementFactory(InstanceSamplingFactory):
-    """
-    A wrapper for the C++ class `InstanceSamplingWithoutReplacementFactory`.
-    """
-
-    def __cinit__(self, float32 sample_size):
+    def set_sample_size(self, sample_size: float) -> ExampleWiseStratifiedInstanceSamplingConfig:
         """
-        param sample_size: The fraction of examples to be included in the sample (e.g. a value of 0.6 corresponds to
-                           60 % of the available examples). Must be in (0, 1)
+        Sets the fraction of examples that should be included in a sample.
+
+        :param sample_size: The fraction of examples that should be included in a sample, e.g., a value of 0.6
+                            corresponds to 60 % of the available training examples. Must be in (0, 1)
+        :return:            An `ExampleWiseStratifiedInstanceSamplingConfig` that allows further configuration of the
+                            method for sampling instances
         """
-        self.instance_sampling_factory_ptr = <unique_ptr[IInstanceSamplingFactory]>make_unique[InstanceSamplingWithoutReplacementFactoryImpl](
-            sample_size)
+        assert_greater('sample_size', sample_size, 0)
+        assert_less('sample_size', sample_size, 1)
+        self.config_ptr.setSampleSize(sample_size)
+        return self
 
 
-cdef class LabelWiseStratifiedSamplingFactory(InstanceSamplingFactory):
+cdef class LabelWiseStratifiedInstanceSamplingConfig:
     """
-    A wrapper for the C++ class `LabelWiseStratifiedSamplingFactory`.
+    Allows to configure a method for selecting a subset of the available training examples using stratification, such
+    that for each label the proportion of relevant and irrelevant examples is maintained.
     """
 
-    def __cinit__(self, float32 sample_size):
+    def get_sample_size(self) -> float:
         """
-        param sample_size: The fraction of examples to be included in the sample (e.g. a value of 0.6 corresponds to
-                           60 % of the available examples). Must be in (0, 1)
+        Returns the fraction of examples that are included in a sample.
+
+        :return: The fraction of examples that are included in a sample
         """
-        self.instance_sampling_factory_ptr = <unique_ptr[IInstanceSamplingFactory]>make_unique[LabelWiseStratifiedSamplingFactoryImpl](
-            sample_size)
+        return self.config_ptr.getSampleSize()
 
-
-cdef class ExampleWiseStratifiedSamplingFactory(InstanceSamplingFactory):
-    """
-    A wrapper for the C++ class `ExampleWiseStratifiedSamplingFactory`.
-    """
-
-    def __cinit__(self, float32 sample_size):
+    def set_sample_size(self, sample_size: float) -> LabelWiseStratifiedInstanceSamplingConfig:
         """
-        param sample_size: The fraction of examples to be included in the sample (e.g. a value of 0.6 corresponds to
-                           60 % of the available examples). Must be in (0, 1)
+        Sets the fraction of examples that should be included in a sample.
+
+        :param sample_size: The fraction of examples that should be included in a sample, e.g., a value of 0.6
+                            corresponds to 60 % of the available training examples. Must be in (0, 1)
+        :return:            A `LabelWiseStratifiedInstanceSamplingConfig` that allows further configuration of the
+                            method for sampling instances
         """
-        self.instance_sampling_factory_ptr = <unique_ptr[IInstanceSamplingFactory]>make_unique[ExampleWiseStratifiedSamplingFactoryImpl](
-            sample_size)
+        assert_greater('sample_size', sample_size, 0)
+        assert_less('sample_size', sample_size, 1)
+        self.config_ptr.setSampleSize(sample_size)
+        return self
 
 
-cdef class NoInstanceSamplingFactory(InstanceSamplingFactory):
+cdef class InstanceSamplingWithReplacementConfig:
     """
-    A wrapper for the C++ class `NoInstanceSamplingFactory`.
+    Allows to configure a method for selecting a subset of the available training examples with replacement.
     """
 
-    def __cinit__(self):
-        self.instance_sampling_factory_ptr = <unique_ptr[IInstanceSamplingFactory]>make_unique[NoInstanceSamplingFactoryImpl]()
+    def get_sample_size(self) -> float:
+        """
+        Returns the fraction of examples that are included in a sample.
+
+        :return: The fraction of examples that are included in a sample
+        """
+        return self.config_ptr.getSampleSize()
+
+    def set_sample_size(self, sample_size: float) -> InstanceSamplingWithReplacementConfig:
+        """
+        Sets the fraction of examples that should be included in a sample.
+
+        :param sample_size: The fraction of examples that should be included in a sample, e.g., a value of 0.6
+                            corresponds to 60 % of the available training examples. Must be in (0, 1)
+        :return:            An `InstanceSamplingWithReplacementConfig` that allows further configuration of the method
+                            for sampling instances
+        """
+        assert_greater('sample_size', sample_size, 0)
+        assert_less('sample_size', sample_size, 1)
+        self.config_ptr.setSampleSize(sample_size)
+        return self
+
+
+cdef class InstanceSamplingWithoutReplacementConfig:
+    """
+    Allows to configure a method for selecting a subset of the available training examples without replacement.
+    """
+
+    def get_sample_size(self) -> float:
+        """
+        Returns the fraction of examples that are included in a sample.
+
+        :return: The fraction of examples that are included in a sample
+        """
+        return self.config_ptr.getSampleSize()
+
+    def set_sample_size(self, sample_size: float) -> InstanceSamplingWithoutReplacementConfig:
+        """
+        Sets the fraction of examples that should be included in a sample.
+
+        :param sample_size: The fraction of examples that should be included in a sample, e.g., a value of 0.6
+                            corresponds to 60 % of the available training examples. Must be in (0, 1)
+        :return:            An `InstanceSamplingWithoutReplacementConfig` that allows further configuration of the
+                            method for sampling instances
+        """
+        assert_greater('sample_size', sample_size, 0)
+        assert_less('sample_size', sample_size, 1)
+        self.config_ptr.setSampleSize(sample_size)
+        return self

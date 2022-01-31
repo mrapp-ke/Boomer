@@ -15,7 +15,7 @@
  * @tparam T The type of the data that is stored in the vector
  */
 template<typename T>
-class SparseArrayVector final {
+class SparseArrayVector final : public DenseVector<IndexedValue<T>> {
 
     private:
 
@@ -26,14 +26,14 @@ class SparseArrayVector final {
 
             private:
 
-                typename DenseVector<IndexedValue<T>>::const_iterator iterator_;
+                typename VectorConstView<IndexedValue<T>>::const_iterator iterator_;
 
             public:
 
                 /**
                  * @param iterator An iterator that provides access to the elements in the `SparseArrayVector`
                  */
-                IndexConstIterator(typename DenseVector<IndexedValue<T>>::const_iterator iterator);
+                IndexConstIterator(typename VectorConstView<IndexedValue<T>>::const_iterator iterator);
 
                 /**
                  * The type that is used to represent the difference between two iterators.
@@ -135,14 +135,14 @@ class SparseArrayVector final {
 
             private:
 
-                typename DenseVector<IndexedValue<T>>::iterator iterator_;
+                typename VectorView<IndexedValue<T>>::iterator iterator_;
 
             public:
 
                 /**
                  * @param iterator An iterator that provides access to the elements in the `SparseArrayVector`
                  */
-                IndexIterator(typename DenseVector<IndexedValue<T>>::iterator iterator);
+                IndexIterator(typename VectorView<IndexedValue<T>>::iterator iterator);
 
                 /**
                  * The type that is used to represent the difference between two iterators.
@@ -244,14 +244,14 @@ class SparseArrayVector final {
 
             private:
 
-                typename DenseVector<IndexedValue<T>>::const_iterator iterator_;
+                typename VectorConstView<IndexedValue<T>>::const_iterator iterator_;
 
             public:
 
                 /**
                  * @param iterator An iterator that provides access to the elements in the `SparseArrayVector`
                  */
-                ValueConstIterator(typename DenseVector<IndexedValue<T>>::const_iterator iterator);
+                ValueConstIterator(typename VectorConstView<IndexedValue<T>>::const_iterator iterator);
 
                 /**
                  * The type that is used to represent the difference between two iterators.
@@ -353,14 +353,14 @@ class SparseArrayVector final {
 
             private:
 
-                typename DenseVector<IndexedValue<T>>::iterator iterator_;
+                typename VectorView<IndexedValue<T>>::iterator iterator_;
 
             public:
 
                 /**
                  * @param iterator An iterator that provides access to the elements in the `SparseArrayVector`
                  */
-                ValueIterator(typename DenseVector<IndexedValue<T>>::iterator iterator);
+                ValueIterator(typename VectorView<IndexedValue<T>>::iterator iterator);
 
                 /**
                  * The type that is used to represent the difference between two iterators.
@@ -455,24 +455,12 @@ class SparseArrayVector final {
 
         };
 
-        DenseVector<IndexedValue<T>> vector_;
-
     public:
 
         /**
          * @param numElements The number of elements in the vector
          */
         SparseArrayVector(uint32 numElements);
-
-        /**
-         * An iterator that provides access to the elements in the vector and allows to modify them.
-         */
-        typedef typename DenseVector<IndexedValue<T>>::iterator iterator;
-
-        /**
-         * An iterator that provides read-only access to the elements in the vector.
-         */
-        typedef typename DenseVector<IndexedValue<T>>::const_iterator const_iterator;
 
         /**
          * An iterator that provides access to the indices in the vector and allows to modify them.
@@ -493,34 +481,6 @@ class SparseArrayVector final {
          * An iterator that provides read-only access to the values in the vector.
          */
         typedef ValueConstIterator value_const_iterator;
-
-        /**
-         * Returns an `iterator` to the beginning of the vector.
-         *
-         * @return An `iterator` to the beginning
-         */
-        iterator begin();
-
-        /**
-         * Returns an `iterator` to the end of the vector.
-         *
-         * @return An `iterator` to the end
-         */
-        iterator end();
-
-        /**
-         * Returns a `const_iterator` to the beginning of the vector.
-         *
-         * @return A `const_iterator` to the beginning
-         */
-        const_iterator cbegin() const;
-
-        /**
-         * Returns a `const_iterator` to the end of the vector.
-         *
-         * @return A `const_iterator` to the end
-         */
-        const_iterator cend() const;
 
         /**
          * Returns an `index_iterator` to the beginning of the indices in the vector.
@@ -577,37 +537,6 @@ class SparseArrayVector final {
          * @return A `value_const_iterator` to the end
          */
         value_const_iterator values_cend() const;
-
-        /**
-         * Returns a const reference to the element at a specific position.
-         *
-         * @param pos   The position of the element
-         * @return      A const reference to the specified element
-         */
-        const IndexedValue<T>& operator[](uint32 pos) const;
-
-        /**
-         * Returns a reference to the element at a specific position.
-         *
-         * @param pos   The position of the element
-         * @return      A reference to the specified element
-         */
-        IndexedValue<T>& operator[](uint32 pos);
-
-        /**
-         * Returns the number of elements in the vector.
-         *
-         * @return The number of elements in the vector
-         */
-        uint32 getNumElements() const;
-
-        /**
-         * Sets the number of elements in the vector.
-         *
-         * @param numElements   The number of elements to be set
-         * @param freeMemory    True, if unused memory should be freed, if possible, false otherwise
-         */
-        void setNumElements(uint32 numElements, bool freeMemory);
 
         /**
          * Sorts the elements in the vector in ascending order based on their values.

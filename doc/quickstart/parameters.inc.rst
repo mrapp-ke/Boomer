@@ -48,36 +48,46 @@ The following parameters allow to control the behavior of the algorithm:
 
   * The seed to be used by random number generators. Must be at least 1.
 
+* ``rule_model_assemblage`` (Default value = ``'sequential'``)
+
+  * ``'sequential'`` The rules in a model are learned sequentially, starting with a default rule. The following options may be provided using the bracket notation:
+
+    * ``default_rule`` (Default value = ``'true'``) ``'true'``, if the first rule should be a default rule that provides a default prediction for all examples, ``'false'``, if no default rule should be used.
+
+* ``rule_induction`` (Default value = ``'top-down'``)
+
+  * ``'top-down'`` A greedy top-down search, where rules are successively refined by adding new conditions, is used for the induction of individual rules. The following options may be provided using the bracket notation:
+
+    * ``max_conditions`` (Default value = ``0``) The maximum number of conditions to be included in a rule's body. Must be at least 1 or 0, if the number of conditions should not be restricted.
+    * ``min_coverage`` (Default value = ``1``) The minimum number of examples that must be covered by a rule. Must be at least 1.
+    * ``max_head_refinements`` (Default value = ``1``) The maximum number of times the head of a rule may be refined. Must be at least 1 or 0, if the number of refinements should not be restricted.
+    * ``recalculate_predictions`` (Default value = ``'true'``) ``'true'``, if the predictions of rules should be recalculated on the entire training data if the parameter ``instance_sampling`` is not set to ``'none'``, ``'false'``, if the predictions of rules should not be recalculated.
+
 * ``max_rules`` (Default value = ``1000``)
 
-  * The maximum number of rules to be learned. Must be at least 1 or 0, if the number of rules should not be restricted.
-
-* ``default_rule`` (Default value = ``'true'``)
-
-  * ``'true'`` The first rule is a default rule that provides a default prediction for all examples.
-  * ``'false'`` No default rule is used.
+  * The maximum number of rules to be learned (including the default rule). Must be at least 1 or 0, if the number of rules should not be restricted.
 
 * ``time_limit`` (Default value = ``0``)
 
   * The duration in seconds after which the induction of rules should be canceled. Must be at least 1 or 0, if no time limit should be set.
 
-* ``label_sampling`` (Default value = ``None``)
+* ``label_sampling`` (Default value = ``'none'``)
 
-  * ``None`` All labels are considered for learning a new rule.
+  * ``'none'`` All labels are considered for learning a new rule.
   * ``'without-replacement'`` The labels to be considered when learning a new rule are chosen randomly. The following options may be provided using the bracket notation:
   
     * ``num_samples`` (Default value = ``1``) The number of labels the be included in a sample. Must be at least 1.
 
 * ``feature_sampling`` (Default value = ``'without-replacement'``)
 
-  * ``None`` All features are considered for learning a new rule.
+  * ``'none'`` All features are considered for learning a new rule.
   * ``'without-replacement'`` A random subset of the features is used to search for the refinements of rules. The following options may be provided using the bracket notation:
 
     * ``sample_size`` (Default value = ``0``) The percentage of features to be included in a sample. For example, a value of 0.6 corresponds to 60% of the features. Must be in (0, 1] or 0, if the sample size should be calculated as log2(A - 1) + 1), where A denotes the number of available features.
 
-* ``instance_sampling`` (Default value = ``None``)
+* ``instance_sampling`` (Default value = ``'none'``)
 
-  * ``None`` All training examples are considered for learning a new rule.
+  * ``'none'`` All training examples are considered for learning a new rule.
   * ``'with-replacement'`` The training examples to be considered for learning a new rule are selected randomly with replacement. The following options may be provided using the bracket notation:
   
     * ``sample_size`` (Default value = ``1.0``) The percentage of examples to be included in a sample. For example, a value of 0.6 corresponds to 60% of the available examples. Must be in (0, 1).
@@ -94,14 +104,9 @@ The following parameters allow to control the behavior of the algorithm:
   
     * ``sample_size`` (Default value = ``0.66``) The percentage of examples to be included in a sample. For example, a value of 0.6 corresponds to 60% of the available examples. Must be in (0, 1).
 
-* ``recalculate_predictions`` (Default value = ``'true'``)
+* ``holdout`` (Default value = ``'none'``)
 
-  * ``'true'`` The predictions of rules are recalculated on the entire training data, if the parameter ``instance_sampling`` is not set to None.
-  * ``'false'`` The predictions of rules are not recalculated.
-
-* ``holdout`` (Default value = ``None``)
-
-  * ``None`` No holdout set is created.
+  * ``'none'`` No holdout set is created.
   * ``'random'`` The available examples are randomly split into a training set and a holdout set. The following options may be provided using the bracket notation:
   
     * ``holdout_set_size`` (Default value = ``0.33``) The percentage of examples to be included in the holdout set. For example, a value of 0.3 corresponds to 30% of the available examples. Must be in (0, 1).
@@ -114,9 +119,9 @@ The following parameters allow to control the behavior of the algorithm:
   
     * ``holdout_set_size`` (Default value = ``0.33``) The percentage of examples to be included in the holdout set. For example, a value of 0.3 corresponds to 30% of the available examples. Must be in (0, 1).
 
-* ``early_stopping`` (Default value = ``None``)
+* ``early_stopping`` (Default value = ``'none'``)
 
-  * ``None`` No strategy for early-stopping is used.
+  * ``'none'`` No strategy for early-stopping is used.
   * ``'loss'`` Stops the induction of new rules as soon as the performance of the model does not improve on a holdout set, according to the loss function. This parameter does only have an effect if the parameter ``holdout`` is set to a value greater than 0. The following options may be provided using the bracket notation:
 
     * ``min_rules`` (Default value = ``100``) The minimum number of rules. Must be at least 1.
@@ -128,9 +133,9 @@ The following parameters allow to control the behavior of the algorithm:
     * ``min_improvement`` (Default value = ``0.005``) The minimum improvement in percent that must be reached when comparing the aggregated scores in both buffers for the rule induction to be continued. Must be in [0, 1].
     * ``force_stop`` (Default value = ``'true'``) ``'true'``, if the induction of rules should be forced to be stopped as soon as the stopping criterion is met, ``'false'``, if the time of stopping should only be stored.
 
-* ``feature_binning`` (Default value = ``None``)
+* ``feature_binning`` (Default value = ``'none'``)
 
-  * ``None`` No feature binning is used.
+  * ``'none'`` No feature binning is used.
   * ``'equal-width'`` Examples are assigned to bins, based on their feature values, according to the equal-width binning method. The following options may be provided using the bracket notation:
   
     * ``bin_ratio`` (Default value = ``0.33``) A percentage that specifies how many bins should be used. For example, a value of 0.3 means that the number of bins should be set to 30% of the number of distinct values for a feature.
@@ -145,7 +150,7 @@ The following parameters allow to control the behavior of the algorithm:
 
 * ``label_binning`` (Default Value = ``'auto'``)
 
-  * ``None`` No label binning is used.
+  * ``'none'`` No label binning is used.
   * ``'auto'`` The most suitable strategy for label-binning is chosen automatically based on the loss function and the type of rule heads.
   * ``'equal-width'`` The labels for which a rule may predict are assigned to bins according to the equal-width binning method. The following options may be provided using the bracket notation:
 
@@ -153,32 +158,20 @@ The following parameters allow to control the behavior of the algorithm:
     * ``min_bins`` (Default value = ``1``) The minimum number of bins. Must be at least 1.
     * ``max_bins`` (Default value = ``0``) The maximum number of bins or 0, if the number of bins should not be restricted.
 
-* ``pruning`` (Default value = ``None``)
+* ``pruning`` (Default value = ``'none'``)
 
-  * ``None`` No pruning is used.
-  * ``'irep'``. Subsequent conditions of rules may be pruned on a holdout set, similar to the IREP algorithm. Does only have an effect if the parameter ``instance_sampling`` is not set to None.
-
-* ``min_coverage`` (Default value = ``1``)
-
-  * The minimum number of examples that must be covered by a rule. Must be at least 1.
-
-* ``max_conditions`` (Default value = ``0``)
-
-  * The maximum number of conditions to be included in a rule's body. Must be at least 1 or 0, if the number of conditions should not be restricted.
-
-* ``max_head_refinements`` (Default value = ``1``)
-
-  * The maximum number of times the head of a rule may be refined. Must be at least 1 or 0, if the number of refinements should not be restricted.
+  * ``'none'`` No pruning is used.
+  * ``'irep'``. Subsequent conditions of rules may be pruned on a holdout set, similar to the IREP algorithm. Does only have an effect if the parameter ``instance_sampling`` is not set to ``'none'``.
 
 * ``head_type`` (Default value = ``'auto'``)
 
-  * ``'auto'`` The most suitable type of rule heads is chosen automatically based on the loss function.
+  * ``'auto'`` The most suitable type of rule heads is chosen automatically, depending on the loss function.
   * ``'single-label'`` If all rules should predict for a single label.
   * ``'complete'`` If all rules should predict for all labels simultaneously, potentially capturing dependencies between the labels.
 
 * ``shrinkage`` (Default value = ``0.3``)
 
-  * The shrinkage parameter, a.k.a. the "learning rate", to be used. Must be in (0, 1].
+  * The shrinkage parameter, a.k.a. the "learning rate", that is used to shrink the weight of individual rules. Must be in (0, 1].
 
 * ``loss`` (Default value = ``'logistic-label-wise'``)
 

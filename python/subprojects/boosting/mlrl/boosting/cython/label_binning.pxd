@@ -1,29 +1,27 @@
 from mlrl.common.cython._types cimport uint32, float32
 
-from libcpp.memory cimport unique_ptr
-
-
-cdef extern from "boosting/binning/label_binning.hpp" namespace "boosting" nogil:
-
-    cdef cppclass ILabelBinningFactory:
-        pass
-
 
 cdef extern from "boosting/binning/label_binning_equal_width.hpp" namespace "boosting" nogil:
 
-    cdef cppclass EqualWidthLabelBinningFactoryImpl"boosting::EqualWidthLabelBinningFactory"(ILabelBinningFactory):
+    cdef cppclass IEqualWidthLabelBinningConfig:
 
-        # Constructors
+        # Functions:
 
-        EqualWidthLabelBinningFactoryImpl(float32 binRatio, uint32 minBins, uint32 maxBins) except +
+        float32 getBinRatio() const
+
+        IEqualWidthLabelBinningConfig& setBinRatio(float32 binRatio) except +
+
+        uint32 getMinBins() const
+
+        IEqualWidthLabelBinningConfig& setMinBins(uint32 minBins) except +
+
+        uint32 getMaxBins() const
+
+        IEqualWidthLabelBinningConfig& setMaxBins(uint32 maxBins) except +
 
 
-cdef class LabelBinningFactory:
+cdef class EqualWidthLabelBinningConfig:
 
     # Attributes:
 
-    cdef unique_ptr[ILabelBinningFactory] label_binning_factory_ptr
-
-
-cdef class EqualWidthLabelBinningFactory(LabelBinningFactory):
-    pass
+    cdef IEqualWidthLabelBinningConfig* config_ptr

@@ -1,4 +1,5 @@
 #include "boosting/losses/loss_label_wise_squared_hinge.hpp"
+#include "loss_label_wise_common.hpp"
 
 
 namespace boosting {
@@ -38,9 +39,49 @@ namespace boosting {
         }
     }
 
-    LabelWiseSquaredHingeLoss::LabelWiseSquaredHingeLoss()
-        : AbstractLabelWiseLoss(&updateGradientAndHessian, &evaluatePrediction) {
+    /**
+     * Allows to create instances of the type `ILabelWiseLoss` that implement a multi-label variant of the squared hinge
+     * loss that is applied label-wise.
+     */
+    class LabelWiseSquaredHingeLossFactory final : public ILabelWiseLossFactory {
 
+        public:
+
+            std::unique_ptr<ILabelWiseLoss> createLabelWiseLoss() const override {
+                return std::make_unique<LabelWiseLoss>(&updateGradientAndHessian, &evaluatePrediction);
+            }
+
+    };
+
+    LabelWiseSquaredHingeLossConfig::LabelWiseSquaredHingeLossConfig(const std::unique_ptr<IHeadConfig>& headConfigPtr)
+        : headConfigPtr_(headConfigPtr) {
+
+    }
+
+    std::unique_ptr<IStatisticsProviderFactory> LabelWiseSquaredHingeLossConfig::createStatisticsProviderFactory(
+            const IFeatureMatrix& featureMatrix, const ILabelMatrix& labelMatrix, const Blas& blas,
+            const Lapack& lapack) const {
+        return headConfigPtr_->createStatisticsProviderFactory(featureMatrix, labelMatrix, *this);
+    }
+
+    std::unique_ptr<IEvaluationMeasureFactory> LabelWiseSquaredHingeLossConfig::createEvaluationMeasureFactory() const {
+        return std::make_unique<LabelWiseSquaredHingeLossFactory>();
+    }
+
+    std::unique_ptr<ISimilarityMeasureFactory> LabelWiseSquaredHingeLossConfig::createSimilarityMeasureFactory() const {
+        return std::make_unique<LabelWiseSquaredHingeLossFactory>();
+    }
+
+    std::unique_ptr<IProbabilityFunctionFactory> LabelWiseSquaredHingeLossConfig::createProbabilityFunctionFactory() const {
+        return nullptr;
+    }
+
+    float64 LabelWiseSquaredHingeLossConfig::getDefaultPrediction() const {
+        return 0.5;
+    }
+
+    std::unique_ptr<ILabelWiseLossFactory> LabelWiseSquaredHingeLossConfig::createLabelWiseLossFactory() const {
+        return std::make_unique<LabelWiseSquaredHingeLossFactory>();
     }
 
 }

@@ -5,25 +5,31 @@
 
 #include "common/data/types.hpp"
 
-// A function pointer to the DDOT routine
-typedef double (*ddot_t)(int* n, double* dx, int* incx, double* dy, int* incy);
-
-// A function pointer to the DSPMV routine
-typedef void (*dspmv_t)(char* uplo, int* n, double* alpha, double* ap, double* x, int* incx, double* beta, double* y, int* incy);
-
 
 namespace boosting {
 
     /**
-     * A wrapper that allows to execute different BLAS routines.
+     * Allows to execute BLAS routines.
      */
     class Blas final {
 
+        public:
+
+            /**
+             * A function pointer to BLAS' DDOT routine.
+             */
+            typedef double (*DdotFunction)(int* n, double* dx, int* incx, double* dy, int* incy);
+
+            /**
+             * A function pointer to BLAS' DSPMV routine.
+             */
+            typedef void (*DspmvFunction)(char* uplo, int* n, double* alpha, double* ap, double* x, int* incx, double* beta, double* y, int* incy);
+
         private:
 
-            ddot_t ddotFunction_;
+            DdotFunction ddotFunction_;
 
-            dspmv_t dspmvFunction_;
+            DspmvFunction dspmvFunction_;
 
         public:
 
@@ -31,7 +37,7 @@ namespace boosting {
              * @param ddotFunction  A function pointer to BLAS' DDOT routine
              * @param dspmvFunction A function pointer to BLAS' DSPMV routine
              */
-            Blas(ddot_t ddotFunction, dspmv_t dspmvFunction);
+            Blas(DdotFunction ddotFunction, DspmvFunction dspmvFunction);
 
             /**
              * Computes and returns the dot product x * y of two vectors x and y using BLAS' DDOT routine (see

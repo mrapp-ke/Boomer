@@ -2,15 +2,14 @@
 
 
 static inline IStoppingCriterion::Result testStoppingCriteria(
-        std::forward_list<std::shared_ptr<IStoppingCriterion>>& stoppingCriteria, const IPartition& partition,
-        const IStatistics& statistics, uint32 numRules) {
+        std::forward_list<std::unique_ptr<IStoppingCriterion>>& stoppingCriteria, const IStatistics& statistics,
+        uint32 numRules) {
     IStoppingCriterion::Result result;
     result.action = IStoppingCriterion::Action::CONTINUE;
 
     for (auto it = stoppingCriteria.begin(); it != stoppingCriteria.end(); it++) {
-        std::shared_ptr<IStoppingCriterion>& stoppingCriterionPtr = *it;
-        IStoppingCriterion::Result stoppingCriterionResult = stoppingCriterionPtr->test(partition, statistics,
-                                                                                        numRules);
+        std::unique_ptr<IStoppingCriterion>& stoppingCriterionPtr = *it;
+        IStoppingCriterion::Result stoppingCriterionResult = stoppingCriterionPtr->test(statistics, numRules);
         IStoppingCriterion::Action action = stoppingCriterionResult.action;
 
         switch (action) {
@@ -34,95 +33,129 @@ static inline IStoppingCriterion::Result testStoppingCriteria(
 }
 
 /**
- * Allows to sequentially induce several rules, starting with a default rule, that will be added to a resulting
- * `RuleModel`.
+ * Allows to sequentially induce several rules, optionally starting with a default rule, that are added to a rule-based
+ * model.
  */
-class SequentialRuleModelAssemblage : public IRuleModelAssemblage {
+class SequentialRuleModelAssemblage final : public IRuleModelAssemblage {
 
     private:
 
-        std::shared_ptr<IStatisticsProviderFactory> statisticsProviderFactoryPtr_;
+        std::unique_ptr<IStatisticsProviderFactory> statisticsProviderFactoryPtr_;
 
-        std::shared_ptr<IThresholdsFactory> thresholdsFactoryPtr_;
+        std::unique_ptr<IThresholdsFactory> thresholdsFactoryPtr_;
 
-        std::shared_ptr<IRuleInduction> ruleInductionPtr_;
+        std::unique_ptr<IRuleInductionFactory> ruleInductionFactoryPtr_;
 
-        std::shared_ptr<ILabelSamplingFactory> labelSamplingFactoryPtr_;
+        std::unique_ptr<ILabelSamplingFactory> labelSamplingFactoryPtr_;
 
-        std::shared_ptr<IInstanceSamplingFactory> instanceSamplingFactoryPtr_;
+        std::unique_ptr<IInstanceSamplingFactory> instanceSamplingFactoryPtr_;
 
-        std::shared_ptr<IFeatureSamplingFactory> featureSamplingFactoryPtr_;
+        std::unique_ptr<IFeatureSamplingFactory> featureSamplingFactoryPtr_;
 
-        std::shared_ptr<IPartitionSamplingFactory> partitionSamplingFactoryPtr_;
+        std::unique_ptr<IPartitionSamplingFactory> partitionSamplingFactoryPtr_;
 
-        std::shared_ptr<IPruning> pruningPtr_;
+        std::unique_ptr<IPruningFactory> pruningFactoryPtr_;
 
-        std::shared_ptr<IPostProcessor> postProcessorPtr_;
-
-        std::forward_list<std::shared_ptr<IStoppingCriterion>> stoppingCriteria_;
+        std::unique_ptr<IPostProcessorFactory> postProcessorFactoryPtr_;
 
         bool useDefaultRule_;
+
+        std::forward_list<std::unique_ptr<IStoppingCriterionFactory>> stoppingCriterionFactories_;
 
     public:
 
         /**
-         * @param statisticsProviderFactoryPtr  A shared pointer to an object of type `IStatisticsProviderFactory` that
+         * @param statisticsProviderFactoryPtr  An unique pointer to an object of type `IStatisticsProviderFactory` that
          *                                      provides access to the statistics which serve as the basis for learning
          *                                      rules
-         * @param thresholdsFactoryPtr          A shared pointer to an object of type `IThresholdsFactory` that allows
+         * @param thresholdsFactoryPtr          An unique pointer to an object of type `IThresholdsFactory` that allows
          *                                      to create objects that provide access to the thresholds that may be used
          *                                      by the conditions of rules
-         * @param ruleInductionPtr              A shared pointer to an object of type `IRuleInduction` that should be
-         *                                      used to induce individual rules
-         * @param labelSamplingFactoryPtr       A shared pointer to an object of type `ILabelSamplingFactory` that
+         * @param ruleInductionFactoryPtr       An unique pointer to an object of type `IRuleInductionFactory` that
+         *                                      allows to create the implementation to be used for the induction of
+         *                                      individual rules
+         * @param labelSamplingFactoryPtr       An unique pointer to an object of type `ILabelSamplingFactory` that
          *                                      allows to create the implementation to be used for sampling the labels
          *                                      whenever a new rule is induced
-         * @param instanceSamplingFactoryPtr    A shared pointer to an object of type `IInstanceSamplingFactory` that
+         * @param instanceSamplingFactoryPtr    An unique pointer to an object of type `IInstanceSamplingFactory` that
          *                                      allows create the implementation to be used for sampling the examples
          *                                      whenever a new rule is induced
-         * @param featureSamplingFactoryPtr     A shared pointer to an object of type `IFeatureSamplingFactory` that
+         * @param featureSamplingFactoryPtr     An unique pointer to an object of type `IFeatureSamplingFactory` that
          *                                      allows to create the implementation to be used for sampling the features
          *                                      that may be used by the conditions of a rule
-         * @param partitionSamplingFactoryPtr   A shared pointer to an object of type `IPartitionSamplingFactory` that
+         * @param partitionSamplingFactoryPtr   An unique pointer to an object of type `IPartitionSamplingFactory` that
          *                                      allows to create the implementation to be used for partitioning the
          *                                      training examples into a training set and a holdout set
-         * @param pruningPtr                    A shared pointer to an object of type `IPruning` that should be used to
-         *                                      prune the rules
-         * @param postProcessorPtr              A shared pointer to an object of type `IPostProcessor` that should be
-         *                                      used to post-process the predictions of rules
-         * @param stoppingCriteria              A list that contains the stopping criteria, which should be used to
-         *                                      decide whether additional rules should be induced or not
+         * @param pruningFactoryPtr             An unique pointer to an object of type `IPruningFactory` that allows to
+         *                                      create the implementation to be used for pruning rules
+         * @param postProcessorFactoryPtr       An unique pointer to an object of type `IPostProcessorFactory` that
+         *                                      allows to create the implementation to be used for post-processing the
+         *                                      predictions of rules
          * @param useDefaultRule                True, if a default rule should be used, False otherwise
          */
         SequentialRuleModelAssemblage(
-            std::shared_ptr<IStatisticsProviderFactory> statisticsProviderFactoryPtr,
-            std::shared_ptr<IThresholdsFactory> thresholdsFactoryPtr, std::shared_ptr<IRuleInduction> ruleInductionPtr,
-            std::shared_ptr<ILabelSamplingFactory> labelSamplingFactoryPtr,
-            std::shared_ptr<IInstanceSamplingFactory> instanceSamplingFactoryPtr,
-            std::shared_ptr<IFeatureSamplingFactory> featureSamplingFactoryPtr,
-            std::shared_ptr<IPartitionSamplingFactory> partitionSamplingFactoryPtr,
-            std::shared_ptr<IPruning> pruningPtr, std::shared_ptr<IPostProcessor> postProcessorPtr,
-            std::forward_list<std::shared_ptr<IStoppingCriterion>> stoppingCriteria, bool useDefaultRule)
-        : statisticsProviderFactoryPtr_(statisticsProviderFactoryPtr), thresholdsFactoryPtr_(thresholdsFactoryPtr),
-          ruleInductionPtr_(ruleInductionPtr), labelSamplingFactoryPtr_(labelSamplingFactoryPtr),
-          instanceSamplingFactoryPtr_(instanceSamplingFactoryPtr),
-          featureSamplingFactoryPtr_(featureSamplingFactoryPtr),
-          partitionSamplingFactoryPtr_(partitionSamplingFactoryPtr), pruningPtr_(pruningPtr),
-          postProcessorPtr_(postProcessorPtr), stoppingCriteria_(stoppingCriteria), useDefaultRule_(useDefaultRule) {
+            std::unique_ptr<IStatisticsProviderFactory> statisticsProviderFactoryPtr,
+            std::unique_ptr<IThresholdsFactory> thresholdsFactoryPtr,
+            std::unique_ptr<IRuleInductionFactory> ruleInductionFactoryPtr,
+            std::unique_ptr<ILabelSamplingFactory> labelSamplingFactoryPtr,
+            std::unique_ptr<IInstanceSamplingFactory> instanceSamplingFactoryPtr,
+            std::unique_ptr<IFeatureSamplingFactory> featureSamplingFactoryPtr,
+            std::unique_ptr<IPartitionSamplingFactory> partitionSamplingFactoryPtr,
+            std::unique_ptr<IPruningFactory> pruningFactoryPtr,
+            std::unique_ptr<IPostProcessorFactory> postProcessorFactoryPtr,
+            bool useDefaultRule)
+            : statisticsProviderFactoryPtr_(std::move(statisticsProviderFactoryPtr)),
+              thresholdsFactoryPtr_(std::move(thresholdsFactoryPtr)),
+              ruleInductionFactoryPtr_(std::move(ruleInductionFactoryPtr)),
+              labelSamplingFactoryPtr_(std::move(labelSamplingFactoryPtr)),
+              instanceSamplingFactoryPtr_(std::move(instanceSamplingFactoryPtr)),
+              featureSamplingFactoryPtr_(std::move(featureSamplingFactoryPtr)),
+              partitionSamplingFactoryPtr_(std::move(partitionSamplingFactoryPtr)),
+              pruningFactoryPtr_(std::move(pruningFactoryPtr)),
+              postProcessorFactoryPtr_(std::move(postProcessorFactoryPtr)),
+              useDefaultRule_(useDefaultRule) {
 
         }
 
-        std::unique_ptr<RuleModel> induceRules(const INominalFeatureMask& nominalFeatureMask,
-                                               const IFeatureMatrix& featureMatrix, const ILabelMatrix& labelMatrix,
-                                               uint32 randomState, IModelBuilder& modelBuilder) {
-            // Induce default rule...
+        /**
+         * Adds a new `IStoppingCriterionFactory` that allows to create the implementation of a stopping criterion that
+         * should be used to decide whether the induction of additional rules should be stopped or not.
+         *
+         * @param stoppingCriterionFactoryPtr An unique pointer to an object of type `IStoppingCriterionFactory` that
+         *                                    should be added
+         */
+        void addStoppingCriterionFactory(std::unique_ptr<IStoppingCriterionFactory> stoppingCriterionFactoryPtr) {
+            stoppingCriterionFactories_.push_front(std::move(stoppingCriterionFactoryPtr));
+        }
+
+        std::unique_ptr<IRuleModel> induceRules(const INominalFeatureMask& nominalFeatureMask,
+                                                const IColumnWiseFeatureMatrix& featureMatrix,
+                                                const IRowWiseLabelMatrix& labelMatrix, uint32 randomState,
+                                                IModelBuilder& modelBuilder) const override {
             uint32 numRules = useDefaultRule_ ? 1 : 0;
             uint32 numUsedRules = 0;
+
+            // Partition training data...
+            std::unique_ptr<IPartitionSampling> partitionSamplingPtr = labelMatrix.createPartitionSampling(
+                *partitionSamplingFactoryPtr_);
+            RNG rng(randomState);
+            IPartition& partition = partitionSamplingPtr->partition(rng);
+
+            // Initialize stopping criteria...
+            std::forward_list<std::unique_ptr<IStoppingCriterion>> stoppingCriteria;
+
+            for (auto it = stoppingCriterionFactories_.cbegin(); it != stoppingCriterionFactories_.cend(); it++) {
+                const std::unique_ptr<IStoppingCriterionFactory>& stoppingCriterionFactoryPtr = *it;
+                stoppingCriteria.push_front(partition.createStoppingCriterion(*stoppingCriterionFactoryPtr));
+            }
+
+            // Induce default rule...
             std::unique_ptr<IStatisticsProvider> statisticsProviderPtr = labelMatrix.createStatisticsProvider(
                 *statisticsProviderFactoryPtr_);
+            std::unique_ptr<IRuleInduction> ruleInductionPtr = ruleInductionFactoryPtr_->create();
 
             if (useDefaultRule_) {
-                ruleInductionPtr_->induceDefaultRule(statisticsProviderPtr->get(), modelBuilder);
+                ruleInductionPtr->induceDefaultRule(statisticsProviderPtr->get(), modelBuilder);
             }
 
             statisticsProviderPtr->switchToRegularRuleEvaluation();
@@ -131,20 +164,16 @@ class SequentialRuleModelAssemblage : public IRuleModelAssemblage {
             std::unique_ptr<IThresholds> thresholdsPtr = thresholdsFactoryPtr_->create(featureMatrix,
                                                                                        nominalFeatureMask,
                                                                                        *statisticsProviderPtr);
-            uint32 numFeatures = thresholdsPtr->getNumFeatures();
-            uint32 numLabels = thresholdsPtr->getNumLabels();
-            std::unique_ptr<IPartitionSampling> partitionSamplingPtr = labelMatrix.createPartitionSampling(
-                *partitionSamplingFactoryPtr_);
-            RNG rng(randomState);
-            IPartition& partition = partitionSamplingPtr->partition(rng);
             std::unique_ptr<IInstanceSampling> instanceSamplingPtr = partition.createInstanceSampling(
                 *instanceSamplingFactoryPtr_, labelMatrix, statisticsProviderPtr->get());
-            std::unique_ptr<IFeatureSampling> featureSamplingPtr = featureSamplingFactoryPtr_->create(numFeatures);
-            std::unique_ptr<ILabelSampling> labelSamplingPtr = labelSamplingFactoryPtr_->create(numLabels);
+            std::unique_ptr<IFeatureSampling> featureSamplingPtr = featureSamplingFactoryPtr_->create();
+            std::unique_ptr<ILabelSampling> labelSamplingPtr = labelSamplingFactoryPtr_->create();
+            std::unique_ptr<IPruning> pruningPtr = pruningFactoryPtr_->create();
+            std::unique_ptr<IPostProcessor> postProcessorPtr = postProcessorFactoryPtr_->create();
             IStoppingCriterion::Result stoppingCriterionResult;
 
-            while (stoppingCriterionResult = testStoppingCriteria(stoppingCriteria_, partition,
-                                                                  statisticsProviderPtr->get(), numRules),
+            while (stoppingCriterionResult = testStoppingCriteria(stoppingCriteria, statisticsProviderPtr->get(),
+                                                                  numRules),
                    stoppingCriterionResult.action != IStoppingCriterion::Action::FORCE_STOP) {
                 if (stoppingCriterionResult.action == IStoppingCriterion::Action::STORE_STOP && numUsedRules == 0) {
                     numUsedRules = stoppingCriterionResult.numRules;
@@ -152,9 +181,9 @@ class SequentialRuleModelAssemblage : public IRuleModelAssemblage {
 
                 const IWeightVector& weights = instanceSamplingPtr->sample(rng);
                 const IIndexVector& labelIndices = labelSamplingPtr->sample(rng);
-                bool success = ruleInductionPtr_->induceRule(*thresholdsPtr, labelIndices, weights, partition,
-                                                             *featureSamplingPtr, *pruningPtr_, *postProcessorPtr_, rng,
-                                                             modelBuilder);
+                bool success = ruleInductionPtr->induceRule(*thresholdsPtr, labelIndices, weights, partition,
+                                                            *featureSamplingPtr, *pruningPtr, *postProcessorPtr, rng,
+                                                            modelBuilder);
 
                 if (success) {
                     numRules++;
@@ -169,18 +198,68 @@ class SequentialRuleModelAssemblage : public IRuleModelAssemblage {
 
 };
 
-std::unique_ptr<IRuleModelAssemblage> SequentialRuleModelAssemblageFactory::create(
-        std::shared_ptr<IStatisticsProviderFactory> statisticsProviderFactoryPtr,
-        std::shared_ptr<IThresholdsFactory> thresholdsFactoryPtr, std::shared_ptr<IRuleInduction> ruleInductionPtr,
-        std::shared_ptr<ILabelSamplingFactory> labelSamplingFactoryPtr,
-        std::shared_ptr<IInstanceSamplingFactory> instanceSamplingFactoryPtr,
-        std::shared_ptr<IFeatureSamplingFactory> featureSamplingFactoryPtr,
-        std::shared_ptr<IPartitionSamplingFactory> partitionSamplingFactoryPtr,
-        std::shared_ptr<IPruning> pruningPtr, std::shared_ptr<IPostProcessor> postProcessorPtr,
-        const std::forward_list<std::shared_ptr<IStoppingCriterion>> stoppingCriteria, bool useDefaultRule) const {
-    return std::make_unique<SequentialRuleModelAssemblage>(statisticsProviderFactoryPtr, thresholdsFactoryPtr,
-                                                           ruleInductionPtr, labelSamplingFactoryPtr,
-                                                           instanceSamplingFactoryPtr, featureSamplingFactoryPtr,
-                                                           partitionSamplingFactoryPtr, pruningPtr, postProcessorPtr,
-                                                           stoppingCriteria, useDefaultRule);
+/**
+ * A factory that allows to create instances of the class `IRuleModelAssemblage` that allow to sequentially induce
+ * several rules, optionally starting with a default rule, that are added to a rule-based model.
+ */
+class SequentialRuleModelAssemblageFactory final : public IRuleModelAssemblageFactory {
+
+    private:
+
+        bool useDefaultRule_;
+
+    public:
+
+        /**
+         * @param useDefaultRule True, if a default rule should be used, false otherwise
+         */
+        SequentialRuleModelAssemblageFactory(bool useDefaultRule)
+            : useDefaultRule_(useDefaultRule) {
+
+        }
+
+        std::unique_ptr<IRuleModelAssemblage> create(
+                std::unique_ptr<IStatisticsProviderFactory> statisticsProviderFactoryPtr,
+                std::unique_ptr<IThresholdsFactory> thresholdsFactoryPtr,
+                std::unique_ptr<IRuleInductionFactory> ruleInductionFactoryPtr,
+                std::unique_ptr<ILabelSamplingFactory> labelSamplingFactoryPtr,
+                std::unique_ptr<IInstanceSamplingFactory> instanceSamplingFactoryPtr,
+                std::unique_ptr<IFeatureSamplingFactory> featureSamplingFactoryPtr,
+                std::unique_ptr<IPartitionSamplingFactory> partitionSamplingFactoryPtr,
+                std::unique_ptr<IPruningFactory> pruningFactoryPtr,
+                std::unique_ptr<IPostProcessorFactory> postProcessorFactoryPtr,
+                std::forward_list<std::unique_ptr<IStoppingCriterionFactory>>& stoppingCriterionFactories) const override {
+            std::unique_ptr<SequentialRuleModelAssemblage> rule_model_assemblage_ptr =
+                std::make_unique<SequentialRuleModelAssemblage>(
+                    std::move(statisticsProviderFactoryPtr), std::move(thresholdsFactoryPtr),
+                    std::move(ruleInductionFactoryPtr), std::move(labelSamplingFactoryPtr),
+                    std::move(instanceSamplingFactoryPtr), std::move(featureSamplingFactoryPtr),
+                    std::move(partitionSamplingFactoryPtr), std::move(pruningFactoryPtr),
+                    std::move(postProcessorFactoryPtr), useDefaultRule_);
+
+            for (auto it = stoppingCriterionFactories.begin(); it != stoppingCriterionFactories.end(); it++) {
+                rule_model_assemblage_ptr->addStoppingCriterionFactory(std::move(*it));
+            }
+
+            return rule_model_assemblage_ptr;
+        }
+
+};
+
+SequentialRuleModelAssemblageConfig::SequentialRuleModelAssemblageConfig()
+    : useDefaultRule_(true) {
+
+}
+
+bool SequentialRuleModelAssemblageConfig::getUseDefaultRule() const {
+    return useDefaultRule_;
+}
+
+ISequentialRuleModelAssemblageConfig& SequentialRuleModelAssemblageConfig::setUseDefaultRule(bool useDefaultRule) {
+    useDefaultRule_ = useDefaultRule;
+    return *this;
+}
+
+std::unique_ptr<IRuleModelAssemblageFactory> SequentialRuleModelAssemblageConfig::createRuleModelAssemblageFactory() const {
+    return std::make_unique<SequentialRuleModelAssemblageFactory>(useDefaultRule_);
 }

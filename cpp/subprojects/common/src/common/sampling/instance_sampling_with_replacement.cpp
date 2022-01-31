@@ -3,7 +3,7 @@
 #include "common/sampling/partition_bi.hpp"
 #include "common/sampling/partition_single.hpp"
 #include "common/data/arrays.hpp"
-#include "common/validation.hpp"
+#include "common/util/validation.hpp"
 
 
 static inline void sampleInternally(const SinglePartition& partition, float32 sampleSize,
@@ -95,30 +95,66 @@ class InstanceSamplingWithReplacement final : public IInstanceSampling {
 
 };
 
-InstanceSamplingWithReplacementFactory::InstanceSamplingWithReplacementFactory(float32 sampleSize)
-    : sampleSize_(sampleSize) {
+/**
+ * Allows to create instances of the type `IInstanceSampling` that allow to select a subset of the available training
+ * examples with replacement.
+ */
+class InstanceSamplingWithReplacementFactory final : public IInstanceSamplingFactory {
+
+    private:
+
+        float32 sampleSize_;
+
+    public:
+
+        /**
+         * @param sampleSize The fraction of examples to be included in the sample (e.g. a value of 0.6 corresponds to
+         *                   60 % of the available examples). Must be in (0, 1]
+         */
+        InstanceSamplingWithReplacementFactory(float32 sampleSize)
+            : sampleSize_(sampleSize) {
+
+        }
+
+        std::unique_ptr<IInstanceSampling> create(const CContiguousLabelMatrix& labelMatrix,
+                                                  const SinglePartition& partition,
+                                                  IStatistics& statistics) const override {
+            return std::make_unique<InstanceSamplingWithReplacement<const SinglePartition>>(partition, sampleSize_);
+        }
+
+        std::unique_ptr<IInstanceSampling> create(const CContiguousLabelMatrix& labelMatrix, BiPartition& partition,
+                                                  IStatistics& statistics) const override {
+            return std::make_unique<InstanceSamplingWithReplacement<BiPartition>>(partition, sampleSize_);
+        }
+
+        std::unique_ptr<IInstanceSampling> create(const CsrLabelMatrix& labelMatrix, const SinglePartition& partition,
+                                                  IStatistics& statistics) const override {
+            return std::make_unique<InstanceSamplingWithReplacement<const SinglePartition>>(partition, sampleSize_);
+        }
+
+        std::unique_ptr<IInstanceSampling> create(const CsrLabelMatrix& labelMatrix, BiPartition& partition,
+                                                  IStatistics& statistics) const override {
+            return std::make_unique<InstanceSamplingWithReplacement<BiPartition>>(partition, sampleSize_);
+        }
+
+};
+
+InstanceSamplingWithReplacementConfig::InstanceSamplingWithReplacementConfig()
+    : sampleSize_(0.66f) {
+
+}
+
+float32 InstanceSamplingWithReplacementConfig::getSampleSize() const {
+    return sampleSize_;
+}
+
+IInstanceSamplingWithReplacementConfig& InstanceSamplingWithReplacementConfig::setSampleSize(float32 sampleSize) {
     assertGreater<float32>("sampleSize", sampleSize, 0);
     assertLessOrEqual<float32>("sampleSize", sampleSize, 1);
+    sampleSize_ = sampleSize;
+    return *this;
 }
 
-std::unique_ptr<IInstanceSampling> InstanceSamplingWithReplacementFactory::create(
-        const CContiguousLabelMatrix& labelMatrix, const SinglePartition& partition, IStatistics& statistics) const {
-    return std::make_unique<InstanceSamplingWithReplacement<const SinglePartition>>(partition, sampleSize_);
-}
-
-std::unique_ptr<IInstanceSampling> InstanceSamplingWithReplacementFactory::create(
-        const CContiguousLabelMatrix& labelMatrix, BiPartition& partition, IStatistics& statistics) const {
-    return std::make_unique<InstanceSamplingWithReplacement<BiPartition>>(partition, sampleSize_);
-}
-
-std::unique_ptr<IInstanceSampling> InstanceSamplingWithReplacementFactory::create(const CsrLabelMatrix& labelMatrix,
-                                                                                  const SinglePartition& partition,
-                                                                                  IStatistics& statistics) const {
-    return std::make_unique<InstanceSamplingWithReplacement<const SinglePartition>>(partition, sampleSize_);
-}
-
-std::unique_ptr<IInstanceSampling> InstanceSamplingWithReplacementFactory::create(const CsrLabelMatrix& labelMatrix,
-                                                                                  BiPartition& partition,
-                                                                                  IStatistics& statistics) const {
-    return std::make_unique<InstanceSamplingWithReplacement<BiPartition>>(partition, sampleSize_);
+std::unique_ptr<IInstanceSamplingFactory> InstanceSamplingWithReplacementConfig::createInstanceSamplingFactory() const {
+    return std::make_unique<InstanceSamplingWithReplacementFactory>(sampleSize_);
 }

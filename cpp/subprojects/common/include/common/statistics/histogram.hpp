@@ -14,7 +14,7 @@ class IHistogram : virtual public IImmutableStatistics {
 
     public:
 
-        virtual ~IHistogram() { };
+        virtual ~IHistogram() override { };
 
         /**
          * Sets all statistics in the histogram to zero.

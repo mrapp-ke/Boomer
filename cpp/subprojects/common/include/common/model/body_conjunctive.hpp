@@ -4,14 +4,13 @@
 #pragma once
 
 #include "common/model/body.hpp"
-#include "common/model/condition_list.hpp"
 
 
 /**
  * A body that consists of a conjunction of conditions using the operators <= or > for numerical conditions, and = or !=
  * for nominal conditions, respectively.
  */
-class ConjunctiveBody final : public IBody {
+class MLRLCOMMON_API ConjunctiveBody final : public IBody {
 
     private:
 
@@ -49,13 +48,7 @@ class ConjunctiveBody final : public IBody {
          */
         ConjunctiveBody(uint32 numLeq, uint32 numGr, uint32 numEq, uint32 numNeq);
 
-        /**
-         * @param conditionList A reference to an object of type `ConditionList` that provides access to the conditions,
-         *                      the body should contain
-         */
-        ConjunctiveBody(const ConditionList& conditionList);
-
-        ~ConjunctiveBody();
+        ~ConjunctiveBody() override;
 
         /**
          * An iterator that provides access to the thresholds that are used by the conditions in the body and allows to
@@ -364,13 +357,19 @@ class ConjunctiveBody final : public IBody {
          */
         index_const_iterator neq_indices_cend() const;
 
-        bool covers(CContiguousFeatureMatrix::const_iterator begin,
-                    CContiguousFeatureMatrix::const_iterator end) const override;
+        /**
+         * @see `IBody::covers`
+         */
+        bool covers(CContiguousConstView<const float32>::value_const_iterator begin,
+                    CContiguousConstView<const float32>::value_const_iterator end) const override;
 
-        bool covers(CsrFeatureMatrix::index_const_iterator indicesBegin,
-                    CsrFeatureMatrix::index_const_iterator indicesEnd,
-                    CsrFeatureMatrix::value_const_iterator valuesBegin,
-                    CsrFeatureMatrix::value_const_iterator valuesEnd, float32* tmpArray1, uint32* tmpArray2,
+        /**
+         * @see `IBody::covers`
+         */
+        bool covers(CsrConstView<const float32>::index_const_iterator indicesBegin,
+                    CsrConstView<const float32>::index_const_iterator indicesEnd,
+                    CsrConstView<const float32>::value_const_iterator valuesBegin,
+                    CsrConstView<const float32>::value_const_iterator valuesEnd, float32* tmpArray1, uint32* tmpArray2,
                     uint32 n) const override;
 
         void visit(EmptyBodyVisitor emptyBodyVisitor, ConjunctiveBodyVisitor conjunctiveBodyVisitor) const override;

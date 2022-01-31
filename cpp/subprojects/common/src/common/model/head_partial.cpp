@@ -1,16 +1,9 @@
 #include "common/model/head_partial.hpp"
-#include "common/data/arrays.hpp"
 
 
 PartialHead::PartialHead(uint32 numElements)
     : numElements_(numElements), scores_(new float64[numElements]), labelIndices_(new uint32[numElements]) {
 
-}
-
-PartialHead::PartialHead(const PartialPrediction& prediction)
-    : PartialHead(prediction.getNumElements()) {
-    copyArray(prediction.scores_cbegin(), scores_, numElements_);
-    copyArray(prediction.indices_cbegin(), labelIndices_, numElements_);
 }
 
 PartialHead::~PartialHead() {

@@ -1,67 +1,55 @@
 from mlrl.common.cython._types cimport float32
 
-from libcpp.memory cimport unique_ptr
-
-
-cdef extern from "common/sampling/partition_sampling.hpp" nogil:
-
-    cdef cppclass IPartitionSamplingFactory:
-        pass
-
-
-cdef extern from "common/sampling/partition_sampling_no.hpp" nogil:
-
-    cdef cppclass NoPartitionSamplingFactoryImpl"NoPartitionSamplingFactory"(IPartitionSamplingFactory):
-        pass
-
-
-cdef extern from "common/sampling/partition_sampling_bi_random.hpp" nogil:
-
-    cdef cppclass RandomBiPartitionSamplingFactoryImpl"RandomBiPartitionSamplingFactory"(IPartitionSamplingFactory):
-
-        # Constructors:
-
-        RandomBiPartitionSamplingFactoryImpl(float32 holdout_set_size) except +
-
 
 cdef extern from "common/sampling/partition_sampling_bi_stratified_example_wise.hpp" nogil:
 
-    cdef cppclass ExampleWiseStratifiedBiPartitionSamplingFactoryImpl"ExampleWiseStratifiedBiPartitionSamplingFactory"(
-            IPartitionSamplingFactory):
+    cdef cppclass IExampleWiseStratifiedBiPartitionSamplingConfig:
 
-        # Constructors:
+        # Attributes:
 
-        ExampleWiseStratifiedBiPartitionSamplingFactoryImpl(float32 holdout_set_size) except +
+        float32 getHoldoutSetSize() const
+
+        IExampleWiseStratifiedBiPartitionSamplingConfig& setHoldoutSetSize(float32 holdoutSetSize) except +
 
 
 cdef extern from "common/sampling/partition_sampling_bi_stratified_label_wise.hpp" nogil:
 
-    cdef cppclass LabelWiseStratifiedBiPartitionSamplingFactoryImpl"LabelWiseStratifiedBiPartitionSamplingFactory"(
-            IPartitionSamplingFactory):
+    cdef cppclass ILabelWiseStratifiedBiPartitionSamplingConfig:
 
-        # Constructors:
+        # Attributes:
 
-        LabelWiseStratifiedBiPartitionSamplingFactoryImpl(float32 holdout_set_size) except +
+        float32 getHoldoutSetSize() const
+
+        ILabelWiseStratifiedBiPartitionSamplingConfig& setHoldoutSetSize(float32 holdoutSetSize) except +
 
 
-cdef class PartitionSamplingFactory:
+cdef extern from "common/sampling/partition_sampling_bi_random.hpp" nogil:
+
+    cdef cppclass IRandomBiPartitionSamplingConfig:
+
+        # Attributes:
+
+        float32 getHoldoutSetSize() const
+
+        IRandomBiPartitionSamplingConfig& setHoldoutSetSize(float32 holdoutSetSize) except +
+
+
+cdef class ExampleWiseStratifiedBiPartitionSamplingConfig:
 
     # Attributes:
 
-    cdef unique_ptr[IPartitionSamplingFactory] partition_sampling_factory_ptr
+    cdef IExampleWiseStratifiedBiPartitionSamplingConfig* config_ptr
 
 
-cdef class NoPartitionSamplingFactory(PartitionSamplingFactory):
-    pass
+cdef class LabelWiseStratifiedBiPartitionSamplingConfig:
+
+    # Attributes:
+
+    cdef ILabelWiseStratifiedBiPartitionSamplingConfig* config_ptr
 
 
-cdef class RandomBiPartitionSamplingFactory(PartitionSamplingFactory):
-    pass
+cdef class RandomBiPartitionSamplingConfig:
 
+    # Attributes:
 
-cdef class ExampleWiseStratifiedBiPartitionSamplingFactory(PartitionSamplingFactory):
-    pass
-
-
-cdef class LabelWiseStratifiedBiPartitionSamplingFactory(PartitionSamplingFactory):
-    pass
+    cdef IRandomBiPartitionSamplingConfig* config_ptr

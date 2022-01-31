@@ -1,81 +1,73 @@
 from mlrl.common.cython._types cimport float32
 
-from libcpp.memory cimport unique_ptr
 
+cdef extern from "common/sampling/instance_sampling_stratified_example_wise.hpp" nogil:
 
-cdef extern from "common/sampling/instance_sampling.hpp" nogil:
+    cdef cppclass IExampleWiseStratifiedInstanceSamplingConfig:
 
-    cdef cppclass IInstanceSamplingFactory:
-        pass
+        # Functions:
 
+        float32 getSampleSize() const
 
-cdef extern from "common/sampling/instance_sampling_with_replacement.hpp" nogil:
-
-    cdef cppclass InstanceSamplingWithReplacementFactoryImpl"InstanceSamplingWithReplacementFactory"(
-            IInstanceSamplingFactory):
-
-        # Constructors:
-
-        InstanceSamplingWithReplacementFactoryImpl(float32 sampleSize) except +
-
-
-cdef extern from "common/sampling/instance_sampling_without_replacement.hpp" nogil:
-
-    cdef cppclass InstanceSamplingWithoutReplacementFactoryImpl"InstanceSamplingWithoutReplacementFactory"(
-            IInstanceSamplingFactory):
-
-        # Constructors:
-
-        InstanceSamplingWithoutReplacementFactoryImpl(float32 sampleSize) except +
+        IExampleWiseStratifiedInstanceSamplingConfig& setSampleSize(float32 sampleSize)
 
 
 cdef extern from "common/sampling/instance_sampling_stratified_label_wise.hpp" nogil:
 
-    cdef cppclass LabelWiseStratifiedSamplingFactoryImpl"LabelWiseStratifiedSamplingFactory"(IInstanceSamplingFactory):
+    cdef cppclass ILabelWiseStratifiedInstanceSamplingConfig:
 
-        # Constructors:
+        # Functions:
 
-        LabelWiseStratifiedSamplingFactoryImpl(float32 sampleSize) except +
+        float32 getSampleSize() const
 
-
-cdef extern from "common/sampling/instance_sampling_stratified_example_wise.hpp" namespace "boosting" nogil:
-
-    cdef cppclass ExampleWiseStratifiedSamplingFactoryImpl"ExampleWiseStratifiedSamplingFactory"(
-            IInstanceSamplingFactory):
-
-        # Constructors:
-
-        ExampleWiseStratifiedSamplingFactoryImpl(float32 sampleSize) except +
+        ILabelWiseStratifiedInstanceSamplingConfig& setSampleSize(float32 sampleSize)
 
 
-cdef extern from "common/sampling/instance_sampling_no.hpp" nogil:
+cdef extern from "common/sampling/instance_sampling_with_replacement.hpp" nogil:
 
-    cdef cppclass NoInstanceSamplingFactoryImpl"NoInstanceSamplingFactory"(IInstanceSamplingFactory):
-        pass
+    cdef cppclass IInstanceSamplingWithReplacementConfig:
+
+        # Functions:
+
+        float32 getSampleSize() const
+
+        IInstanceSamplingWithReplacementConfig& setSampleSize(float32 sampleSize)
 
 
-cdef class InstanceSamplingFactory:
+cdef extern from "common/sampling/instance_sampling_without_replacement.hpp" nogil:
+
+    cdef cppclass IInstanceSamplingWithoutReplacementConfig:
+
+        # Functions:
+
+        float32 getSampleSize() const
+
+        IInstanceSamplingWithoutReplacementConfig& setSampleSize(float32 sampleSize)
+
+
+cdef class ExampleWiseStratifiedInstanceSamplingConfig:
 
     # Attributes:
 
-    cdef unique_ptr[IInstanceSamplingFactory] instance_sampling_factory_ptr
+    cdef IExampleWiseStratifiedInstanceSamplingConfig* config_ptr
 
 
-cdef class InstanceSamplingWithReplacementFactory(InstanceSamplingFactory):
-    pass
+cdef class LabelWiseStratifiedInstanceSamplingConfig:
+
+    # Attributes:
+
+    cdef ILabelWiseStratifiedInstanceSamplingConfig* config_ptr
 
 
-cdef class InstanceSamplingWithoutReplacementFactory(InstanceSamplingFactory):
-    pass
+cdef class InstanceSamplingWithReplacementConfig:
+
+    # Attributes:
+
+    cdef IInstanceSamplingWithReplacementConfig* config_ptr
 
 
-cdef class LabelWiseStratifiedSamplingFactory(InstanceSamplingFactory):
-    pass
+cdef class InstanceSamplingWithoutReplacementConfig:
 
+    # Attributes:
 
-cdef class ExampleWiseStratifiedSamplingFactory(InstanceSamplingFactory):
-    pass
-
-
-cdef class NoInstanceSamplingFactory(InstanceSamplingFactory):
-    pass
+    cdef IInstanceSamplingWithoutReplacementConfig* config_ptr

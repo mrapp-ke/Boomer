@@ -57,26 +57,37 @@ class NoInstanceSampling final : public IInstanceSampling {
 
 };
 
-std::unique_ptr<IInstanceSampling> NoInstanceSamplingFactory::create(const CContiguousLabelMatrix& labelMatrix,
-                                                                     const SinglePartition& partition,
-                                                                     IStatistics& statistics) const {
-    return std::make_unique<NoInstanceSampling<const SinglePartition, EqualWeightVector>>(partition);
-}
+/**
+ * Allows to create instances of the type `IInstanceSampling` that do not perform any sampling, but assign equal weights
+ * to all examples.
+ */
+class NoInstanceSamplingFactory final : public IInstanceSamplingFactory {
 
-std::unique_ptr<IInstanceSampling> NoInstanceSamplingFactory::create(const CContiguousLabelMatrix& labelMatrix,
-                                                                     BiPartition& partition,
-                                                                     IStatistics& statistics) const {
-    return std::make_unique<NoInstanceSampling<BiPartition, BitWeightVector>>(partition);
-}
+    public:
 
-std::unique_ptr<IInstanceSampling> NoInstanceSamplingFactory::create(const CsrLabelMatrix& labelMatrix,
-                                                                     const SinglePartition& partition,
-                                                                     IStatistics& statistics) const {
-    return std::make_unique<NoInstanceSampling<const SinglePartition, EqualWeightVector>>(partition);
-}
+        std::unique_ptr<IInstanceSampling> create(const CContiguousLabelMatrix& labelMatrix,
+                                                  const SinglePartition& partition,
+                                                  IStatistics& statistics) const override {
+            return std::make_unique<NoInstanceSampling<const SinglePartition, EqualWeightVector>>(partition);
+        }
 
-std::unique_ptr<IInstanceSampling> NoInstanceSamplingFactory::create(const CsrLabelMatrix& labelMatrix,
-                                                                     BiPartition& partition,
-                                                                     IStatistics& statistics) const {
-    return std::make_unique<NoInstanceSampling<BiPartition, BitWeightVector>>(partition);
+        std::unique_ptr<IInstanceSampling> create(const CContiguousLabelMatrix& labelMatrix, BiPartition& partition,
+                                                  IStatistics& statistics) const override {
+            return std::make_unique<NoInstanceSampling<BiPartition, BitWeightVector>>(partition);
+        }
+
+        std::unique_ptr<IInstanceSampling> create(const CsrLabelMatrix& labelMatrix, const SinglePartition& partition,
+                                                  IStatistics& statistics) const override {
+            return std::make_unique<NoInstanceSampling<const SinglePartition, EqualWeightVector>>(partition);
+        }
+
+        std::unique_ptr<IInstanceSampling> create(const CsrLabelMatrix& labelMatrix, BiPartition& partition,
+                                                  IStatistics& statistics) const override {
+            return std::make_unique<NoInstanceSampling<BiPartition, BitWeightVector>>(partition);
+        }
+
+};
+
+std::unique_ptr<IInstanceSamplingFactory> NoInstanceSamplingConfig::createInstanceSamplingFactory() const {
+    return std::make_unique<NoInstanceSamplingFactory>();
 }

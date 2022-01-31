@@ -1,5 +1,6 @@
 #include "common/sampling/partition_bi.hpp"
 #include "common/sampling/instance_sampling.hpp"
+#include "common/stopping/stopping_criterion.hpp"
 #include "common/thresholds/thresholds_subset.hpp"
 #include "common/rule_refinement/refinement.hpp"
 #include "common/rule_refinement/prediction.hpp"
@@ -71,7 +72,7 @@ uint32 BiPartition::getNumElements() const {
 }
 
 const BitVector& BiPartition::getFirstSet() {
-    if (firstSet_ == nullptr) {
+    if (!firstSet_) {
         firstSet_ = createBitVector(this->first_cbegin(), this->getNumFirst());
     }
 
@@ -79,15 +80,19 @@ const BitVector& BiPartition::getFirstSet() {
 }
 
 const BitVector& BiPartition::getSecondSet() {
-    if (secondSet_ == nullptr) {
+    if (!secondSet_) {
         secondSet_ = createBitVector(this->second_cbegin(), this->getNumSecond());
     }
 
     return *secondSet_;
 }
 
+std::unique_ptr<IStoppingCriterion> BiPartition::createStoppingCriterion(const IStoppingCriterionFactory& factory) {
+    return factory.create(*this);
+}
+
 std::unique_ptr<IInstanceSampling> BiPartition::createInstanceSampling(const IInstanceSamplingFactory& factory,
-                                                                       const ILabelMatrix& labelMatrix,
+                                                                       const IRowWiseLabelMatrix& labelMatrix,
                                                                        IStatistics& statistics) {
     return labelMatrix.createInstanceSampling(factory, *this, statistics);
 }

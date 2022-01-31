@@ -6,7 +6,7 @@ source_files = [
     'src/common/binning/bin_index_vector_dok.cpp',
     'src/common/binning/feature_binning_equal_frequency.cpp',
     'src/common/binning/feature_binning_equal_width.cpp',
-    'src/common/binning/feature_binning_nominal.cpp',
+    'src/common/binning/feature_binning_no.cpp',
     'src/common/binning/threshold_vector.cpp',
     'src/common/data/matrix_dense.cpp',
     'src/common/data/matrix_lil_binary.cpp',
@@ -17,7 +17,6 @@ source_files = [
     'src/common/data/vector_dok.cpp',
     'src/common/data/vector_dok_binary.cpp',
     'src/common/data/vector_sparse_array.cpp',
-    'src/common/data/vector_sparse_array_binary.cpp',
     'src/common/data/view_c_contiguous.cpp',
     'src/common/data/view_csc.cpp',
     'src/common/data/view_csc_binary.cpp',
@@ -28,24 +27,29 @@ source_files = [
     'src/common/indices/index_iterator.cpp',
     'src/common/indices/index_vector_complete.cpp',
     'src/common/indices/index_vector_partial.cpp',
+    'src/common/input/feature_matrix_c_contiguous.cpp',
     'src/common/input/feature_matrix_csc.cpp',
+    'src/common/input/feature_matrix_csr.cpp',
     'src/common/input/feature_matrix_fortran_contiguous.cpp',
     'src/common/input/feature_vector.cpp',
     'src/common/input/label_matrix_c_contiguous.cpp',
     'src/common/input/label_matrix_csc.cpp',
     'src/common/input/label_matrix_csr.cpp',
-    'src/common/input/label_vector_set.cpp',
     'src/common/input/missing_feature_vector.cpp',
-    'src/common/input/nominal_feature_mask_bit.cpp',
     'src/common/input/nominal_feature_mask_equal.cpp',
+    'src/common/input/nominal_feature_mask_mixed.cpp',
     'src/common/model/body_conjunctive.cpp',
     'src/common/model/body_empty.cpp',
     'src/common/model/condition_list.cpp',
     'src/common/model/condition.cpp',
     'src/common/model/head_complete.cpp',
     'src/common/model/head_partial.cpp',
-    'src/common/model/rule_model.cpp',
-    'src/common/model/rule.cpp',
+    'src/common/model/rule_list.cpp',
+    'src/common/multi_threading/multi_threading_manual.cpp',
+    'src/common/multi_threading/multi_threading_no.cpp',
+    'src/common/output/label_space_info_no.cpp',
+    'src/common/output/label_vector_set.cpp',
+    'src/common/output/prediction_matrix_dense.cpp',
     'src/common/output/prediction_matrix_sparse_binary.cpp',
     'src/common/post_processing/post_processor_no.cpp',
     'src/common/pruning/pruning_irep.cpp',
@@ -78,6 +82,8 @@ source_files = [
     'src/common/sampling/partition_sampling_no.cpp',
     'src/common/sampling/partition_single.cpp',
     'src/common/sampling/random.cpp',
+    'src/common/sampling/stratified_sampling_example_wise.cpp',
+    'src/common/sampling/stratified_sampling_label_wise.cpp',
     'src/common/sampling/weight_vector_bit.cpp',
     'src/common/sampling/weight_vector_dense.cpp',
     'src/common/sampling/weight_vector_equal.cpp',
@@ -88,7 +94,7 @@ source_files = [
     'src/common/thresholds/coverage_set.cpp',
     'src/common/thresholds/thresholds_approximate.cpp',
     'src/common/thresholds/thresholds_exact.cpp',
-    'src/common/algorithm_builder.cpp'
+    'src/common/learner.cpp'
 ]
 
 # Directory containing public headers
@@ -107,7 +113,10 @@ lib_name = 'mlrl' + meson.project_name()
 cpp_args = ['-fopenmp']
 link_args = ['-fopenmp']
 
-if host_machine.system() == 'darwin'
+if host_machine.system() == 'windows'
+    cpp_args = ['/openmp', '-DMLRLCOMMON_EXPORTS']
+    link_args = []
+elif host_machine.system() == 'darwin'
     cpp_args = ['-Xclang', '-fopenmp']
     link_args = ['-lomp']
 endif

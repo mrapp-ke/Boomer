@@ -4,18 +4,41 @@
 #pragma once
 
 #include "boosting/losses/loss_label_wise.hpp"
+#include "boosting/rule_evaluation/head_type.hpp"
 
 
 namespace boosting {
 
     /**
-     * A multi-label variant of the logistic loss that is applied label-wise.
+     * Allows to configure a loss function that implements a multi-label variant of the logistic loss that is applied
+     * label-wise.
      */
-    class LabelWiseLogisticLoss final : public AbstractLabelWiseLoss {
+    class LabelWiseLogisticLossConfig final : public ILabelWiseLossConfig {
+
+        private:
+
+            const std::unique_ptr<IHeadConfig>& headConfigPtr_;
 
         public:
 
-            LabelWiseLogisticLoss();
+            /**
+             * @param headConfigPtr A reference to an unique pointer that stores the configuration of rule heads
+             */
+            LabelWiseLogisticLossConfig(const std::unique_ptr<IHeadConfig>& headConfigPtr);
+
+            std::unique_ptr<IStatisticsProviderFactory> createStatisticsProviderFactory(
+                const IFeatureMatrix& featureMatrix, const ILabelMatrix& labelMatrix, const Blas& blas,
+                const Lapack& lapack) const override;
+
+            std::unique_ptr<IEvaluationMeasureFactory> createEvaluationMeasureFactory() const override;
+
+            std::unique_ptr<ISimilarityMeasureFactory> createSimilarityMeasureFactory() const override;
+
+            std::unique_ptr<IProbabilityFunctionFactory> createProbabilityFunctionFactory() const override;
+
+            float64 getDefaultPrediction() const override;
+
+            std::unique_ptr<ILabelWiseLossFactory> createLabelWiseLossFactory() const override;
 
     };
 

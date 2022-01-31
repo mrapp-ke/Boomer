@@ -3,43 +3,23 @@
  */
 #pragma once
 
-#include "common/input/feature_vector.hpp"
-#include <memory>
+#include "common/data/view_two_dimensional.hpp"
 
 
 /**
- * Defines an interface for all feature matrices that provide column-wise access to the feature values of the training
- * examples.
+ * Defines an interface for all feature matrices.
  */
-class IFeatureMatrix {
+class MLRLCOMMON_API IFeatureMatrix : virtual public ITwoDimensionalView {
 
     public:
 
-        virtual ~IFeatureMatrix() { };
+        virtual ~IFeatureMatrix() override { };
 
         /**
-         * Returns the number of available examples.
+         * Returns whether the feature matrix is sparse or not.
          *
-         * @return The number of examples
+         * @return True, if the feature matrix is sparse, false otherwise
          */
-        virtual uint32 getNumRows() const = 0;
-
-        /**
-         * Returns the number of available features.
-         *
-         * @return The number of features
-         */
-        virtual uint32 getNumCols() const = 0;
-
-        /**
-         * Fetches a feature vector that stores the indices of the training examples, as well as their feature values,
-         * for a specific feature and stores it in a given unique pointer.
-         *
-         * @param featureIndex      The index of the feature
-         * @param featureVectorPtr  An unique pointer to an object of type `FeatureVector` that should be used to store
-         *                          the feature vector
-         */
-        virtual void fetchFeatureVector(uint32 featureIndex,
-                                        std::unique_ptr<FeatureVector>& featureVectorPtr) const = 0;
+        virtual bool isSparse() const = 0;
 
 };

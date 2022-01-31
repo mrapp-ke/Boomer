@@ -4,7 +4,7 @@
 
 template<typename T>
 SparseArrayVector<T>::IndexConstIterator::IndexConstIterator(
-        typename DenseVector<IndexedValue<T>>::const_iterator iterator)
+        typename VectorConstView<IndexedValue<T>>::const_iterator iterator)
     : iterator_(iterator) {
 
 }
@@ -61,7 +61,7 @@ typename SparseArrayVector<T>::IndexConstIterator::difference_type SparseArrayVe
 }
 
 template<typename T>
-SparseArrayVector<T>::IndexIterator::IndexIterator(typename DenseVector<IndexedValue<T>>::iterator iterator)
+SparseArrayVector<T>::IndexIterator::IndexIterator(typename VectorView<IndexedValue<T>>::iterator iterator)
     : iterator_(iterator) {
 
 }
@@ -119,7 +119,7 @@ typename SparseArrayVector<T>::IndexIterator::difference_type SparseArrayVector<
 
 template<typename T>
 SparseArrayVector<T>::ValueConstIterator::ValueConstIterator(
-        typename DenseVector<IndexedValue<T>>::const_iterator iterator)
+        typename VectorConstView<IndexedValue<T>>::const_iterator iterator)
     : iterator_(iterator) {
 
 }
@@ -177,7 +177,7 @@ typename SparseArrayVector<T>::ValueConstIterator::difference_type SparseArrayVe
 
 
 template<typename T>
-SparseArrayVector<T>::ValueIterator::ValueIterator(typename DenseVector<IndexedValue<T>>::iterator iterator)
+SparseArrayVector<T>::ValueIterator::ValueIterator(typename VectorView<IndexedValue<T>>::iterator iterator)
     : iterator_(iterator) {
 
 }
@@ -235,93 +235,53 @@ typename SparseArrayVector<T>::ValueIterator::difference_type SparseArrayVector<
 
 template<typename T>
 SparseArrayVector<T>::SparseArrayVector(uint32 numElements)
-    : vector_(DenseVector<IndexedValue<T>>(numElements)) {
+    : DenseVector<IndexedValue<T>>(numElements) {
 
-}
-
-template<typename T>
-typename SparseArrayVector<T>::iterator SparseArrayVector<T>::begin() {
-    return vector_.begin();
-}
-
-template<typename T>
-typename SparseArrayVector<T>::iterator SparseArrayVector<T>::end() {
-    return vector_.end();
-}
-
-template<typename T>
-typename SparseArrayVector<T>::const_iterator SparseArrayVector<T>::cbegin() const {
-    return vector_.cbegin();
-}
-
-template<typename T>
-typename SparseArrayVector<T>::const_iterator SparseArrayVector<T>::cend() const {
-    return vector_.cend();
 }
 
 template<typename T>
 typename SparseArrayVector<T>::index_iterator SparseArrayVector<T>::indices_begin() {
-    return IndexIterator(vector_.begin());
+    return IndexIterator(this->begin());
 }
 
 template<typename T>
 typename SparseArrayVector<T>::index_iterator SparseArrayVector<T>::indices_end() {
-    return IndexIterator(vector_.end());
+    return IndexIterator(this->end());
 }
 
 template<typename T>
 typename SparseArrayVector<T>::index_const_iterator SparseArrayVector<T>::indices_cbegin() const {
-    return IndexConstIterator(vector_.cbegin());
+    return IndexConstIterator(this->cbegin());
 }
 
 template<typename T>
 typename SparseArrayVector<T>::index_const_iterator SparseArrayVector<T>::indices_cend() const {
-    return IndexConstIterator(vector_.cend());
+    return IndexConstIterator(this->cend());
 }
 
 template<typename T>
 typename SparseArrayVector<T>::value_iterator SparseArrayVector<T>::values_begin() {
-    return ValueIterator(vector_.begin());
+    return ValueIterator(this->begin());
 }
 
 template<typename T>
 typename SparseArrayVector<T>::value_iterator SparseArrayVector<T>::values_end() {
-    return ValueIterator(vector_.end());
+    return ValueIterator(this->end());
 }
 
 template<typename T>
 typename SparseArrayVector<T>::value_const_iterator SparseArrayVector<T>::values_cbegin() const {
-    return ValueConstIterator(vector_.cbegin());
+    return ValueConstIterator(this->cbegin());
 }
 
 template<typename T>
 typename SparseArrayVector<T>::value_const_iterator SparseArrayVector<T>::values_cend() const {
-    return ValueConstIterator(vector_.cend());
-}
-
-template<typename T>
-const IndexedValue<T>& SparseArrayVector<T>::operator[](uint32 pos) const {
-    return vector_[pos];
-}
-
-template<typename T>
-IndexedValue<T>& SparseArrayVector<T>::operator[](uint32 pos) {
-    return vector_[pos];
-}
-
-template<typename T>
-uint32 SparseArrayVector<T>::getNumElements() const {
-    return vector_.getNumElements();
-}
-
-template<typename T>
-void SparseArrayVector<T>::setNumElements(uint32 numElements, bool freeMemory) {
-    vector_.setNumElements(numElements, freeMemory);
+    return ValueConstIterator(this->cend());
 }
 
 template<typename T>
 void SparseArrayVector<T>::sortByValues() {
-    std::sort(vector_.begin(), vector_.end(), [=](const IndexedValue<T>& a, const IndexedValue<T>& b) {
+    std::sort(this->begin(), this->end(), [=](const IndexedValue<T>& a, const IndexedValue<T>& b) {
         return a.value < b.value;
     });
 }

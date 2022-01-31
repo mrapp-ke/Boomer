@@ -6,6 +6,9 @@ python/**/dist/
 python/**/*egg-info/
 python/**/cython/*.so*
 python/**/cython/*.dylib
+python/**/cython/*.dll
+python/**/cython/*.lib
+python/**/cython/*.pyd
 
 # Documentation files
 doc/_build/

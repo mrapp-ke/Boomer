@@ -3,14 +3,14 @@
  */
 #pragma once
 
+#include "common/data/types.hpp"
 #include "common/model/head.hpp"
-#include "common/rule_refinement/prediction_partial.hpp"
 
 
 /**
  * A head that contains a numerical score for a subset of the available labels.
  */
-class PartialHead final : public IHead {
+class MLRLCOMMON_API PartialHead final : public IHead {
 
     private:
 
@@ -27,13 +27,7 @@ class PartialHead final : public IHead {
          */
         PartialHead(uint32 numElements);
 
-        /**
-         * @param prediction A reference to an object of type `PartialPrediction` that stores the scores to be contained
-         *                   by the head
-         */
-        PartialHead(const PartialPrediction& prediction);
-
-        ~PartialHead();
+        ~PartialHead() override;
 
         /**
          * An iterator that provides access to the scores that are contained by the head and allows to modify them.

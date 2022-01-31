@@ -57,11 +57,12 @@ namespace boosting {
         public:
 
             /**
-             * @param lossFunction          A reference to an object of type `ILabelWiseLoss`, representing the loss
-             *                              function to be used for calculating gradients and Hessians
-             * @param evaluationMeasure     A reference to an object of type `IEvaluationMeasure` that implements the
-             *                              evaluation measure that should be used to assess the quality of predictions
-             *                              for a specific statistic
+             * @param lossPtr               An unique pointer to an object of template type `LossFunction` that
+             *                              implements the loss function that should be used for calculating gradients
+             *                              and Hessians
+             * @param evaluationMeasurePtr  An unique pointer to an object of template type `EvaluationMeasure` that
+             *                              implements the evaluation measure that should be used to assess the quality
+             *                              of predictions for a specific statistic
              * @param ruleEvaluationFactory A reference to an object of type `ILabelWiseRuleEvaluationFactory`, that
              *                              allows to create instances of the class that is used for calculating the
              *                              predictions, as well as corresponding quality scores, of rules
@@ -72,7 +73,8 @@ namespace boosting {
              * @param scoreMatrixPtr        An unique pointer to an object of type `NumericDenseMatrix` that stores the
              *                              currently predicted scores
              */
-            DenseLabelWiseStatistics(const ILabelWiseLoss& lossFunction, const IEvaluationMeasure& evaluationMeasure,
+            DenseLabelWiseStatistics(std::unique_ptr<ILabelWiseLoss> lossPtr,
+                                     std::unique_ptr<IEvaluationMeasure> evaluationMeasurePtr,
                                      const ILabelWiseRuleEvaluationFactory& ruleEvaluationFactory,
                                      const LabelMatrix& labelMatrix,
                                      std::unique_ptr<DenseLabelWiseStatisticView> statisticViewPtr,
@@ -80,8 +82,8 @@ namespace boosting {
                 : AbstractLabelWiseStatistics<LabelMatrix, DenseLabelWiseStatisticVector, DenseLabelWiseStatisticView,
                                               DenseLabelWiseStatisticMatrix, NumericDenseMatrix<float64>,
                                               ILabelWiseLoss, IEvaluationMeasure, ILabelWiseRuleEvaluationFactory>(
-                      lossFunction, evaluationMeasure, ruleEvaluationFactory, labelMatrix, std::move(statisticViewPtr),
-                      std::move(scoreMatrixPtr)) {
+                      std::move(lossPtr), std::move(evaluationMeasurePtr), ruleEvaluationFactory, labelMatrix,
+                      std::move(statisticViewPtr), std::move(scoreMatrixPtr)) {
 
             }
 

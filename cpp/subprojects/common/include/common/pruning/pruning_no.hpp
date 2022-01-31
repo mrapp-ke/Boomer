@@ -7,13 +7,12 @@
 
 
 /**
- * An implementation of the class `IPruning` that does not actually perform any pruning, but retains all conditions.
+ * Allows to configure a method for pruning classification rules that does not actually perform any pruning.
  */
-class NoPruning final : public IPruning {
+class NoPruningConfig final : public IPruningConfig {
 
     public:
 
-        std::unique_ptr<ICoverageState> prune(IThresholdsSubset& thresholdsSubset, IPartition& partition,
-                                              ConditionList& conditions, const AbstractPrediction& head) const override;
+        std::unique_ptr<IPruningFactory> createPruningFactory() const override;
 
 };

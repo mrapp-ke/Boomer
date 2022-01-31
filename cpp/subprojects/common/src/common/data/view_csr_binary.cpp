@@ -22,16 +22,16 @@ BinaryCsrConstView::value_const_iterator BinaryCsrConstView::row_values_cend(uin
     return make_binary_forward_iterator(this->row_indices_cbegin(row), this->row_indices_cend(row), numCols_);
 }
 
+uint32 BinaryCsrConstView::getNumNonZeroElements() const {
+    return rowIndices_[numRows_];
+}
+
 uint32 BinaryCsrConstView::getNumRows() const {
     return numRows_;
 }
 
 uint32 BinaryCsrConstView::getNumCols() const {
     return numCols_;
-}
-
-uint32 BinaryCsrConstView::getNumNonZeroElements() const {
-    return rowIndices_[numRows_];
 }
 
 BinaryCsrView::BinaryCsrView(uint32 numRows, uint32 numCols, uint32* rowIndices, uint32* colIndices)

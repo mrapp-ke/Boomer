@@ -3,7 +3,7 @@
 
 namespace boosting {
 
-    Blas::Blas(ddot_t ddotFunction, dspmv_t dspmvFunction)
+    Blas::Blas(DdotFunction ddotFunction, DspmvFunction dspmvFunction)
         : ddotFunction_(ddotFunction), dspmvFunction_(dspmvFunction) {
 
     }
@@ -17,7 +17,7 @@ namespace boosting {
 
     void Blas::dspmv(float64* a, float64* x, float64* output, int n) const {
         // "U" if the upper-right triangle of A should be used, "L" if the lower-left triangle should be used
-        char* uplo = "U";
+        char* uplo = const_cast<char*>("U");
         // A scalar to be multiplied with the matrix A
         double alpha = 1;
         // The increment for the elements of x and y

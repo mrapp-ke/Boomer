@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 from typing import List, Set
 
 import numpy as np
-from mlrl.common.cython.model import RuleModelVisitor, EmptyBody, ConjunctiveBody, CompleteHead, PartialHead
+from mlrl.common.cython.rule_model import RuleModelVisitor, EmptyBody, ConjunctiveBody, CompleteHead, PartialHead
 from mlrl.common.learners import Learner
 from mlrl.common.options import Options
 from mlrl.testbed.data import Attribute, MetaData

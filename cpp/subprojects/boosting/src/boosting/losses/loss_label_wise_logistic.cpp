@@ -1,5 +1,6 @@
 #include "boosting/losses/loss_label_wise_logistic.hpp"
 #include "boosting/math/math.hpp"
+#include "loss_label_wise_common.hpp"
 
 
 namespace boosting {
@@ -57,9 +58,77 @@ namespace boosting {
         return logSumExp(x);
     }
 
-    LabelWiseLogisticLoss::LabelWiseLogisticLoss()
-        : AbstractLabelWiseLoss(&updateGradientAndHessian, &evaluatePrediction) {
+    /**
+     * Allows to create instances of the type `ILabelWiseLoss` that implement a multi-label variant of the logistic loss
+     * that is applied label-wise.
+     */
+    class LabelWiseLogisticLossFactory final : public ILabelWiseLossFactory {
 
+        public:
+
+            std::unique_ptr<ILabelWiseLoss> createLabelWiseLoss() const override {
+                return std::make_unique<LabelWiseLoss>(&updateGradientAndHessian, &evaluatePrediction);
+            }
+
+    };
+
+    /**
+     * Allows to transform the score that is predicted for an individual label into a probability by applying the
+     * logistic sigmoid function.
+     */
+    class LogisticFunction final : public IProbabilityFunction {
+
+        public:
+
+            float64 transform(float64 predictedScore) const override {
+                return logisticFunction(predictedScore);
+            }
+
+    };
+
+    /**
+     * Allows to create instances of the type `IProbabilityFunction` that transform the score that is predicted for an
+     * individual label into a probability by applying the logistic sigmoid function.
+     */
+    class LogisticFunctionFactory final : public IProbabilityFunctionFactory {
+
+        public:
+
+            std::unique_ptr<IProbabilityFunction> create() const override {
+                return std::make_unique<LogisticFunction>();
+            }
+
+    };
+
+    LabelWiseLogisticLossConfig::LabelWiseLogisticLossConfig(const std::unique_ptr<IHeadConfig>& headConfigPtr)
+        : headConfigPtr_(headConfigPtr) {
+
+    }
+
+    std::unique_ptr<IStatisticsProviderFactory> LabelWiseLogisticLossConfig::createStatisticsProviderFactory(
+            const IFeatureMatrix& featureMatrix, const ILabelMatrix& labelMatrix, const Blas& blas,
+            const Lapack& lapack) const {
+        return headConfigPtr_->createStatisticsProviderFactory(featureMatrix, labelMatrix, *this);
+    }
+
+    std::unique_ptr<IEvaluationMeasureFactory> LabelWiseLogisticLossConfig::createEvaluationMeasureFactory() const {
+        return std::make_unique<LabelWiseLogisticLossFactory>();
+    }
+
+    std::unique_ptr<ISimilarityMeasureFactory> LabelWiseLogisticLossConfig::createSimilarityMeasureFactory() const {
+        return std::make_unique<LabelWiseLogisticLossFactory>();
+    }
+
+    std::unique_ptr<IProbabilityFunctionFactory> LabelWiseLogisticLossConfig::createProbabilityFunctionFactory() const {
+        return std::make_unique<LogisticFunctionFactory>();
+    }
+
+    float64 LabelWiseLogisticLossConfig::getDefaultPrediction() const {
+        return 0;
+    }
+
+    std::unique_ptr<ILabelWiseLossFactory> LabelWiseLogisticLossConfig::createLabelWiseLossFactory() const {
+        return std::make_unique<LabelWiseLogisticLossFactory>();
     }
 
 }

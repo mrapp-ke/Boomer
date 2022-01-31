@@ -8,12 +8,12 @@ CContiguousConstView<T>::CContiguousConstView(uint32 numRows, uint32 numCols, T*
 }
 
 template<typename T>
-typename CContiguousConstView<T>::const_iterator CContiguousConstView<T>::row_cbegin(uint32 row) const {
+typename CContiguousConstView<T>::value_const_iterator CContiguousConstView<T>::row_values_cbegin(uint32 row) const {
     return &array_[row * numCols_];
 }
 
 template<typename T>
-typename CContiguousConstView<T>::const_iterator CContiguousConstView<T>::row_cend(uint32 row) const {
+typename CContiguousConstView<T>::value_const_iterator CContiguousConstView<T>::row_values_cend(uint32 row) const {
     return &array_[(row + 1) * numCols_];
 }
 
@@ -43,12 +43,12 @@ CContiguousView<T>::CContiguousView(uint32 numRows, uint32 numCols, T* array)
 }
 
 template<typename T>
-typename CContiguousView<T>::iterator CContiguousView<T>::row_begin(uint32 row) {
+typename CContiguousView<T>::value_iterator CContiguousView<T>::row_values_begin(uint32 row) {
     return &CContiguousConstView<T>::array_[row * CContiguousConstView<T>::numCols_];
 }
 
 template<typename T>
-typename CContiguousView<T>::iterator CContiguousView<T>::row_end(uint32 row) {
+typename CContiguousView<T>::value_iterator CContiguousView<T>::row_values_end(uint32 row) {
     return &CContiguousConstView<T>::array_[(row + 1) * CContiguousConstView<T>::numCols_];
 }
 
