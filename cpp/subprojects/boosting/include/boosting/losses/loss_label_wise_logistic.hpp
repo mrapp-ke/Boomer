@@ -30,10 +30,6 @@ namespace boosting {
                 const IFeatureMatrix& featureMatrix, const ILabelMatrix& labelMatrix, const Blas& blas,
                 const Lapack& lapack) const override;
 
-            std::unique_ptr<IEvaluationMeasureFactory> createEvaluationMeasureFactory() const override;
-
-            std::unique_ptr<ISimilarityMeasureFactory> createSimilarityMeasureFactory() const override;
-
             std::unique_ptr<IProbabilityFunctionFactory> createProbabilityFunctionFactory() const override;
 
             float64 getDefaultPrediction() const override;

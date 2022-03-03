@@ -11,23 +11,19 @@ BinaryLilMatrix::~BinaryLilMatrix() {
 }
 
 typename BinaryLilMatrix::iterator BinaryLilMatrix::row_begin(uint32 row) {
-    Row& rowRef = array_[row];
-    return rowRef.begin();
+    return array_[row].begin();
 }
 
 typename BinaryLilMatrix::iterator BinaryLilMatrix::row_end(uint32 row) {
-    Row& rowRef = array_[row];
-    return rowRef.end();
+    return array_[row].end();
 }
 
 typename BinaryLilMatrix::const_iterator BinaryLilMatrix::row_cbegin(uint32 row) const {
-    const Row& rowRef = array_[row];
-    return rowRef.cbegin();
+    return array_[row].cbegin();
 }
 
 typename BinaryLilMatrix::const_iterator BinaryLilMatrix::row_cend(uint32 row) const {
-    const Row& rowRef = array_[row];
-    return rowRef.cend();
+    return array_[row].cend();
 }
 
 typename BinaryLilMatrix::Row& BinaryLilMatrix::getRow(uint32 row) {
@@ -44,7 +40,6 @@ uint32 BinaryLilMatrix::getNumRows() const {
 
 void BinaryLilMatrix::clear() {
     for (uint32 i = 0; i < numRows_; i++) {
-        BinarySparseListVector& vector = array_[i];
-        vector.clear();
+        array_[i].clear();
     }
 }

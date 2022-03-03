@@ -69,8 +69,8 @@ namespace boosting {
              *                          access to the labels of the training examples
              * @param scoreMatrix       A reference to an object of type `CContiguousConstView` that stores the
              *                          currently predicted scores
-             * @param labelIndicesBegin A `PartialIndexVector::const_iterator` to the beginning of the label indices
-             * @param labelIndicesEnd   A `PartialIndexVector::const_iterator` to the end of the label indices
+             * @param labelIndicesBegin A `CompleteIndexVector::const_iterator` to the beginning of the label indices
+             * @param labelIndicesEnd   A `CompleteIndexVector::const_iterator` to the end of the label indices
              * @param statisticView     A reference to an object of type `DenseLabelWiseStatisticView` to be updated
              */
             virtual void updateLabelWiseStatistics(uint32 exampleIndex, const BinaryCsrConstView& labelMatrix,
@@ -93,7 +93,7 @@ namespace boosting {
              * @param statisticView     A reference to an object of type `DenseLabelWiseStatisticView` to be updated
              */
             virtual void updateLabelWiseStatistics(uint32 exampleIndex, const BinaryCsrConstView& labelMatrix,
-                                                   const CContiguousConstView<float64> scoreMatrix,
+                                                   const CContiguousConstView<float64>& scoreMatrix,
                                                    PartialIndexVector::const_iterator labelIndicesBegin,
                                                    PartialIndexVector::const_iterator labelIndicesEnd,
                                                    DenseLabelWiseStatisticView& statisticView) const = 0;
@@ -149,6 +149,14 @@ namespace boosting {
              * @return An unique pointer to an object of type `ILabelWiseLossFactory` that has been created
              */
             virtual std::unique_ptr<ILabelWiseLossFactory> createLabelWiseLossFactory() const = 0;
+
+            std::unique_ptr<IEvaluationMeasureFactory> createEvaluationMeasureFactory() const override final {
+                return this->createLabelWiseLossFactory();
+            }
+
+            std::unique_ptr<ISimilarityMeasureFactory> createSimilarityMeasureFactory() const override final {
+                return this->createLabelWiseLossFactory();
+            }
 
     };
 

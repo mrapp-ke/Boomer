@@ -1,5 +1,12 @@
 # Changelog
 
+### Version 0.8.1 (Mar. 4th, 2022)
+
+A bugfix release that solves the following issues:
+
+* Missing feature values are now dealt with correctly when using feature binning.
+* A rare issue that may cause segmentation faults when using instance sampling has been fixed.
+
 ### Version 0.8.0 (Jan. 31, 2022)
 
 ***This release comes with changes to the command line API. For an updated overview of the available parameters, please refer to the documentation.***

@@ -3,11 +3,10 @@
  */
 #pragma once
 
-#include "common/data/tuple.hpp"
 #include "common/indices/index_vector_complete.hpp"
 #include "common/indices/index_vector_partial.hpp"
+#include "boosting/data/statistic_view_label_wise_dense.hpp"
 #include <memory>
-
 
 
 namespace boosting {
@@ -99,76 +98,88 @@ namespace boosting {
             /**
              * Adds all gradients and Hessians in another vector to this vector.
              *
-             * @param begin A `const_iterator` to the beginning of the vector
-             * @param end   A `const_iterator` to the end of the vector
+             * @param vector A reference to an object of type `DenseLabelWiseStatisticVector` that stores the gradients
+             *               and Hessians to be added to this vector
              */
-            void add(const_iterator begin, const_iterator end);
+            void add(const DenseLabelWiseStatisticVector& vector);
 
             /**
-             * Adds all gradients and Hessians in another vector to this vector. The gradients and Hessians to be added
-             * are multiplied by a specific weight.
+             * Adds all gradients and Hessians in a single row of a `DenseLabelWiseStatisticConstView` to this vector.
              *
-             * @param begin     A `const_iterator` to the beginning of the vector
-             * @param end       A `const_iterator` to the end of the vector
+             * @param view  A reference to an object of type `DenseLabelWiseStatisticConstView` that stores the
+             *              gradients and Hessians to be added to this vector
+             * @param row   The index of the row to be added to this vector
+             */
+            void add(const DenseLabelWiseStatisticConstView& view, uint32 row);
+
+            /**
+             * Adds all gradients and Hessians in a single row of a `DenseLabelWiseStatisticConstView` to this vector.
+             * The gradients and Hessians to be added are multiplied by a specific weight.
+             *
+             * @param view      A reference to an object of type `DenseLabelWiseStatisticConstView` that stores the
+             *                  gradients and Hessians to be added to this vector
+             * @param row       The index of the row to be added to this vector
              * @param weight    The weight, the gradients and Hessians should be multiplied by
              */
-            void add(const_iterator begin, const_iterator end, float64 weight);
+            void add(const DenseLabelWiseStatisticConstView& view, uint32 row, float64 weight);
 
             /**
-             * Adds certain gradients and Hessians in another vector, whose positions are given as a
-             * `CompleteIndexVector`, to this vector. The gradients and Hessians to be added are multiplied by a
-             * specific weight.
+             * Adds certain gradients and Hessians in a single row of a `DenseLabelWiseStatisticConstView`, whose
+             * positions are given as a `CompleteIndexVector`, to this vector. The gradients and Hessians to be added
+             * are multiplied by a specific weight.
              *
-             * @param begin     A `const_iterator` to the beginning of the vector
-             * @param end       A `const_iterator` to the end of the vector
+             * @param view      A reference to an object of type `DenseLabelWiseStatisticConstView` that stores the
+             *                  gradients and Hessians to be added to this vector
+             * @param row       The index of the row to be added to this vector
              * @param indices   A reference to a `CompleteIndexVector' that provides access to the indices
              * @param weight    The weight, the gradients and Hessians should be multiplied by
              */
-            void addToSubset(const_iterator begin, const_iterator end, const CompleteIndexVector& indices,
-                             float64 weight);
+            void addToSubset(const DenseLabelWiseStatisticConstView& view, uint32 row,
+                             const CompleteIndexVector& indices, float64 weight);
 
             /**
-             * Adds certain gradients and Hessians in another vector, whose positions are given as a
-             * `PartialIndexVector`, to this vector. The gradients and Hessians to be added are multiplied by a specific
-             * weight.
+             * Adds certain gradients and Hessians in single row of a `DenseLabelWiseStatisticConstView`, whose
+             * positions are given as a `PartialIndexVector`, to this vector. The gradients and Hessians to be added are
+             * multiplied by a specific weight.
              *
-             * @param begin     A `const_iterator` to the beginning of the vector
-             * @param end       A `const_iterator` to the end of the vector
+             * @param view      A reference to an object of type `DenseLabelWiseStatisticConstView` that stores the
+             *                  gradients and Hessians to be added to this vector
+             * @param row       The index of the row to be added to this vector
              * @param indices   A reference to a `PartialIndexVector' that provides access to the indices
              * @param weight    The weight, the gradients and Hessians should be multiplied by
              */
-            void addToSubset(const_iterator begin, const_iterator end, const PartialIndexVector& indices,
-                             float64 weight);
+            void addToSubset(const DenseLabelWiseStatisticConstView& view, uint32 row,
+                             const PartialIndexVector& indices, float64 weight);
 
             /**
              * Sets the gradients and Hessians in this vector to the difference `first - second` between the gradients
              * and Hessians in two other vectors, considering only the gradients and Hessians in the first vector that
              * correspond to the positions provided by a `CompleteIndexVector`.
              *
-             * @param firstBegin    A `const_iterator` to the beginning of the first vector
-             * @param firstEnd      A `const_iterator` to the end of the first vector
+             * @param first         A reference to an object of type `DenseLabelWiseStatisticVector` that stores the
+             *                      gradients and Hessians in the first vector
              * @param firstIndices  A reference to an object of type `CompleteIndexVector` that provides access to the
              *                      indices
-             * @param secondBegin  A `const_iterator` to the beginning of the second vector
-             * @param secondEnd    A `const_iterator` to the end of the second vector
+             * @param second        A reference to an object of type `DenseLabelWiseStatisticVector` that stores the
+             *                      gradients and Hessians in the second vector
              */
-            void difference(const_iterator firstBegin, const_iterator firstEnd, const CompleteIndexVector& firstIndices,
-                            const_iterator secondBegin, const_iterator secondEnd);
+            void difference(const DenseLabelWiseStatisticVector& first, const CompleteIndexVector& firstIndices,
+                            const DenseLabelWiseStatisticVector& second);
 
             /**
              * Sets the gradients and Hessians in this vector to the difference `first - second` between the gradients
              * and Hessians in two other vectors, considering only the gradients and Hessians in the first vector that
              * correspond to the positions provided by a `PartialIndexVector`.
              *
-             * @param firstBegin    A `const_iterator` to the beginning of the first vector
-             * @param firstEnd      A `const_iterator` to the end of the first vector
+             * @param first         A reference to an object of type `DenseLabelWiseStatisticVector` that stores the
+             *                      gradients and Hessians in the first vector
              * @param firstIndices  A reference to an object of type `PartialIndexVector` that provides access to the
              *                      indices
-             * @param secondBegin   A `const_iterator` to the beginning of the second vector
-             * @param secondEnd     A `const_iterator` to the end of the second vector
+             * @param second        A reference to an object of type `DenseLabelWiseStatisticVector` that stores the
+             *                      gradients and Hessians in the second vector
              */
-            void difference(const_iterator firstBegin, const_iterator firstEnd, const PartialIndexVector& firstIndices,
-                            const_iterator secondBegin, const_iterator secondEnd);
+            void difference(const DenseLabelWiseStatisticVector& first, const PartialIndexVector& firstIndices,
+                            const DenseLabelWiseStatisticVector& second);
 
     };
 

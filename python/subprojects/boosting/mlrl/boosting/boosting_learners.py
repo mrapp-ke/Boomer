@@ -374,7 +374,7 @@ class Boomer(MLRuleLearner, ClassifierMixin):
     def __configure_post_processor(self, config: BoostingRuleLearnerConfig):
         shrinkage = self.shrinkage
 
-        if self.shrinkage is not None:
+        if shrinkage is not None:
             if shrinkage == 1:
                 config.use_no_post_processor()
             else:
@@ -383,7 +383,7 @@ class Boomer(MLRuleLearner, ClassifierMixin):
     def __configure_head_type(self, config: BoostingRuleLearnerConfig):
         head_type = self.head_type
 
-        if self.head_type is not None:
+        if head_type is not None:
             value = parse_param("head_type", head_type, HEAD_TYPE_VALUES)
 
             if value == AUTOMATIC:

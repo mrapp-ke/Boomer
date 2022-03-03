@@ -244,7 +244,7 @@ namespace boosting {
             }
 
             virtual void updateLabelWiseStatistics(uint32 exampleIndex, const BinaryCsrConstView& labelMatrix,
-                                                   const CContiguousConstView<float64> scoreMatrix,
+                                                   const CContiguousConstView<float64>& scoreMatrix,
                                                    PartialIndexVector::const_iterator labelIndicesBegin,
                                                    PartialIndexVector::const_iterator labelIndicesEnd,
                                                    DenseLabelWiseStatisticView& statisticView) const override {
@@ -356,20 +356,12 @@ namespace boosting {
         return headConfigPtr_->createStatisticsProviderFactory(featureMatrix, labelMatrix, *this, blas, lapack);
     }
 
-    std::unique_ptr<IEvaluationMeasureFactory> ExampleWiseLogisticLossConfig::createEvaluationMeasureFactory() const {
-        return std::make_unique<ExampleWiseLogisticLossFactory>();
-    }
-
     std::unique_ptr<IProbabilityFunctionFactory> ExampleWiseLogisticLossConfig::createProbabilityFunctionFactory() const {
         return nullptr;
     }
 
     float64 ExampleWiseLogisticLossConfig::getDefaultPrediction() const {
         return 0;
-    }
-
-    std::unique_ptr<ISimilarityMeasureFactory> ExampleWiseLogisticLossConfig::createSimilarityMeasureFactory() const {
-        return std::make_unique<ExampleWiseLogisticLossFactory>();
     }
 
     std::unique_ptr<IExampleWiseLossFactory> ExampleWiseLogisticLossConfig::createExampleWiseLossFactory() const {

@@ -57,12 +57,11 @@ namespace boosting {
         public:
 
             /**
-             * @param lossPtr               An unique pointer to an object of template type `LossFunction` that
-             *                              implements the loss function that should be used for calculating gradients
-             *                              and Hessians
-             * @param evaluationMeasurePtr  An unique pointer to an object of template type `EvaluationMeasure` that
-             *                              implements the evaluation measure that should be used to assess the quality
-             *                              of predictions for a specific statistic
+             * @param lossPtr               An unique pointer to an object of type `ILabelWiseLoss` that implements the
+             *                              loss function that should be used for calculating gradients and Hessians
+             * @param evaluationMeasurePtr  An unique pointer to an object of type `IEvaluationMeasure` that implements
+             *                              the evaluation measure that should be used to assess the quality of
+             *                              predictions for a specific statistic
              * @param ruleEvaluationFactory A reference to an object of type `ILabelWiseRuleEvaluationFactory`, that
              *                              allows to create instances of the class that is used for calculating the
              *                              predictions, as well as corresponding quality scores, of rules

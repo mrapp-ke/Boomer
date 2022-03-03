@@ -111,14 +111,6 @@ namespace boosting {
         return headConfigPtr_->createStatisticsProviderFactory(featureMatrix, labelMatrix, *this);
     }
 
-    std::unique_ptr<IEvaluationMeasureFactory> LabelWiseLogisticLossConfig::createEvaluationMeasureFactory() const {
-        return std::make_unique<LabelWiseLogisticLossFactory>();
-    }
-
-    std::unique_ptr<ISimilarityMeasureFactory> LabelWiseLogisticLossConfig::createSimilarityMeasureFactory() const {
-        return std::make_unique<LabelWiseLogisticLossFactory>();
-    }
-
     std::unique_ptr<IProbabilityFunctionFactory> LabelWiseLogisticLossConfig::createProbabilityFunctionFactory() const {
         return std::make_unique<LogisticFunctionFactory>();
     }

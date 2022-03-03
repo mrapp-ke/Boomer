@@ -70,9 +70,9 @@ namespace boosting {
             uint32 getNumRows() const;
 
             /**
-             * Returns the number of gradients per column.
+             * Returns the number of columns in the view.
              *
-             * @return The number of gradients
+             * @return The number of columns
              */
             uint32 getNumCols() const;
 

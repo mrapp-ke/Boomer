@@ -71,6 +71,8 @@ setup(
         'Programming Language :: Cython',
         'Programming Language :: Python :: 3',
         'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS',
+        'Operating System :: Microsoft :: Windows',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
@@ -82,7 +84,9 @@ setup(
         'gradient boosting'
     ],
     platforms=[
-        'Linux'
+        'Linux',
+        'MacOS',
+        'Windows'
     ],
     python_requires='>=3.7',
     install_requires=[

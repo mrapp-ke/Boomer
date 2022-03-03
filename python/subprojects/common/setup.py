@@ -70,6 +70,8 @@ setup(
         'Programming Language :: Cython',
         'Programming Language :: Python :: 3',
         'Operating System :: POSIX :: Linux',
+        'Operating System :: MacOS',
+        'Operating System :: Microsoft :: Windows',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
@@ -80,12 +82,14 @@ setup(
         'rule learning'
     ],
     platforms=[
-        'Linux'
+        'Linux',
+        'MacOS',
+        'Windows'
     ],
     python_requires='>=3.7',
     install_requires=[
         'numpy>=1.22.0',
-        'scipy>=1.7.0',
+        'scipy>=1.8.0',
         'scikit-learn>=1.0.0'
     ],
     packages=find_packages(),

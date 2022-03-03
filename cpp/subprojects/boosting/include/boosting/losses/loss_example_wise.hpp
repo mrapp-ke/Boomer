@@ -89,6 +89,14 @@ namespace boosting {
              */
             virtual std::unique_ptr<IExampleWiseLossFactory> createExampleWiseLossFactory() const = 0;
 
+            std::unique_ptr<IEvaluationMeasureFactory> createEvaluationMeasureFactory() const override final {
+                return this->createExampleWiseLossFactory();
+            }
+
+            std::unique_ptr<ISimilarityMeasureFactory> createSimilarityMeasureFactory() const override final {
+                return this->createExampleWiseLossFactory();
+            }
+
     };
 
 }
