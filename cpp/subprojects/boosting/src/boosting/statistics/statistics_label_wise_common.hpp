@@ -228,7 +228,7 @@ namespace boosting {
             template<typename T>
             class StatisticsSubset final :
                     public AbstractLabelWiseImmutableStatistics<StatisticVector, Histogram, ScoreMatrix,
-                                                                RuleEvaluationFactory>::AbstractStatisticsSubset<T> {
+                                                                RuleEvaluationFactory>::template AbstractStatisticsSubset<T> {
 
                 private:
 
@@ -252,7 +252,7 @@ namespace boosting {
                     StatisticsSubset(const LabelWiseHistogram& histogram, const StatisticVector* totalSumVector,
                             std::unique_ptr<IRuleEvaluation<StatisticVector>> ruleEvaluationPtr, const T& labelIndices)
                         : AbstractLabelWiseImmutableStatistics<StatisticVector, Histogram, ScoreMatrix,
-                                                               RuleEvaluationFactory>::AbstractStatisticsSubset<T>(
+                                                               RuleEvaluationFactory>::template AbstractStatisticsSubset<T>(
                               histogram, totalSumVector, std::move(ruleEvaluationPtr), labelIndices),
                           histogram_(histogram), totalCoverableSumVector_(nullptr) {
 
@@ -379,7 +379,7 @@ namespace boosting {
             template<typename T>
             class StatisticsSubset final :
                     public AbstractLabelWiseImmutableStatistics<StatisticVector, StatisticView, ScoreMatrix,
-                                                                RuleEvaluationFactory>::AbstractStatisticsSubset<T> {
+                                                                RuleEvaluationFactory>::template AbstractStatisticsSubset<T> {
 
                 private:
 
@@ -403,7 +403,7 @@ namespace boosting {
                                      std::unique_ptr<IRuleEvaluation<StatisticVector>> ruleEvaluationPtr,
                                      const T& labelIndices)
                         : AbstractLabelWiseImmutableStatistics<StatisticVector, StatisticView, ScoreMatrix,
-                                                               RuleEvaluationFactory>::AbstractStatisticsSubset<T>(
+                                                               RuleEvaluationFactory>::template AbstractStatisticsSubset<T>(
                               statistics, totalSumVector, std::move(ruleEvaluationPtr), labelIndices),
                           totalCoverableSumVector_(nullptr) {
 
@@ -573,3 +573,4 @@ namespace boosting {
     };
 
 }
+
