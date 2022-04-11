@@ -1,0 +1,9 @@
+cython
+meson
+ninja
+wheel
+build
+numpy
+scipy
+scikit-learn
+liac-arff
