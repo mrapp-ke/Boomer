@@ -1,5 +1,12 @@
 # Changelog
 
+### Version 0.8.2 (Apr. 11th, 2022)
+
+A bugfix release that solves the following issues:
+
+* Fixed prebuilt packages available at [PyPI](https://pypi.org/project/mlrl-boomer/).
+* Fixed output of nominal values when using the option `--print-rules true`.
+
 ### Version 0.8.1 (Mar. 4th, 2022)
 
 A bugfix release that solves the following issues:

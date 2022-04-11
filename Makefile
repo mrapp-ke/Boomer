@@ -23,7 +23,6 @@ VENV_CREATE = ${PYTHON} -m venv ${VENV_DIR}
 VENV_ACTIVATE = $(if ${IS_WIN},${PS} ${VENV_DIR}/Scripts/activate.bat,. ${VENV_DIR}/bin/activate)
 VENV_DEACTIVATE = $(if ${IS_WIN},${PS} ${VENV_DIR}/Scripts/deactivate.bat,deactivate)
 PIP_INSTALL = python -m pip install --prefer-binary
-PIP_UPGRADE = ${PIP_INSTALL} --upgrade
 MESON_SETUP = meson setup
 MESON_COMPILE = meson compile
 MESON_INSTALL = meson install
@@ -103,8 +102,6 @@ venv:
 	@echo Creating virtual Python environment...
 	${VENV_CREATE}
 	${VENV_ACTIVATE} \
-	    && ${PIP_UPGRADE} pip \
-	    && ${PIP_UPGRADE} setuptools \
 	    && ${PIP_INSTALL} -r ${PYTHON_SRC_DIR}/requirements.txt \
 	    && ${VENV_DEACTIVATE}
 

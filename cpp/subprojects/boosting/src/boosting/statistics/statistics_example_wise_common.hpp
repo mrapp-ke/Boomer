@@ -621,4 +621,3 @@ namespace boosting {
     };
 
 }
-

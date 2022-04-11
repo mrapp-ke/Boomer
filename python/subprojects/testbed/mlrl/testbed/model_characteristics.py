@@ -80,10 +80,12 @@ class RuleModelFormatter(RuleModelVisitor):
                 text.write(' ')
 
                 if attribute is not None and attribute.nominal_values is not None:
-                    if print_nominal_values and len(attribute.nominal_values) > threshold:
-                        text.write('"' + attribute.nominal_values[threshold] + '"')
+                    nominal_value = int(threshold)
+
+                    if print_nominal_values and len(attribute.nominal_values) > nominal_value:
+                        text.write('"' + attribute.nominal_values[nominal_value] + '"')
                     else:
-                        text.write(str(threshold))
+                        text.write(str(nominal_value))
                 else:
                     text.write(str(threshold))
 
