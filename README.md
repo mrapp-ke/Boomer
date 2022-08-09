@@ -5,8 +5,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyPI version](https://badge.fury.io/py/mlrl-boomer.svg)](https://badge.fury.io/py/mlrl-boomer)
 [![Documentation Status](https://readthedocs.org/projects/mlrl-boomer/badge/?version=latest)](https://mlrl-boomer.readthedocs.io/en/latest/?badge=latest)
+[![Twitter URL](https://img.shields.io/twitter/url?label=Follow%20on%20Twitter&style=social&url=https%3A%2F%2Ftwitter.com%2FBOOMER_ML)](https://twitter.com/BOOMER_ML)
 
-This software package provides an implementation of **BOOMER - an algorithm for learning gradient boosted multi-label classification rules** that integrates with the popular [scikit-learn](https://scikit-learn.org) machine learning framework.
+**Important links:** [Documentation](https://mlrl-boomer.readthedocs.io) | [Issue Tracker](https://github.com/mrapp-ke/Boomer/issues) | [Changelog](https://github.com/mrapp-ke/Boomer/blob/master/CHANGELOG.md) | [Contributors](https://github.com/mrapp-ke/Boomer/blob/master/CONTRIBUTORS.md) | [Code of Conduct](https://github.com/mrapp-ke/Boomer/blob/master/CODE_OF_CONDUCT.md)
+
+This software package provides the official implementation of **BOOMER - an algorithm for learning gradient boosted multi-label classification rules** that integrates with the popular [scikit-learn](https://scikit-learn.org) machine learning framework.
 
 The goal of [multi-label classification](https://en.wikipedia.org/wiki/Multi-label_classification) is the automatic assignment of sets of labels to individual data points, for example, the annotation of text documents with topics. The BOOMER algorithm uses [gradient boosting](https://en.wikipedia.org/wiki/Gradient_boosting) to learn an ensemble of rules that is built with respect to a given multivariate loss function. To provide a versatile tool for different use cases, great emphasis is put on the *efficiency* of the implementation. To ensure its *flexibility*, it is designed in a modular fashion and can therefore easily be adjusted to different requirements.  
 
@@ -39,7 +42,7 @@ In addition, the following features that may speed up training or reduce the mem
 * Dense or sparse feature matrices can be used for training and prediction. The use of sparse matrices may speed up training significantly on some data sets.
 * Dense or sparse label matrices can be used for training. The use of sparse matrices may reduce the memory footprint in case of large data sets.
 * Dense or sparse matrices can be used to store predictions. The use of sparse matrices may reduce the memory footprint in case of large data sets.
-* Multi-threading can be used to parallelize the evaluation of a rule's potential refinements across multiple CPU cores. 
+* Multi-threading can be used to parallelize the evaluation of a rule's potential refinements across several features, to update the gradients and Hessians of individual examples in parallel, or to obtain predictions for several examples in parallel.
 
 ## Documentation
 
