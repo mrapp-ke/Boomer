@@ -103,7 +103,7 @@ setup(name='mlrl-common',
           'MacOS',
           'Windows',
       ],
-      python_requires='>=3.7',
+      python_requires='>=3.8',
       install_requires=[
           find_dependencies(requirements_file=Path(__file__).resolve().parent.parent.parent / 'requirements.txt',
                             dependency_names=['numpy', 'scipy', 'scikit-learn']),

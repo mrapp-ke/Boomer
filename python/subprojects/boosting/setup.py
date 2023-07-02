@@ -86,7 +86,7 @@ setup(name='mlrl-boomer',
           'MacOS',
           'Windows',
       ],
-      python_requires='>=3.7',
+      python_requires='>=3.8',
       install_requires=[
           'mlrl-common==' + VERSION,
       ],

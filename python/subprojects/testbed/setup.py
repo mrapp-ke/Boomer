@@ -58,7 +58,7 @@ setup(name='mlrl-testbed',
           'evaluation',
       ],
       platforms=['any'],
-      python_requires='>=3.7',
+      python_requires='>=3.8',
       install_requires=[
           'mlrl-common==' + VERSION,
           *find_dependencies(requirements_file=Path(__file__).resolve().parent.parent.parent / 'requirements.txt',
