@@ -1,0 +1,22 @@
+INFO Starting experiment...
+INFO Using separate training and test sets...
+DEBUG Parsing meta data from file "python/subprojects/testbed/tests/res/data/breast-cancer.xml"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/breast-cancer.arff"...
+INFO Fitting model to 191 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 40 milliseconds
+INFO Predicting for 95 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 0 milliseconds
+INFO Evaluation result for test data:
+
+0/1 Loss   40
+Accuracy   60
+F1         36.67
+Jaccard    22.45
+Precision  40.74
+Recall     33.33
+
+INFO Successfully finished after 59 milliseconds

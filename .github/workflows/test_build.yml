@@ -1,0 +1,59 @@
+name: 'Test build'
+on:
+  push:
+    paths:
+      - '**/*.hpp'
+      - '**/*.cpp'
+      - '**/*.pxd'
+      - '**/*.pyx'
+      - '**/*.py'
+      - '**/*.build'
+      - 'Makefile'
+      - 'python/requirements.txt'
+      - 'doc/**'
+      - 'python/subprojects/testbed/tests/**'
+      - '.github/workflows/test_build.yml'
+jobs:
+  linux_build:
+    name: Test Linux build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Compile via GCC
+        run: |
+          make compile
+      - name: Run Tests
+        run: |
+          make tests
+      - name: Install Doxygen
+        uses: ssciwr/doxygen-install@v1
+      - name: Generate Documentation
+        run: |
+          make doc
+  macos_build:
+    name: Test MacOS build
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Compile via Clang
+        run: |
+          brew install libomp
+          brew link libomp --force
+          make compile
+  windows_build:
+    name: Test Windows build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Prepare MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Remove conflicting link.exe
+        uses: JesseTG/rm@v1.0.2
+        with:
+          path: C:\Program Files\Git\usr\bin\link.EXE
+      - name: Compile via MSVC
+        run: |
+          make compile

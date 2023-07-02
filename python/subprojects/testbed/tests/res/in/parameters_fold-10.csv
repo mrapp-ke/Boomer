@@ -1,0 +1,2 @@
+max_rules,rule_induction
+10,top-down-greedy{max_conditions=1}

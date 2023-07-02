@@ -1,0 +1,25 @@
+INFO Starting experiment...
+INFO Performing fold 1 of 10-fold cross validation...
+DEBUG Parsing meta data from file "python/subprojects/testbed/tests/res/data/emotions.xml"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions.arff"...
+INFO Fold 1 / 10:
+INFO Data characteristics (Fold 1):
+
+Examples                533
+Features                 72
+Numerical Features        0
+Nominal Features         72
+Feature Density          99.67
+Feature Sparsity          0.33
+Labels                    6
+Label Density            30.99
+Label Sparsity           69.01
+Label Imbalance Ratio     1.48
+Label Cardinality         1.86
+Distinct Label Vectors   26
+
+INFO Fitting model to 533 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 327 milliseconds
+INFO Successfully finished after 362 milliseconds

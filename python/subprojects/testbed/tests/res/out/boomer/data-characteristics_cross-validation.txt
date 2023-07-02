@@ -1,0 +1,205 @@
+INFO Starting experiment...
+INFO Performing full 10-fold cross validation...
+DEBUG Parsing meta data from file "python/subprojects/testbed/tests/res/data/emotions.xml"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions.arff"...
+INFO Fold 1 / 10:
+INFO Data characteristics (Fold 1):
+
+Examples                533
+Features                 72
+Numerical Features        0
+Nominal Features         72
+Feature Density          99.67
+Feature Sparsity          0.33
+Labels                    6
+Label Density            30.99
+Label Sparsity           69.01
+Label Imbalance Ratio     1.48
+Label Cardinality         1.86
+Distinct Label Vectors   26
+
+INFO Fitting model to 533 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 377 milliseconds
+INFO Fold 2 / 10:
+INFO Data characteristics (Fold 2):
+
+Examples                533
+Features                 72
+Numerical Features        0
+Nominal Features         72
+Feature Density          99.67
+Feature Sparsity          0.33
+Labels                    6
+Label Density            30.89
+Label Sparsity           69.11
+Label Imbalance Ratio     1.45
+Label Cardinality         1.85
+Distinct Label Vectors   26
+
+INFO Fitting model to 533 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 327 milliseconds
+INFO Fold 3 / 10:
+INFO Data characteristics (Fold 3):
+
+Examples                533
+Features                 72
+Numerical Features        0
+Nominal Features         72
+Feature Density          99.68
+Feature Sparsity          0.32
+Labels                    6
+Label Density            31.08
+Label Sparsity           68.92
+Label Imbalance Ratio     1.48
+Label Cardinality         1.86
+Distinct Label Vectors   26
+
+INFO Fitting model to 533 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 375 milliseconds
+INFO Fold 4 / 10:
+INFO Data characteristics (Fold 4):
+
+Examples                534
+Features                 72
+Numerical Features        0
+Nominal Features         72
+Feature Density          99.67
+Feature Sparsity          0.33
+Labels                    6
+Label Density            31.4
+Label Sparsity           68.6
+Label Imbalance Ratio     1.49
+Label Cardinality         1.88
+Distinct Label Vectors   27
+
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 385 milliseconds
+INFO Fold 5 / 10:
+INFO Data characteristics (Fold 5):
+
+Examples                534
+Features                 72
+Numerical Features        0
+Nominal Features         72
+Feature Density          99.67
+Feature Sparsity          0.33
+Labels                    6
+Label Density            30.99
+Label Sparsity           69.01
+Label Imbalance Ratio     1.5
+Label Cardinality         1.86
+Distinct Label Vectors   27
+
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 361 milliseconds
+INFO Fold 6 / 10:
+INFO Data characteristics (Fold 6):
+
+Examples                534
+Features                 72
+Numerical Features        0
+Nominal Features         72
+Feature Density          99.68
+Feature Sparsity          0.32
+Labels                    6
+Label Density            31.34
+Label Sparsity           68.66
+Label Imbalance Ratio     1.5
+Label Cardinality         1.88
+Distinct Label Vectors   27
+
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 441 milliseconds
+INFO Fold 7 / 10:
+INFO Data characteristics (Fold 7):
+
+Examples                534
+Features                 72
+Numerical Features        0
+Nominal Features         72
+Feature Density          99.66
+Feature Sparsity          0.34
+Labels                    6
+Label Density            31.27
+Label Sparsity           68.73
+Label Imbalance Ratio     1.45
+Label Cardinality         1.88
+Distinct Label Vectors   27
+
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 404 milliseconds
+INFO Fold 8 / 10:
+INFO Data characteristics (Fold 8):
+
+Examples                534
+Features                 72
+Numerical Features        0
+Nominal Features         72
+Feature Density          99.67
+Feature Sparsity          0.33
+Labels                    6
+Label Density            31.24
+Label Sparsity           68.76
+Label Imbalance Ratio     1.5
+Label Cardinality         1.87
+Distinct Label Vectors   27
+
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 326 milliseconds
+INFO Fold 9 / 10:
+INFO Data characteristics (Fold 9):
+
+Examples                534
+Features                 72
+Numerical Features        0
+Nominal Features         72
+Feature Density          99.67
+Feature Sparsity          0.33
+Labels                    6
+Label Density            31.05
+Label Sparsity           68.95
+Label Imbalance Ratio     1.45
+Label Cardinality         1.86
+Distinct Label Vectors   26
+
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 395 milliseconds
+INFO Fold 10 / 10:
+INFO Data characteristics (Fold 10):
+
+Examples                534
+Features                 72
+Numerical Features        0
+Nominal Features         72
+Feature Density          99.67
+Feature Sparsity          0.33
+Labels                    6
+Label Density            31.15
+Label Sparsity           68.85
+Label Imbalance Ratio     1.49
+Label Cardinality         1.87
+Distinct Label Vectors   27
+
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 405 milliseconds
+INFO Successfully finished after 3 seconds and 880 milliseconds
