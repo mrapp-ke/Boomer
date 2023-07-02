@@ -68,9 +68,5 @@ setup(name='mlrl-testbed',
           'BOOMER': ['mlrl-boomer==' + VERSION],
       },
       packages=find_packages(),
-      entry_points={
-          'console_scripts': [
-              'boomer=mlrl.testbed.main_boomer:main [BOOMER]',
-          ]
-      },
+      entry_points={'console_scripts': ['boomer=mlrl.testbed.main_boomer:main [BOOMER]', ]},
       zip_safe=True)
