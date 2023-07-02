@@ -1,10 +1,10 @@
 #include "common/sampling/instance_sampling_with_replacement.hpp"
-#include "common/sampling/weight_vector_dense.hpp"
+
+#include "common/data/arrays.hpp"
 #include "common/sampling/partition_bi.hpp"
 #include "common/sampling/partition_single.hpp"
-#include "common/data/arrays.hpp"
+#include "common/sampling/weight_vector_dense.hpp"
 #include "common/util/validation.hpp"
-
 
 static inline void sampleInternally(const SinglePartition& partition, float32 sampleSize,
                                     DenseWeightVector<uint32>& weightVector, RNG& rng) {
@@ -65,12 +65,11 @@ static inline void sampleInternally(BiPartition& partition, float32 sampleSize, 
  */
 template<typename Partition>
 class InstanceSamplingWithReplacement final : public IInstanceSampling {
-
     private:
 
         Partition& partition_;
 
-        float32 sampleSize_;
+        const float32 sampleSize_;
 
         DenseWeightVector<uint32> weightVector_;
 
@@ -84,15 +83,12 @@ class InstanceSamplingWithReplacement final : public IInstanceSampling {
          */
         InstanceSamplingWithReplacement(Partition& partition, float32 sampleSize)
             : partition_(partition), sampleSize_(sampleSize),
-              weightVector_(DenseWeightVector<uint32>(partition.getNumElements())) {
-
-        }
+              weightVector_(DenseWeightVector<uint32>(partition.getNumElements())) {}
 
         const IWeightVector& sample(RNG& rng) override {
             sampleInternally(partition_, sampleSize_, weightVector_, rng);
             return weightVector_;
         }
-
 };
 
 /**
@@ -100,10 +96,9 @@ class InstanceSamplingWithReplacement final : public IInstanceSampling {
  * examples with replacement.
  */
 class InstanceSamplingWithReplacementFactory final : public IInstanceSamplingFactory {
-
     private:
 
-        float32 sampleSize_;
+        const float32 sampleSize_;
 
     public:
 
@@ -111,10 +106,7 @@ class InstanceSamplingWithReplacementFactory final : public IInstanceSamplingFac
          * @param sampleSize The fraction of examples to be included in the sample (e.g. a value of 0.6 corresponds to
          *                   60 % of the available examples). Must be in (0, 1]
          */
-        InstanceSamplingWithReplacementFactory(float32 sampleSize)
-            : sampleSize_(sampleSize) {
-
-        }
+        InstanceSamplingWithReplacementFactory(float32 sampleSize) : sampleSize_(sampleSize) {}
 
         std::unique_ptr<IInstanceSampling> create(const CContiguousLabelMatrix& labelMatrix,
                                                   const SinglePartition& partition,
@@ -136,13 +128,9 @@ class InstanceSamplingWithReplacementFactory final : public IInstanceSamplingFac
                                                   IStatistics& statistics) const override {
             return std::make_unique<InstanceSamplingWithReplacement<BiPartition>>(partition, sampleSize_);
         }
-
 };
 
-InstanceSamplingWithReplacementConfig::InstanceSamplingWithReplacementConfig()
-    : sampleSize_(0.66f) {
-
-}
+InstanceSamplingWithReplacementConfig::InstanceSamplingWithReplacementConfig() : sampleSize_(0.66f) {}
 
 float32 InstanceSamplingWithReplacementConfig::getSampleSize() const {
     return sampleSize_;

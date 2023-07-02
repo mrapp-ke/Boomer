@@ -3,12 +3,12 @@
  */
 #pragma once
 
-#include "common/indices/index_vector_complete.hpp"
-#include "common/indices/index_vector_partial.hpp"
 #include "boosting/data/statistic_vector_label_wise_dense.hpp"
 #include "boosting/rule_evaluation/rule_evaluation.hpp"
-#include <memory>
+#include "common/indices/index_vector_complete.hpp"
+#include "common/indices/index_vector_partial.hpp"
 
+#include <memory>
 
 namespace boosting {
 
@@ -18,10 +18,9 @@ namespace boosting {
      * loss function that is applied label-wise.
      */
     class ILabelWiseRuleEvaluationFactory {
-
         public:
 
-            virtual ~ILabelWiseRuleEvaluationFactory() { };
+            virtual ~ILabelWiseRuleEvaluationFactory() {};
 
             /**
              * Creates a new instance of the class `IRuleEvaluation` that allows to calculate the predictions of rules
@@ -36,7 +35,7 @@ namespace boosting {
              * @return                  An unique pointer to an object of type `IRuleEvaluation` that has been created
              */
             virtual std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> create(
-                const DenseLabelWiseStatisticVector& statisticVector, const CompleteIndexVector& indexVector) const = 0;
+              const DenseLabelWiseStatisticVector& statisticVector, const CompleteIndexVector& indexVector) const = 0;
 
             /**
              * Creates a new instance of the class `IRuleEvaluation` that allows to calculate the predictions of rules
@@ -51,8 +50,7 @@ namespace boosting {
              * @return                  An unique pointer to an object of type `IRuleEvaluation` that has been created
              */
             virtual std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> create(
-                const DenseLabelWiseStatisticVector& statisticVector, const PartialIndexVector& indexVector) const = 0;
-
+              const DenseLabelWiseStatisticVector& statisticVector, const PartialIndexVector& indexVector) const = 0;
     };
 
 }

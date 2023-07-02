@@ -1,4 +1,4 @@
-from mlrl.common.cython._types cimport uint32, float32
+from mlrl.common.cython._types cimport float32, uint32
 
 
 cdef extern from "boosting/binning/label_binning_equal_width.hpp" namespace "boosting" nogil:

@@ -17,7 +17,7 @@ from pathlib import Path
 # -- Project information -----------------------------------------------------
 
 project = 'BOOMER'
-copyright = '2020-2022, Michael Rapp'
+copyright = '2020-2023, Michael Rapp'
 author = 'Michael Rapp'
 
 # The full version, including alpha/beta/rc tags
@@ -28,7 +28,7 @@ release = (Path(__file__).resolve().parent.parent / 'VERSION').read_text()
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = []
+extensions = ['myst_parser']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

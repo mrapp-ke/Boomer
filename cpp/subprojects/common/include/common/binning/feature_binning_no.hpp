@@ -6,12 +6,10 @@
 #include "common/binning/feature_binning.hpp"
 #include "common/multi_threading/multi_threading.hpp"
 
-
 /**
  * Allows to configure a method that does not actually perform any feature binning.
  */
 class NoFeatureBinningConfig final : public IFeatureBinningConfig {
-
     private:
 
         const std::unique_ptr<IMultiThreadingConfig>& multiThreadingConfigPtr_;
@@ -27,5 +25,4 @@ class NoFeatureBinningConfig final : public IFeatureBinningConfig {
 
         std::unique_ptr<IThresholdsFactory> createThresholdsFactory(const IFeatureMatrix& featureMatrix,
                                                                     const ILabelMatrix& labelMatrix) const override;
-
 };

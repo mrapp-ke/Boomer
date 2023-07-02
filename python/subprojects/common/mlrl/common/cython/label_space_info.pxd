@@ -1,16 +1,16 @@
-from mlrl.common.cython._types cimport uint32
-
 from libcpp.cast cimport dynamic_cast
 from libcpp.memory cimport unique_ptr
 
+from mlrl.common.cython._types cimport uint32
 
-cdef extern from "common/output/label_space_info.hpp" nogil:
+
+cdef extern from "common/prediction/label_space_info.hpp" nogil:
 
     cdef cppclass ILabelSpaceInfo:
         pass
 
 
-cdef extern from "common/output/label_space_info_no.hpp" nogil:
+cdef extern from "common/prediction/label_space_info_no.hpp" nogil:
 
     cdef cppclass INoLabelSpaceInfo(ILabelSpaceInfo):
         pass
@@ -40,16 +40,16 @@ cdef extern from "common/input/label_vector.hpp" nogil:
         const_iterator cbegin() const
 
 
-ctypedef void (*LabelVectorVisitor)(const LabelVector&)
+ctypedef void (*LabelVectorVisitor)(const LabelVector&, uint32)
 
 
-cdef extern from "common/output/label_vector_set.hpp" nogil:
+cdef extern from "common/prediction/label_vector_set.hpp" nogil:
 
     cdef cppclass ILabelVectorSet(ILabelSpaceInfo):
 
         # Functions:
 
-        void addLabelVector(unique_ptr[LabelVector] labelVectorPtr)
+        void addLabelVector(unique_ptr[LabelVector] labelVectorPtr, uint32 frequency)
 
         void visit(LabelVectorVisitor) const
 
@@ -64,20 +64,20 @@ ctypedef ILabelVectorSet* LabelVectorSetPtr
 
 cdef extern from *:
     """
-    #include "common/output/label_vector_set.hpp"
+    #include "common/prediction/label_vector_set.hpp"
 
 
-    typedef void (*LabelVectorCythonVisitor)(void*, const LabelVector&);
+    typedef void (*LabelVectorCythonVisitor)(void*, const LabelVector&, uint32);
 
     static inline LabelVectorSet::LabelVectorVisitor wrapLabelVectorVisitor(
             void* self, LabelVectorCythonVisitor visitor) {
-        return [=](const LabelVector& labelVector) {
-            visitor(self, labelVector);
+        return [=](const LabelVector& labelVector, uint32 frequency) {
+            visitor(self, labelVector, frequency);
         };
     }
     """
 
-    ctypedef void (*LabelVectorCythonVisitor)(void*, const LabelVector&)
+    ctypedef void (*LabelVectorCythonVisitor)(void*, const LabelVector&, uint32 frequency)
 
     LabelVectorVisitor wrapLabelVectorVisitor(void* self, LabelVectorCythonVisitor visitor)
 
@@ -104,9 +104,13 @@ cdef class LabelVectorSet(LabelSpaceInfo):
 
     cdef object state
 
+    cdef object visitor
+
     # Functions:
 
-    cdef __serialize_label_vector(self, const LabelVector& label_vector)
+    cdef __visit_label_vector(self, const LabelVector& label_vector, uint32 frequency)
+
+    cdef __serialize_label_vector(self, const LabelVector& label_vector, uint32 frequency)
 
     cdef unique_ptr[LabelVector] __deserialize_label_vector(self, object label_vector_state)
 
@@ -131,4 +135,4 @@ cdef inline LabelSpaceInfo create_label_space_info(unique_ptr[ILabelSpaceInfo] l
             return no_label_space_info
         else:
             del ptr
-            raise RuntimeError('Encountered unknown label space info type')
+            raise RuntimeError('Encountered unsupported ILabelSpaceInfo object')

@@ -5,7 +5,6 @@
 
 #include "boosting/iterator/diagonal_iterator.hpp"
 
-
 namespace boosting {
 
     /**
@@ -13,23 +12,22 @@ namespace boosting {
      * non-decomposable loss function and are stored in pre-allocated C-contiguous arrays.
      */
     class DenseExampleWiseStatisticConstView {
-
         protected:
 
             /**
              * The number of rows in the view.
              */
-            uint32 numRows_;
+            const uint32 numRows_;
 
             /**
              * The number of gradients per row.
              */
-            uint32 numGradients_;
+            const uint32 numGradients_;
 
             /**
              * The number of Hessians per row.
              */
-            uint32 numHessians_;
+            const uint32 numHessians_;
 
             /**
              * A pointer to an array that stores the gradients.
@@ -55,6 +53,8 @@ namespace boosting {
             DenseExampleWiseStatisticConstView(uint32 numRows, uint32 numGradients, uint32 numHessians,
                                                float64* gradients, float64* hessians);
 
+            virtual ~DenseExampleWiseStatisticConstView() {};
+
             /**
              * An iterator that provides read-only access to the gradients.
              */
@@ -76,7 +76,7 @@ namespace boosting {
              * @param row   The row
              * @return      A `gradient_const_iterator` to the beginning of the given row
              */
-            gradient_const_iterator gradients_row_cbegin(uint32 row) const;
+            gradient_const_iterator gradients_cbegin(uint32 row) const;
 
             /**
              * Returns a `gradient_const_iterator` to the end of the gradients at a specific row.
@@ -84,7 +84,7 @@ namespace boosting {
              * @param row   The row
              * @return      A `gradient_const_iterator` to the end of the given row
              */
-            gradient_const_iterator gradients_row_cend(uint32 row) const;
+            gradient_const_iterator gradients_cend(uint32 row) const;
 
             /**
              * Returns a `hessian_const_iterator` to the beginning of the Hessians at a specific row.
@@ -92,7 +92,7 @@ namespace boosting {
              * @param row   The row
              * @return      A `hessian_const_iterator` to the beginning of the given row
              */
-            hessian_const_iterator hessians_row_cbegin(uint32 row) const;
+            hessian_const_iterator hessians_cbegin(uint32 row) const;
 
             /**
              * Returns a `hessian_const_iterator` to the end of the Hessians at a specific row.
@@ -100,7 +100,7 @@ namespace boosting {
              * @param row   The row
              * @return      A `hessian_const_iterator` to the end of the given row
              */
-            hessian_const_iterator hessians_row_cend(uint32 row) const;
+            hessian_const_iterator hessians_cend(uint32 row) const;
 
             /**
              * Returns a `hessian_diagonal_const_iterator` to the beginning of the Hessians that correspond to the
@@ -109,7 +109,7 @@ namespace boosting {
              * @param row   The row
              * @return      A `hessian_diagonal_const_iterator` to the beginning
              */
-            hessian_diagonal_const_iterator hessians_diagonal_row_cbegin(uint32 row) const;
+            hessian_diagonal_const_iterator hessians_diagonal_cbegin(uint32 row) const;
 
             /**
              * Returns a `hessian_diagonal_const_iterator` to the end of the Hessians that correspond to the diagonal of
@@ -118,7 +118,7 @@ namespace boosting {
              * @param row   The row
              * @return      A `hessian_diagonal_const_iterator` to the end
              */
-            hessian_diagonal_const_iterator hessians_diagonal_row_cend(uint32 row) const;
+            hessian_diagonal_const_iterator hessians_diagonal_cend(uint32 row) const;
 
             /**
              * Returns the number of rows in the view.
@@ -133,7 +133,6 @@ namespace boosting {
              * @return The number of columns
              */
             uint32 getNumCols() const;
-
     };
 
     /**
@@ -141,7 +140,6 @@ namespace boosting {
      * non-decomposable loss function and are stored in pre-allocated C-contiguous arrays.
      */
     class DenseExampleWiseStatisticView : public DenseExampleWiseStatisticConstView {
-
         public:
 
             /**
@@ -155,6 +153,8 @@ namespace boosting {
              */
             DenseExampleWiseStatisticView(uint32 numRows, uint32 numGradients, uint32 numHessians, float64* gradients,
                                           float64* hessians);
+
+            virtual ~DenseExampleWiseStatisticView() override {};
 
             /**
              * An iterator that provides access to the gradients and allows to modify them.
@@ -172,7 +172,7 @@ namespace boosting {
              * @param row   The row
              * @return      A `gradient_iterator` to the beginning of the given row
              */
-            gradient_iterator gradients_row_begin(uint32 row);
+            gradient_iterator gradients_begin(uint32 row);
 
             /**
              * Returns a `gradient_iterator` to the end of the gradients at a specific row.
@@ -180,7 +180,7 @@ namespace boosting {
              * @param row   The row
              * @return      A `gradient_iterator` to the end of the given row
              */
-            gradient_iterator gradients_row_end(uint32 row);
+            gradient_iterator gradients_end(uint32 row);
 
             /**
              * Returns a `hessian_iterator` to the beginning of the Hessians at a specific row.
@@ -188,7 +188,7 @@ namespace boosting {
              * @param row   The row
              * @return      A `hessian_iterator` to the beginning of the given row
              */
-            hessian_iterator hessians_row_begin(uint32 row);
+            hessian_iterator hessians_begin(uint32 row);
 
             /**
              * Returns a `hessian_iterator` to the end of the Hessians at a specific row.
@@ -196,7 +196,7 @@ namespace boosting {
              * @param row   The row
              * @return      A `hessian_iterator` to the end of the given row
              */
-            hessian_iterator hessians_row_end(uint32 row);
+            hessian_iterator hessians_end(uint32 row);
 
             /**
              * Sets all gradients and Hessians in the matrix to zero.
@@ -216,7 +216,6 @@ namespace boosting {
              */
             void addToRow(uint32 row, gradient_const_iterator gradientsBegin, gradient_const_iterator gradientsEnd,
                           hessian_const_iterator hessiansBegin, hessian_const_iterator hessiansEnd, float64 weight);
-
     };
 
 }

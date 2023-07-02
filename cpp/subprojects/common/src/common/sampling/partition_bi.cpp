@@ -1,31 +1,16 @@
 #include "common/sampling/partition_bi.hpp"
+
+#include "common/prediction/probability_calibration_joint.hpp"
+#include "common/rule_refinement/prediction.hpp"
 #include "common/sampling/instance_sampling.hpp"
 #include "common/stopping/stopping_criterion.hpp"
 #include "common/thresholds/thresholds_subset.hpp"
-#include "common/rule_refinement/refinement.hpp"
-#include "common/rule_refinement/prediction.hpp"
 
-
-static inline BitVector* createBitVector(BiPartition::const_iterator iterator, uint32 numElements) {
-    BitVector* vector = new BitVector(numElements, true);
-
-    for (uint32 i = 0; i < numElements; i++) {
-        uint32 index = iterator[i];
-        vector->set(index, true);
-    }
-
-    return vector;
-}
+#include <algorithm>
 
 BiPartition::BiPartition(uint32 numFirst, uint32 numSecond)
-    : vector_(DenseVector<uint32>(numFirst + numSecond)), numFirst_(numFirst), firstSet_(nullptr), secondSet_(nullptr) {
-
-}
-
-BiPartition::~BiPartition() {
-    delete firstSet_;
-    delete secondSet_;
-}
+    : vector_(DenseVector<uint32>(numFirst + numSecond)), numFirst_(numFirst), firstSorted_(false),
+      secondSorted_(false) {}
 
 BiPartition::iterator BiPartition::first_begin() {
     return vector_.begin();
@@ -71,20 +56,18 @@ uint32 BiPartition::getNumElements() const {
     return vector_.getNumElements();
 }
 
-const BitVector& BiPartition::getFirstSet() {
-    if (!firstSet_) {
-        firstSet_ = createBitVector(this->first_cbegin(), this->getNumFirst());
+void BiPartition::sortFirst() {
+    if (!firstSorted_) {
+        std::sort(this->first_begin(), this->first_end(), std::less<uint32>());
+        firstSorted_ = true;
     }
-
-    return *firstSet_;
 }
 
-const BitVector& BiPartition::getSecondSet() {
-    if (!secondSet_) {
-        secondSet_ = createBitVector(this->second_cbegin(), this->getNumSecond());
+void BiPartition::sortSecond() {
+    if (!secondSorted_) {
+        std::sort(this->second_begin(), this->second_end(), std::less<uint32>());
+        secondSorted_ = true;
     }
-
-    return *secondSet_;
 }
 
 std::unique_ptr<IStoppingCriterion> BiPartition::createStoppingCriterion(const IStoppingCriterionFactory& factory) {
@@ -97,12 +80,24 @@ std::unique_ptr<IInstanceSampling> BiPartition::createInstanceSampling(const IIn
     return labelMatrix.createInstanceSampling(factory, *this, statistics);
 }
 
-float64 BiPartition::evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, const ICoverageState& coverageState,
+Quality BiPartition::evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, const ICoverageState& coverageState,
                                          const AbstractPrediction& head) {
     return coverageState.evaluateOutOfSample(thresholdsSubset, *this, head);
 }
 
 void BiPartition::recalculatePrediction(const IThresholdsSubset& thresholdsSubset, const ICoverageState& coverageState,
-                                        Refinement& refinement) {
-    coverageState.recalculatePrediction(thresholdsSubset, *this, refinement);
+                                        AbstractPrediction& head) {
+    coverageState.recalculatePrediction(thresholdsSubset, *this, head);
+}
+
+std::unique_ptr<IMarginalProbabilityCalibrationModel> BiPartition::fitMarginalProbabilityCalibrationModel(
+  const IMarginalProbabilityCalibrator& probabilityCalibrator, const IRowWiseLabelMatrix& labelMatrix,
+  const IStatistics& statistics) {
+    return labelMatrix.fitMarginalProbabilityCalibrationModel(probabilityCalibrator, *this, statistics);
+}
+
+std::unique_ptr<IJointProbabilityCalibrationModel> BiPartition::fitJointProbabilityCalibrationModel(
+  const IJointProbabilityCalibrator& probabilityCalibrator, const IRowWiseLabelMatrix& labelMatrix,
+  const IStatistics& statistics) {
+    return labelMatrix.fitJointProbabilityCalibrationModel(probabilityCalibrator, *this, statistics);
 }

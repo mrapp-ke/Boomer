@@ -7,23 +7,20 @@
 #include "common/input/label_matrix.hpp"
 #include "common/model/model_builder.hpp"
 #include "common/post_processing/post_processor.hpp"
-#include "common/pruning/pruning.hpp"
+#include "common/rule_pruning/rule_pruning.hpp"
 #include "common/sampling/feature_sampling.hpp"
-#include "common/sampling/weight_vector.hpp"
 #include "common/sampling/partition.hpp"
+#include "common/sampling/weight_vector.hpp"
 #include "common/statistics/statistics.hpp"
 #include "common/thresholds/thresholds.hpp"
-
-
 
 /**
  * Defines an interface for all classes that implement an algorithm for the induction of individual rules.
  */
 class IRuleInduction {
-
     public:
 
-        virtual ~IRuleInduction() { };
+        virtual ~IRuleInduction() {};
 
         /**
          * Induces the default rule.
@@ -48,7 +45,8 @@ class IRuleInduction {
          *                          respectively
          * @param featureSampling   A reference to an object of type `IFeatureSampling` that should be used for sampling
          *                          the features that may be used by a new condition
-         * @param pruning           A reference to an object of type `IPruning` that should be used to prune the rule
+         * @param rulePruning       A reference to an object of type `IRulePruning` that should be used to prune the
+         *                          rule
          * @param postProcessor     A reference to an object of type `IPostProcessor` that should be used to
          *                          post-process the predictions of the rule
          * @param rng               A reference to an object of type `RNG` that implements the random number generator
@@ -56,21 +54,19 @@ class IRuleInduction {
          * @param modelBuilder      A reference to an object of type `IModelBuilder`, the rule should be added to
          * @return                  True, if a rule has been induced, false otherwise
          */
-        virtual bool induceRule(IThresholds& thresholds, const IIndexVector& labelIndices,
-                                const IWeightVector& weights, IPartition& partition, IFeatureSampling& featureSampling,
-                                const IPruning& pruning, const IPostProcessor& postProcessor, RNG& rng,
+        virtual bool induceRule(IThresholds& thresholds, const IIndexVector& labelIndices, const IWeightVector& weights,
+                                IPartition& partition, IFeatureSampling& featureSampling,
+                                const IRulePruning& rulePruning, const IPostProcessor& postProcessor, RNG& rng,
                                 IModelBuilder& modelBuilder) const = 0;
-
 };
 
 /**
  * Defines an interface for all factories that allow to create instances of the type `IRuleInduction`.
  */
 class IRuleInductionFactory {
-
     public:
 
-        virtual ~IRuleInductionFactory() { };
+        virtual ~IRuleInductionFactory() {};
 
         /**
          * Creates and returns a new object of type `IRuleInduction`.
@@ -78,17 +74,15 @@ class IRuleInductionFactory {
          * @return An unique pointer to an object of type `IRuleInduction` that has been created.
          */
         virtual std::unique_ptr<IRuleInduction> create() const = 0;
-
 };
 
 /**
  * Defines an interface for all classes that allow to configure an algorithm for the induction of individual rules.
  */
 class IRuleInductionConfig {
-
     public:
 
-        virtual ~IRuleInductionConfig() { };
+        virtual ~IRuleInductionConfig() {};
 
         /**
          * Creates and returns a new object of type `IRuleInductionFactory` according to the specified configuration.
@@ -100,6 +94,5 @@ class IRuleInductionConfig {
          * @return              An unique pointer to an object of type `IRuleInductionFactory` that has been created
          */
         virtual std::unique_ptr<IRuleInductionFactory> createRuleInductionFactory(
-            const IFeatureMatrix& featureMatrix, const ILabelMatrix& labelMatrix) const = 0;
-
+          const IFeatureMatrix& featureMatrix, const ILabelMatrix& labelMatrix) const = 0;
 };

@@ -4,15 +4,18 @@
 #pragma once
 
 #include "common/data/types.hpp"
-#include <limits>
 
+#include <memory>
+
+// Forward declarations
+class IHistogram;
+class IWeightedStatistics;
 
 /**
  * Defines an interface for all classes that provide access to the indices of the bins, individual examples have been
  * assigned to.
  */
 class IBinIndexVector {
-
     public:
 
         /**
@@ -20,7 +23,7 @@ class IBinIndexVector {
          */
         static const uint32 BIN_INDEX_SPARSE = std::numeric_limits<uint32>::max();
 
-        virtual ~IBinIndexVector() { };
+        virtual ~IBinIndexVector() {};
 
         /**
          * Returns the index of the bin, the example at a specific index has been assigned to.
@@ -38,4 +41,13 @@ class IBinIndexVector {
          */
         virtual void setBinIndex(uint32 exampleIndex, uint32 binIndex) = 0;
 
+        /**
+         * Creates and returns a new histogram based on given statistics and the indices that are stored by this vector.
+         *
+         * @param statistics    A reference to an object of type `IWeightedStatistics` that should be used
+         * @param numBins       The number of bins in the histogram
+         * @return              An unique pointer to an object of type `IHistogram` that has been created
+         */
+        virtual std::unique_ptr<IHistogram> createHistogram(const IWeightedStatistics& statistics,
+                                                            uint32 numBins) const = 0;
 };

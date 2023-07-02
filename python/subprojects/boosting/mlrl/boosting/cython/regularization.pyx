@@ -1,7 +1,7 @@
 """
 @author: Michael Rapp (michael.rapp.ml@gmail.com)
 """
-from mlrl.common.cython._validation import assert_greater
+from mlrl.common.cython.validation import assert_greater
 
 
 cdef class ManualRegularizationConfig:

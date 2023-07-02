@@ -1,0 +1,53 @@
+INFO Starting experiment...
+INFO Using separate training and test sets...
+DEBUG Parsing meta data from file "python/subprojects/testbed/tests/res/data/emotions.xml"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions.arff"...
+INFO Fitting model to 397 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 291 milliseconds
+INFO Predicting for 196 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 2 milliseconds
+INFO Evaluation result for test data:
+
+Example-wise F1         57.01
+Example-wise Jaccard    49.28
+Example-wise Precision  79.08
+Example-wise Recall     56.46
+Hamming Accuracy        79.93
+Hamming Loss            20.07
+Macro F1                61.2
+Macro Jaccard           45.59
+Macro Precision         74.41
+Macro Recall            54.34
+Micro F1                63.91
+Micro Jaccard           46.97
+Micro Precision         74.91
+Micro Recall            55.73
+Subset 0/1 Loss         76.02
+Subset Accuracy         23.98
+
+INFO Model characteristics:
+
+┌───────────────────────────────┬─────────┬───────────────┬──────────────┬───────────────┬───────────────┐
+│ Statistics about conditions   │   Total │   <= operator │   > operator │   == operator │   != operator │
+├───────────────────────────────┼─────────┼───────────────┼──────────────┼───────────────┼───────────────┤
+│ 1000 local rules              │    5492 │        49.71% │       50.29% │         0.00% │         0.00% │
+└───────────────────────────────┴─────────┴───────────────┴──────────────┴───────────────┴───────────────┘
+
+┌────────────────────────────────┬─────────┬────────────┬────────────┐
+│ Statistics about predictions   │   Total │   Positive │   Negative │
+├────────────────────────────────┼─────────┼────────────┼────────────┤
+│ 1000 local rules               │    1000 │     42.10% │     57.90% │
+└────────────────────────────────┴─────────┴────────────┴────────────┘
+
+┌─────────────────────────────┬───────────┬───────────┬───────────┐
+│ Statistics per local rule   │   Minimum │   Average │   Maximum │
+├─────────────────────────────┼───────────┼───────────┼───────────┤
+│ Conditions                  │         1 │      5.49 │        17 │
+│ Predictions                 │         1 │      1    │         1 │
+└─────────────────────────────┴───────────┴───────────┴───────────┘
+
+INFO Successfully finished after 358 milliseconds

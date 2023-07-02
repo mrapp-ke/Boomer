@@ -1,0 +1,43 @@
+INFO Starting experiment...
+INFO Performing fold 1 of 10-fold cross validation...
+DEBUG Parsing meta data from file "python/subprojects/testbed/tests/res/data/emotions.xml"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions.arff"...
+INFO Fold 1 / 10:
+INFO Successfully applied parameter setting: {'max_rules': '10', 'rule_induction': 'top-down-greedy{max_conditions=1}'}
+INFO Custom parameters (Fold 1):
+
+feature_format     auto
+label_format       auto
+max_rules          10
+prediction_format  auto
+random_state       1
+rule_induction     top-down-greedy{max_conditions=1}
+
+INFO Fitting model to 533 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 12 milliseconds
+INFO Model characteristics (Fold 1):
+
+┌───────────────────────────────┬─────────┬───────────────┬──────────────┬───────────────┬───────────────┐
+│ Statistics about conditions   │   Total │   <= operator │   > operator │   == operator │   != operator │
+├───────────────────────────────┼─────────┼───────────────┼──────────────┼───────────────┼───────────────┤
+│ Default rule                  │       0 │         0.00% │        0.00% │         0.00% │         0.00% │
+│ 9 local rules                 │       9 │        44.44% │       55.56% │         0.00% │         0.00% │
+└───────────────────────────────┴─────────┴───────────────┴──────────────┴───────────────┴───────────────┘
+
+┌────────────────────────────────┬─────────┬────────────┬────────────┐
+│ Statistics about predictions   │   Total │   Positive │   Negative │
+├────────────────────────────────┼─────────┼────────────┼────────────┤
+│ Default rule                   │       6 │      0.00% │    100.00% │
+│ 9 local rules                  │       9 │     55.56% │     44.44% │
+└────────────────────────────────┴─────────┴────────────┴────────────┘
+
+┌─────────────────────────────┬───────────┬───────────┬───────────┐
+│ Statistics per local rule   │   Minimum │   Average │   Maximum │
+├─────────────────────────────┼───────────┼───────────┼───────────┤
+│ Conditions                  │         1 │         1 │         1 │
+│ Predictions                 │         1 │         1 │         1 │
+└─────────────────────────────┴───────────┴───────────┴───────────┘
+
+INFO Successfully finished after 50 milliseconds

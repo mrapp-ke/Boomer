@@ -4,8 +4,8 @@
 #pragma once
 
 #include "common/data/types.hpp"
-#include <unordered_map>
 
+#include <unordered_map>
 
 /**
  * An one-dimensional sparse vector that stores data using the dictionary of keys (DOK) format.
@@ -14,12 +14,11 @@
  */
 template<typename T>
 class DokVector final {
-
     private:
 
         std::unordered_map<uint32, T> data_;
 
-        T sparseValue_;
+        const T sparseValue_;
 
     public:
 
@@ -86,5 +85,4 @@ class DokVector final {
          * Sets the values of all elements to zero.
          */
         void clear();
-
 };

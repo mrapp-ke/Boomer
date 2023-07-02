@@ -3,39 +3,42 @@
  */
 #pragma once
 
-#include "common/rule_evaluation/score_vector.hpp"
 #include "common/data/vector_binned_dense.hpp"
-
+#include "common/rule_evaluation/score_vector.hpp"
 
 /**
  * An one dimensional vector that stores the scores that may be predicted by a rule, corresponding to bins for which the
- * same prediction is made, as as an overall quality score that assesses the overall quality of the rule, in a
+ * same prediction is made, as well as a numerical score that assesses the overall quality of the rule, in a
  * C-contiguous array.
  *
- * @tparam T The type of the vector that provides access to the indices of the labels for which the rule may predict
+ * @tparam IndexVector The type of the vector that provides access to the indices of the labels for which the rule may
+ *                     predict
  */
-template<typename T>
-class DenseBinnedScoreVector : virtual public IScoreVector {
-
+template<typename IndexVector>
+class DenseBinnedScoreVector final : virtual public IScoreVector {
     private:
 
-        const T& labelIndices_;
+        const IndexVector& labelIndices_;
 
         DenseBinnedVector<float64> binnedVector_;
+
+        const bool sorted_;
 
     public:
 
         /**
-         * @param labelIndices  A reference to an object of template type `T` that provides access to the indices of
-         *                      the labels for which the rule may predict
+         * @param labelIndices  A reference to an object of template type `IndexVector` that provides access to the
+         *                      indices of the labels for which the rule may predict
          * @param numBins       The number of bins
+         * @param sorted        True, if the indices of the labels for which the rule may predict are sorted in
+         *                      increasing order, false otherwise
          */
-        DenseBinnedScoreVector(const T& labelIndices, uint32 numBins);
+        DenseBinnedScoreVector(const IndexVector& labelIndices, uint32 numBins, bool sorted);
 
         /**
          * An iterator that provides read-only access to the indices of the labels for which the rule predicts.
          */
-        typedef typename T::const_iterator index_const_iterator;
+        typedef typename IndexVector::const_iterator index_const_iterator;
 
         /**
          * An iterator that provides read-only access to the predicted scores that correspond to individual labels.
@@ -45,23 +48,23 @@ class DenseBinnedScoreVector : virtual public IScoreVector {
         /**
          * An iterator that provides access to the indices that correspond to individual bins and allows to modify them.
          */
-        typedef DenseBinnedVector<float64>::index_binned_iterator index_binned_iterator;
+        typedef DenseBinnedVector<float64>::index_iterator index_binned_iterator;
 
         /**
          * An iterator that provides read-only access to the indices that correspond to individual bins.
          */
-        typedef DenseBinnedVector<float64>::index_binned_const_iterator index_binned_const_iterator;
+        typedef DenseBinnedVector<float64>::index_const_iterator index_binned_const_iterator;
 
         /**
          * An iterator that provides access to the predicted scores that correspond to individual bins and allows to
          * modify them.
          */
-        typedef DenseBinnedVector<float64>::binned_iterator score_binned_iterator;
+        typedef DenseBinnedVector<float64>::value_iterator score_binned_iterator;
 
         /**
          * An iterator that provides read-only access to the predicted scores that correspond to individual bins.
          */
-        typedef DenseBinnedVector<float64>::binned_const_iterator score_binned_const_iterator;
+        typedef DenseBinnedVector<float64>::value_const_iterator score_binned_const_iterator;
 
         /**
          * Returns an `index_const_iterator` to the beginning of the indices that correspond to individual labels.
@@ -180,8 +183,16 @@ class DenseBinnedScoreVector : virtual public IScoreVector {
          */
         bool isPartial() const;
 
-        void updatePrediction(AbstractPrediction& prediction) const override final;
+        /**
+         * Returns whether the indices of the labels for which the rule may predict are sorted in increasing order, or
+         * not.
+         *
+         * @return True, if the indices of the labels for which the rule may predict are sorted in increasing order,
+         *         false otherwise
+         */
+        bool isSorted() const;
 
-        const AbstractEvaluatedPrediction* processScores(ScoreProcessor& scoreProcessor) const override final;
+        void updatePrediction(AbstractPrediction& prediction) const override;
 
+        void processScores(ScoreProcessor& scoreProcessor) const override;
 };

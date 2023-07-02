@@ -5,7 +5,6 @@
 
 #include "common/sampling/random.hpp"
 
-
 static inline bool tiebreak(uint32 numDesiredSamples, uint32 numDesiredOutOfSamples, RNG& rng) {
     if (numDesiredSamples > numDesiredOutOfSamples) {
         return true;

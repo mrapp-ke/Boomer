@@ -1,7 +1,8 @@
 #include "common/input/label_matrix_csc.hpp"
-#include "common/data/arrays.hpp"
-#include <cstdlib>
 
+#include "common/data/arrays.hpp"
+
+#include <cstdlib>
 
 template<typename IndexIterator>
 static inline uint32* copyLabelMatrix(uint32* rowIndices, uint32* colIndices,
@@ -17,7 +18,7 @@ static inline uint32* copyLabelMatrix(uint32* rowIndices, uint32* colIndices,
         for (uint32 j = 0; j < numExamples; j++) {
             uint32 exampleIndex = indicesBegin[j];
 
-            if (labelMatrix.row_values_cbegin(exampleIndex)[i]) {
+            if (labelMatrix.values_cbegin(exampleIndex)[i]) {
                 rowIndices[n] = exampleIndex;
                 n++;
             }
@@ -40,8 +41,8 @@ static inline uint32* copyLabelMatrix(uint32* rowIndices, uint32* colIndices, co
     // Determine the number of non-zero elements per column...
     for (uint32 i = 0; i < numExamples; i++) {
         uint32 exampleIndex = indicesBegin[i];
-        BinaryCsrConstView::index_const_iterator labelIndexIterator = labelMatrix.row_indices_cbegin(exampleIndex);
-        uint32 numRelevantLabels = labelMatrix.row_indices_cend(exampleIndex) - labelIndexIterator;
+        BinaryCsrConstView::index_const_iterator labelIndexIterator = labelMatrix.indices_cbegin(exampleIndex);
+        uint32 numRelevantLabels = labelMatrix.indices_cend(exampleIndex) - labelIndexIterator;
 
         for (uint32 j = 0; j < numRelevantLabels; j++) {
             uint32 labelIndex = labelIndexIterator[j];
@@ -62,8 +63,8 @@ static inline uint32* copyLabelMatrix(uint32* rowIndices, uint32* colIndices, co
     // Set the row indices of the CSC matrix. This will modify the column indices...
     for (uint32 i = 0; i < numExamples; i++) {
         uint32 exampleIndex = indicesBegin[i];
-        BinaryCsrConstView::index_const_iterator labelIndexIterator = labelMatrix.row_indices_cbegin(exampleIndex);
-        uint32 numRelevantLabels = labelMatrix.row_indices_cend(exampleIndex) - labelIndexIterator;
+        BinaryCsrConstView::index_const_iterator labelIndexIterator = labelMatrix.indices_cbegin(exampleIndex);
+        uint32 numRelevantLabels = labelMatrix.indices_cend(exampleIndex) - labelIndexIterator;
 
         for (uint32 j = 0; j < numRelevantLabels; j++) {
             uint32 originalLabelIndex = labelIndexIterator[j];

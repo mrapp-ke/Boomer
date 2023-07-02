@@ -1,9 +1,9 @@
 #include "common/sampling/instance_sampling_no.hpp"
-#include "common/sampling/weight_vector_bit.hpp"
-#include "common/sampling/weight_vector_equal.hpp"
+
 #include "common/sampling/partition_bi.hpp"
 #include "common/sampling/partition_single.hpp"
-
+#include "common/sampling/weight_vector_bit.hpp"
+#include "common/sampling/weight_vector_equal.hpp"
 
 static inline void sampleInternally(const SinglePartition& partition, EqualWeightVector& weightVector, RNG& rng) {
     return;
@@ -32,7 +32,6 @@ static inline void sampleInternally(BiPartition& partition, BitWeightVector& wei
  */
 template<typename Partition, typename WeightVector>
 class NoInstanceSampling final : public IInstanceSampling {
-
     private:
 
         Partition& partition_;
@@ -46,15 +45,12 @@ class NoInstanceSampling final : public IInstanceSampling {
          *                  the examples that are included in the training set
          */
         NoInstanceSampling(Partition& partition)
-            : partition_(partition), weightVector_(WeightVector(partition.getNumElements())) {
-
-        }
+            : partition_(partition), weightVector_(WeightVector(partition.getNumElements())) {}
 
         const IWeightVector& sample(RNG& rng) override {
             sampleInternally(partition_, weightVector_, rng);
             return weightVector_;
         }
-
 };
 
 /**
@@ -62,7 +58,6 @@ class NoInstanceSampling final : public IInstanceSampling {
  * to all examples.
  */
 class NoInstanceSamplingFactory final : public IInstanceSamplingFactory {
-
     public:
 
         std::unique_ptr<IInstanceSampling> create(const CContiguousLabelMatrix& labelMatrix,
@@ -85,7 +80,6 @@ class NoInstanceSamplingFactory final : public IInstanceSamplingFactory {
                                                   IStatistics& statistics) const override {
             return std::make_unique<NoInstanceSampling<BiPartition, BitWeightVector>>(partition);
         }
-
 };
 
 std::unique_ptr<IInstanceSamplingFactory> NoInstanceSamplingConfig::createInstanceSamplingFactory() const {

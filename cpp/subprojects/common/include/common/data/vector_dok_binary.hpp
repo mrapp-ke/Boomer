@@ -4,14 +4,13 @@
 #pragma once
 
 #include "common/data/types.hpp"
-#include <unordered_set>
 
+#include <unordered_set>
 
 /**
  * An one-dimensional sparse vector that stores binary data using the dictionary of keys (DOK) format.
  */
 class BinaryDokVector final {
-
     private:
 
         std::unordered_set<uint32> data_;
@@ -57,5 +56,4 @@ class BinaryDokVector final {
          * Sets the values of all elements to zero.
          */
         void clear();
-
 };

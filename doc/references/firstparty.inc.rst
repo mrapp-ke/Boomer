@@ -43,7 +43,7 @@ Gradient-based label binning (GBLB), which is an extension to the original algor
 
 A technical report on the implementation of the BOOMER algorithm was published for open access in the following `article <https://doi.org/10.1016/j.simpa.2021.100137>`__.
 
-*Michael Rapp. BOOMER – An Algorithm for Learning Gradient Boosted Multi-label Classification Rules. In: Software Impacts, page 100137, 2021, Elsevier.*
+*Michael Rapp. BOOMER – An Algorithm for Learning Gradient Boosted Multi-label Classification Rules. In: Software Impacts (10), page 100137, 2021, Elsevier.*
 
 .. code-block:: bibtex
 
@@ -55,4 +55,19 @@ A technical report on the implementation of the BOOMER algorithm was published f
     pages={100137},
     year={2021},
     publisher={Elsevier}
+  }
+
+**Multi-label Rule Learning**
+
+An extensive discussion of the BOOMER algorithm, including a presentation of the conceptual framework it is based on, as well as a detailed explanation of several implementation details, can be found in the following `Ph.D. thesis <https://tuprints.ulb.tu-darmstadt.de/id/eprint/22099>`__.
+
+*Michael Rapp. Multi-label Rule Learning, 2022, Technische Universität Darmstadt.*
+
+.. code-block:: bibtex
+
+  @phdthesis{rapp2022phdthesis,
+    title={Multi-label Rule Learning},
+    author={Rapp, Michael},
+    year={2022},
+    school={Technische Universit{\"a}t Darmstadt}
   }

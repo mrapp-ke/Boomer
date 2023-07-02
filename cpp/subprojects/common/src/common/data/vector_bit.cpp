@@ -1,7 +1,8 @@
 #include "common/data/vector_bit.hpp"
-#include "common/data/arrays.hpp"
-#include <climits>
 
+#include "common/data/arrays.hpp"
+
+#include <climits>
 
 constexpr std::size_t UINT32_SIZE = CHAR_BIT * sizeof(uint32);
 
@@ -17,15 +18,10 @@ static inline constexpr uint32 mask(uint32 pos) {
     return 1U << (pos % UINT32_SIZE);
 }
 
-BitVector::BitVector(uint32 numElements)
-    : BitVector(numElements, false) {
-
-}
+BitVector::BitVector(uint32 numElements) : BitVector(numElements, false) {}
 
 BitVector::BitVector(uint32 numElements, bool init)
-    : numElements_(numElements), array_(init ? new uint32[size(numElements)]{} : new uint32[size(numElements)]) {
-
-}
+    : numElements_(numElements), array_(init ? new uint32[size(numElements)] {} : new uint32[size(numElements)]) {}
 
 BitVector::~BitVector() {
     delete[] array_;

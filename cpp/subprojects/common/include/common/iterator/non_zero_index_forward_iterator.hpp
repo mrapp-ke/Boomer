@@ -4,24 +4,23 @@
 #pragma once
 
 #include "common/data/types.hpp"
+
 #include <iterator>
 #include <type_traits>
-
 
 /**
  * An iterator adaptor that adapts an iterator, which provides access to a fixed number of values, such that it acts as
  * a forward iterator that returns the indices of all non-zero values.
  *
- * @tparam T The type of the iterator to be adapted
+ * @tparam Iterator The type of the iterator to be adapted
  */
-template<typename T>
+template<typename Iterator>
 class NonZeroIndexForwardIterator {
-
     private:
 
-        T iterator_;
+        Iterator iterator_;
 
-        T end_;
+        Iterator end_;
 
         uint32 index_;
 
@@ -31,8 +30,7 @@ class NonZeroIndexForwardIterator {
          * @param begin An iterator to the beginning of the values
          * @param end   An iterator to the end of the values
          */
-        NonZeroIndexForwardIterator(T begin, T end)
-            : iterator_(begin), end_(end), index_(0) {
+        NonZeroIndexForwardIterator(Iterator begin, Iterator end) : iterator_(begin), end_(end), index_(0) {
             for (; iterator_ != end_; iterator_++) {
                 auto value = *iterator_;
 
@@ -83,7 +81,7 @@ class NonZeroIndexForwardIterator {
          *
          * @return A reference to an iterator that refers to the next element
          */
-        NonZeroIndexForwardIterator<T>& operator++() {
+        NonZeroIndexForwardIterator<Iterator>& operator++() {
             iterator_++;
             ++index_;
 
@@ -105,7 +103,7 @@ class NonZeroIndexForwardIterator {
          *
          * @return A reference to an iterator that refers to the next element
          */
-        NonZeroIndexForwardIterator<T>& operator++(int n) {
+        NonZeroIndexForwardIterator<Iterator>& operator++(int n) {
             iterator_++;
             index_++;
 
@@ -128,7 +126,7 @@ class NonZeroIndexForwardIterator {
          * @param rhs   A reference to another iterator
          * @return      True, if the iterators do not refer to the same element, false otherwise
          */
-        bool operator!=(const NonZeroIndexForwardIterator<T>& rhs) const {
+        bool operator!=(const NonZeroIndexForwardIterator<Iterator>& rhs) const {
             return iterator_ != rhs.iterator_;
         }
 
@@ -138,20 +136,20 @@ class NonZeroIndexForwardIterator {
          * @param rhs   A reference to another iterator
          * @return      True, if the iterators refer to the same element, false otherwise
          */
-        bool operator==(const NonZeroIndexForwardIterator<T>& rhs) const {
+        bool operator==(const NonZeroIndexForwardIterator<Iterator>& rhs) const {
             return iterator_ == rhs.iterator_;
         }
-
 };
 
 /**
  * Creates and returns a new `NonZeroIndexForwardIterator`.
  *
- * @param begin An iterator to the beginning of the values
- * @param end   An iterator to the end of the values
- * @return      A `NonZeroIndexForwardIterator` that has been created
+ * @tparam Iterator The type of the iterator to be adapted
+ * @param begin     An iterator to the beginning of the values
+ * @param end       An iterator to the end of the values
+ * @return          A `NonZeroIndexForwardIterator` that has been created
  */
-template<typename T>
-static inline NonZeroIndexForwardIterator<T> make_non_zero_index_forward_iterator(T begin, T end) {
-    return NonZeroIndexForwardIterator<T>(begin, end);
+template<typename Iterator>
+static inline NonZeroIndexForwardIterator<Iterator> make_non_zero_index_forward_iterator(Iterator begin, Iterator end) {
+    return NonZeroIndexForwardIterator<Iterator>(begin, end);
 }

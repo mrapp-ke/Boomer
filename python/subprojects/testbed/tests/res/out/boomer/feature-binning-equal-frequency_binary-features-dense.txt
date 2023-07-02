@@ -1,0 +1,32 @@
+INFO Starting experiment...
+INFO Using separate training and test sets...
+DEBUG Parsing meta data from file "python/subprojects/testbed/tests/res/data/enron.xml"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/enron.arff"...
+INFO Fitting model to 1140 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A sparse matrix is used to store the labels of the training examples
+INFO Successfully fit model in 629 milliseconds
+INFO Predicting for 562 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A sparse matrix is used to store the predicted labels
+INFO Successfully predicted in 6 milliseconds
+INFO Evaluation result for test data:
+
+Example-wise F1         41.2
+Example-wise Jaccard    29.62
+Example-wise Precision  61.51
+Example-wise Recall     33.49
+Hamming Accuracy        94.62
+Hamming Loss             5.38
+Macro F1                 8.75
+Macro Jaccard            6.73
+Macro Precision         92.05
+Macro Recall             8.11
+Micro F1                45.02
+Micro Jaccard           29.05
+Micro Precision         64.19
+Micro Recall            34.67
+Subset 0/1 Loss         96.98
+Subset Accuracy          3.02
+
+INFO Successfully finished after 888 milliseconds

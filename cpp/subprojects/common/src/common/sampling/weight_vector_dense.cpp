@@ -1,17 +1,14 @@
 #include "common/sampling/weight_vector_dense.hpp"
 
+#include "common/thresholds/thresholds.hpp"
+#include "common/thresholds/thresholds_subset.hpp"
 
 template<typename T>
-DenseWeightVector<T>::DenseWeightVector(uint32 numElements)
-    : DenseWeightVector<T>(numElements, false) {
-
-}
+DenseWeightVector<T>::DenseWeightVector(uint32 numElements) : DenseWeightVector<T>(numElements, false) {}
 
 template<typename T>
 DenseWeightVector<T>::DenseWeightVector(uint32 numElements, bool init)
-    : vector_(DenseVector<T>(numElements, init)), numNonZeroWeights_(0) {
-
-}
+    : vector_(DenseVector<T>(numElements, init)), numNonZeroWeights_(0) {}
 
 template<typename T>
 typename DenseWeightVector<T>::iterator DenseWeightVector<T>::begin() {
@@ -39,6 +36,16 @@ uint32 DenseWeightVector<T>::getNumElements() const {
 }
 
 template<typename T>
+const T& DenseWeightVector<T>::operator[](uint32 pos) const {
+    return vector_[pos];
+}
+
+template<typename T>
+T& DenseWeightVector<T>::operator[](uint32 pos) {
+    return vector_[pos];
+}
+
+template<typename T>
 uint32 DenseWeightVector<T>::getNumNonZeroWeights() const {
     return numNonZeroWeights_;
 }
@@ -54,9 +61,8 @@ bool DenseWeightVector<T>::hasZeroWeights() const {
 }
 
 template<typename T>
-float64 DenseWeightVector<T>::getWeight(uint32 pos) const {
-    return (float64) vector_[pos];
+std::unique_ptr<IThresholdsSubset> DenseWeightVector<T>::createThresholdsSubset(IThresholds& thresholds) const {
+    return thresholds.createSubset(*this);
 }
 
 template class DenseWeightVector<uint32>;
-template class DenseWeightVector<float64>;

@@ -3,22 +3,21 @@
  */
 #pragma once
 
-#include "common/sampling/partition.hpp"
-#include "common/sampling/random.hpp"
 #include "common/input/label_matrix_c_contiguous.hpp"
 #include "common/input/label_matrix_csr.hpp"
-#include <memory>
+#include "common/sampling/partition.hpp"
+#include "common/sampling/random.hpp"
 
+#include <memory>
 
 /**
  * Defines an interface for all classes that implement a method for partitioning the available training examples into a
  * training set and a holdout set.
  */
 class IPartitionSampling {
-
     public:
 
-        virtual ~IPartitionSampling() { };
+        virtual ~IPartitionSampling() {};
 
         /**
          * Creates and returns a partition of the available training examples.
@@ -28,17 +27,15 @@ class IPartitionSampling {
          *              training examples that belong to the training set and holdout set, respectively
          */
         virtual IPartition& partition(RNG& rng) = 0;
-
 };
 
 /**
  * Defines an interface for all factories that allow to create objects of type `IPartitionSampling`.
  */
 class IPartitionSamplingFactory {
-
     public:
 
-        virtual ~IPartitionSamplingFactory() { };
+        virtual ~IPartitionSamplingFactory() {};
 
         /**
          * Creates and returns a new object of type `IPartitionSampling`.
@@ -57,7 +54,6 @@ class IPartitionSamplingFactory {
          * @return              An unique pointer to an object of type `IPartitionSampling` that has been created
          */
         virtual std::unique_ptr<IPartitionSampling> create(const CsrLabelMatrix& labelMatrix) const = 0;
-
 };
 
 /**
@@ -65,10 +61,9 @@ class IPartitionSamplingFactory {
  * examples into a training set and a holdout set.
  */
 class IPartitionSamplingConfig {
-
     public:
 
-        virtual ~IPartitionSamplingConfig() { };
+        virtual ~IPartitionSamplingConfig() {};
 
         /**
          * Creates and returns a new object of type `IPartitionSamplingFactory` according to the specified
@@ -77,5 +72,4 @@ class IPartitionSamplingConfig {
          * @return An unique pointer to an object of type `IPartitionSamplingFactory` that has been created
          */
         virtual std::unique_ptr<IPartitionSamplingFactory> createPartitionSamplingFactory() const = 0;
-
 };

@@ -6,12 +6,10 @@
 #include "common/indices/index_vector.hpp"
 #include "common/iterator/index_iterator.hpp"
 
-
 /**
  * Provides random access to all indices within a continuous range [0, numIndices).
  */
 class CompleteIndexVector final : public IIndexVector {
-
     private:
 
         uint32 numElements_;
@@ -56,9 +54,6 @@ class CompleteIndexVector final : public IIndexVector {
 
         uint32 getIndex(uint32 pos) const override;
 
-        std::unique_ptr<IStatisticsSubset> createSubset(const IImmutableStatistics& statistics) const override;
-
         std::unique_ptr<IRuleRefinement> createRuleRefinement(IThresholdsSubset& thresholdsSubset,
                                                               uint32 featureIndex) const override;
-
 };

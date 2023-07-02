@@ -4,8 +4,6 @@
 #pragma once
 
 #include "common/data/types.hpp"
-#include <cmath>
-
 
 /**
  * Returns the result of the floating point division `numerator / denominator` or 0, if a division by zero occurs.
@@ -51,4 +49,33 @@ static inline constexpr T arithmeticMean(T small, T large) {
 template<typename T>
 static inline constexpr T iterativeArithmeticMean(uint32 n, T x, T mean) {
     return mean + ((x - mean) / (T) n);
+}
+
+/**
+ * Calculates and returns the fraction of a given integer value `fraction * n`, such that a certain upper and lower
+ * bound is respected.
+ *
+ * @param n         The value
+ * @param fraction  The fraction. Must be in (0, 1)
+ * @param minimum   The minimum
+ * @param maximum   The maximum or a value < `minimum`, if no upper bound should be enforced
+ */
+static inline uint32 calculateBoundedFraction(uint32 n, float32 fraction, uint32 minimum, uint32 maximum) {
+    // Calculate the fraction...
+    uint32 result = (uint32) std::ceil(fraction * n);
+
+    // Prevent the minimum to exceed the original value...
+    uint32 min = minimum > n ? n : minimum;
+
+    // Ensure that the result is not smaller than the given minimum...
+    if (result < min) {
+        return min;
+    }
+
+    // If `max >= min`, ensure that the result does not exceed the given maximum...
+    if (maximum >= minimum && result > maximum) {
+        return maximum;
+    }
+
+    return result;
 }

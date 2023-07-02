@@ -3,19 +3,17 @@
  */
 #pragma once
 
-#include "common/stopping/stopping_criterion.hpp"
 #include "common/macros.hpp"
-
+#include "common/stopping/stopping_criterion.hpp"
 
 /**
  * Defines an interface for all classes that allow to configure a stopping criterion that ensures that the number of
  * induced rules does not exceed a certain maximum.
  */
 class MLRLCOMMON_API ISizeStoppingCriterionConfig {
-
     public:
 
-        virtual ~ISizeStoppingCriterionConfig() { };
+        virtual ~ISizeStoppingCriterionConfig() {};
 
         /**
          * Returns the maximum number of rules that are induced.
@@ -32,15 +30,14 @@ class MLRLCOMMON_API ISizeStoppingCriterionConfig {
          *                  configuration of the stopping criterion
          */
         virtual ISizeStoppingCriterionConfig& setMaxRules(uint32 maxRules) = 0;
-
 };
 
 /**
  * Allows to configure a stopping criterion that ensures that the number of induced rules does not exceed a certain
  * maximum.
  */
-class SizeStoppingCriterionConfig final : public IStoppingCriterionConfig, public ISizeStoppingCriterionConfig {
-
+class SizeStoppingCriterionConfig final : public IStoppingCriterionConfig,
+                                          public ISizeStoppingCriterionConfig {
     private:
 
         uint32 maxRules_;
@@ -54,5 +51,4 @@ class SizeStoppingCriterionConfig final : public IStoppingCriterionConfig, publi
         ISizeStoppingCriterionConfig& setMaxRules(uint32 maxRules) override;
 
         std::unique_ptr<IStoppingCriterionFactory> createStoppingCriterionFactory() const override;
-
 };

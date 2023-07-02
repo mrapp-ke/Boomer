@@ -1,7 +1,7 @@
 """
 @author: Michael Rapp (michael.rapp.ml@gmail.com)
 """
-from mlrl.common.cython._validation import assert_greater_or_equal, assert_less
+from mlrl.common.cython.validation import assert_greater_or_equal, assert_less
 
 
 cdef class FeatureSamplingWithoutReplacementConfig:
@@ -30,4 +30,25 @@ cdef class FeatureSamplingWithoutReplacementConfig:
         assert_greater_or_equal('sample_size', sample_size, 0)
         assert_less('sample_size', sample_size, 1)
         self.config_ptr.setSampleSize(sample_size)
+        return self
+
+    def get_num_retained(self) -> int:
+        """
+        Returns the number of trailing features that are always included in a sample.
+        
+        :return: The number of trailing features that are always included in a sample
+        """
+        return self.config_ptr.getNumRetained()
+    
+    def set_num_retained(self, num_retained: int) -> FeatureSamplingWithoutReplacementConfig:
+        """
+        Sets the number fo trailing features that should always be included in a sample.
+
+        :param num_retained:    The number of trailing features that should always be included in a sample. Must be at
+                                least 0
+        :return:                A `FeatureSamplingWithoutReplacementConfig` that allows further configuration of the
+                                method for sampling features
+        """
+        assert_greater_or_equal('num_retained', num_retained, 0)
+        self.config_ptr.setNumRetained(num_retained)
         return self

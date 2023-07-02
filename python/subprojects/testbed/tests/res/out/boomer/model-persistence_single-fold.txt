@@ -1,0 +1,31 @@
+INFO Starting experiment...
+INFO Performing fold 1 of 10-fold cross validation...
+DEBUG Parsing meta data from file "python/subprojects/testbed/tests/res/data/emotions.xml"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions.arff"...
+INFO Fold 1 / 10:
+DEBUG Loading model from file "python/subprojects/testbed/tests/res/tmp/models/boomer_fold-1.model"...
+INFO Successfully loaded model from file "python/subprojects/testbed/tests/res/tmp/models/boomer_fold-1.model"
+INFO Predicting for 60 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 2 milliseconds
+INFO Evaluation result for test data (Fold 1):
+
+Example-wise F1         64.89
+Example-wise Jaccard    56.94
+Example-wise Precision  79.44
+Example-wise Recall     66.11
+Hamming Accuracy        82.78
+Hamming Loss            17.22
+Macro F1                68.32
+Macro Jaccard           53.84
+Macro Precision         75.96
+Macro Recall            64.89
+Micro F1                71.56
+Micro Jaccard           55.71
+Micro Precision         77.23
+Micro Recall            66.67
+Subset 0/1 Loss         66.67
+Subset Accuracy         33.33
+
+INFO Successfully finished after 110 milliseconds

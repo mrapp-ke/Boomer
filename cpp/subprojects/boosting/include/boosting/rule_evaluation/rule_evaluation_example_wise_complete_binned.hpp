@@ -3,26 +3,25 @@
  */
 #pragma once
 
-#include "boosting/rule_evaluation/rule_evaluation_example_wise.hpp"
 #include "boosting/binning/label_binning.hpp"
 #include "boosting/math/blas.hpp"
 #include "boosting/math/lapack.hpp"
-
+#include "boosting/rule_evaluation/rule_evaluation_example_wise.hpp"
 
 namespace boosting {
 
     /**
-     * Allows to create instances of the class `ExampleWiseCompleteBinnedRuleEvaluationFactory`.
+     * Allows to create instances of the class `IExampleWiseRuleEvaluationFactory` that allow to calculate the
+     * predictions of complete rules, which predict for all available labels, using gradient-based label binning.
      */
     class ExampleWiseCompleteBinnedRuleEvaluationFactory final : public IExampleWiseRuleEvaluationFactory {
-
         private:
 
-            float64 l1RegularizationWeight_;
+            const float64 l1RegularizationWeight_;
 
-            float64 l2RegularizationWeight_;
+            const float64 l2RegularizationWeight_;
 
-            std::unique_ptr<ILabelBinningFactory> labelBinningFactoryPtr_;
+            const std::unique_ptr<ILabelBinningFactory> labelBinningFactoryPtr_;
 
             const Blas& blas_;
 
@@ -48,13 +47,12 @@ namespace boosting {
                                                            const Blas& blas, const Lapack& lapack);
 
             std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> create(
-                const DenseExampleWiseStatisticVector& statisticVector,
-                const CompleteIndexVector& indexVector) const override;
+              const DenseExampleWiseStatisticVector& statisticVector,
+              const CompleteIndexVector& indexVector) const override;
 
             std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> create(
-                const DenseExampleWiseStatisticVector& statisticVector,
-                const PartialIndexVector& indexVector) const override;
-
+              const DenseExampleWiseStatisticVector& statisticVector,
+              const PartialIndexVector& indexVector) const override;
     };
 
 }

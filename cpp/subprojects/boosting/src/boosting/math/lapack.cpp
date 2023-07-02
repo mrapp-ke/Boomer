@@ -1,14 +1,11 @@
 #include "boosting/math/lapack.hpp"
-#include <string>
-#include <stdexcept>
 
+#include <stdexcept>
+#include <string>
 
 namespace boosting {
 
-    Lapack::Lapack(DsysvFunction dsysvFunction)
-        : dsysvFunction_(dsysvFunction) {
-
-    }
+    Lapack::Lapack(DsysvFunction dsysvFunction) : dsysvFunction_(dsysvFunction) {}
 
     int Lapack::queryDsysvLworkParameter(float64* tmpArray1, float64* output, int n) const {
         // "U" if the upper-right triangle of A should be used, "L" if the lower-left triangle should be used
@@ -27,8 +24,8 @@ namespace boosting {
 
         if (info != 0) {
             throw std::runtime_error(
-                std::string("DSYSV terminated with non-zero info code when querying the optimal lwork parameter: "
-                + std::to_string(info)));
+              std::string("DSYSV terminated with non-zero info code when querying the optimal lwork parameter: "
+                          + std::to_string(info)));
         }
 
         return (int) worksize;

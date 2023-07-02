@@ -5,19 +5,18 @@
 
 #include "boosting/rule_evaluation/rule_evaluation_label_wise.hpp"
 
-
 namespace boosting {
 
     /**
-     * Allows to create instances of the class `LabelWiseCompleteRuleEvaluationFactory`.
+     * Allows to create instances of the class `ILabelWiseRuleEvaluationFactory` that allow to calculate the predictions
+     * of complete rules, which predict for all available labels.
      */
     class LabelWiseCompleteRuleEvaluationFactory final : public ILabelWiseRuleEvaluationFactory {
-
         private:
 
-            float64 l1RegularizationWeight_;
+            const float64 l1RegularizationWeight_;
 
-            float64 l2RegularizationWeight_;
+            const float64 l2RegularizationWeight_;
 
         public:
 
@@ -30,13 +29,12 @@ namespace boosting {
             LabelWiseCompleteRuleEvaluationFactory(float64 l1RegularizationWeight, float64 l2RegularizationWeight);
 
             std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> create(
-                const DenseLabelWiseStatisticVector& statisticVector,
-                const CompleteIndexVector& indexVector) const override;
+              const DenseLabelWiseStatisticVector& statisticVector,
+              const CompleteIndexVector& indexVector) const override;
 
             std::unique_ptr<IRuleEvaluation<DenseLabelWiseStatisticVector>> create(
-                const DenseLabelWiseStatisticVector& statisticVector,
-                const PartialIndexVector& indexVector) const override;
-
+              const DenseLabelWiseStatisticVector& statisticVector,
+              const PartialIndexVector& indexVector) const override;
     };
 
 }

@@ -4,39 +4,20 @@
 #pragma once
 
 #include "common/model/model_builder.hpp"
-#include "common/model/rule_list.hpp"
-
 
 namespace boosting {
 
     /**
-     * Allows to build models that store several rules in the order they have been added.
+     * Allows to create instances of the type `IModelBuilder` that build models that store several rules in the order
+     * they have been added.
      */
-    class RuleListBuilder final : public IModelBuilder {
-
-        private:
-
-            std::unique_ptr<RuleList> modelPtr_;
-
+    class RuleListBuilderFactory final : public IModelBuilderFactory {
         public:
 
-            RuleListBuilder();
-
             /**
-             * @see `IModelBuilder::setDefaultRule`
+             * @see `IModelBuilderFactory::create`
              */
-            void setDefaultRule(const AbstractPrediction& prediction) override;
-
-            /**
-             * @see `IModelBuilder::addRule`
-             */
-            void addRule(const ConditionList& conditions, const AbstractPrediction& prediction) override;
-
-            /**
-             * @see `IModelBuilder::build`
-             */
-            std::unique_ptr<IRuleModel> build(uint32 numUsedRules) override;
-
+            std::unique_ptr<IModelBuilder> create() const override;
     };
 
 }

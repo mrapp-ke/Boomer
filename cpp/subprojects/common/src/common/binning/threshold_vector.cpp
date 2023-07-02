@@ -1,16 +1,11 @@
 #include "common/binning/threshold_vector.hpp"
 
-
 ThresholdVector::ThresholdVector(MissingFeatureVector& missingFeatureVector, uint32 numElements)
-    : ThresholdVector(missingFeatureVector, numElements, false) {
-
-}
+    : ThresholdVector(missingFeatureVector, numElements, false) {}
 
 ThresholdVector::ThresholdVector(MissingFeatureVector& missingFeatureVector, uint32 numElements, bool init)
     : MissingFeatureVector(missingFeatureVector), vector_(DenseVector<float32>(numElements, init)),
-      sparseBinIndex_(numElements) {
-
-}
+      sparseBinIndex_(numElements) {}
 
 ThresholdVector::iterator ThresholdVector::begin() {
     return vector_.begin();

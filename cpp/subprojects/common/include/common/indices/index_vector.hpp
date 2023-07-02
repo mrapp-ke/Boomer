@@ -4,23 +4,20 @@
 #pragma once
 
 #include "common/data/types.hpp"
+
 #include <memory>
 
 // Forward declarations
 class IRuleRefinement;
 class IThresholdsSubset;
-class IImmutableStatistics;
-class IStatisticsSubset;
-
 
 /**
  * Defines an interface for all classes that provide random access to indices.
  */
 class IIndexVector {
-
     public:
 
-        virtual ~IIndexVector() { };
+        virtual ~IIndexVector() {};
 
         /**
          * Returns the number of indices.
@@ -46,16 +43,6 @@ class IIndexVector {
         virtual uint32 getIndex(uint32 pos) const = 0;
 
         /**
-         * Creates and returns a new subset of the given statistics that only contains the labels whose indices are
-         * stored in this vector.
-         *
-         * @param statistics    A reference to an object of type `IImmutableStatistics` that should be used to create
-         *                      the subset
-         * @return              An unique pointer to an object of type `IStatisticsSubset` that has been created
-         */
-        virtual std::unique_ptr<IStatisticsSubset> createSubset(const IImmutableStatistics& statistics) const = 0;
-
-        /**
          * Creates and return a new instance of type `IRuleRefinement` that allows to search for the best refinement of
          * an existing rule that predicts only for the labels whose indices are stored in this vector.
          *
@@ -66,5 +53,4 @@ class IIndexVector {
          */
         virtual std::unique_ptr<IRuleRefinement> createRuleRefinement(IThresholdsSubset& thresholdsSubset,
                                                                       uint32 featureIndex) const = 0;
-
 };

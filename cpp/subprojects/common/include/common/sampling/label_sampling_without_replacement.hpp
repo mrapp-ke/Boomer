@@ -3,18 +3,16 @@
  */
 #pragma once
 
-#include "common/sampling/label_sampling.hpp"
 #include "common/macros.hpp"
-
+#include "common/sampling/label_sampling.hpp"
 
 /**
  * Defines an interface for all classes that allow to configure a method for sampling labels without replacement.
  */
 class MLRLCOMMON_API ILabelSamplingWithoutReplacementConfig {
-
     public:
 
-        virtual ~ILabelSamplingWithoutReplacementConfig() { };
+        virtual ~ILabelSamplingWithoutReplacementConfig() {};
 
         /**
          * Returns the number of labels that are included in a sample.
@@ -31,7 +29,6 @@ class MLRLCOMMON_API ILabelSamplingWithoutReplacementConfig {
          *                      further configuration of the method for sampling labels
          */
         virtual ILabelSamplingWithoutReplacementConfig& setNumSamples(uint32 numSamples) = 0;
-
 };
 
 /**
@@ -39,7 +36,6 @@ class MLRLCOMMON_API ILabelSamplingWithoutReplacementConfig {
  */
 class LabelSamplingWithoutReplacementConfig final : public ILabelSamplingConfig,
                                                     public ILabelSamplingWithoutReplacementConfig {
-
     private:
 
         uint32 numSamples_;
@@ -53,6 +49,5 @@ class LabelSamplingWithoutReplacementConfig final : public ILabelSamplingConfig,
         ILabelSamplingWithoutReplacementConfig& setNumSamples(uint32 numSamples) override;
 
         std::unique_ptr<ILabelSamplingFactory> createLabelSamplingFactory(
-            const ILabelMatrix& labelMatrix) const override;
-
+          const ILabelMatrix& labelMatrix) const override;
 };

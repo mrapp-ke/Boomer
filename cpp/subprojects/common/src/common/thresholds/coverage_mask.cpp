@@ -1,14 +1,11 @@
 #include "common/thresholds/coverage_mask.hpp"
-#include "common/thresholds/thresholds_subset.hpp"
-#include "common/rule_refinement/refinement.hpp"
-#include "common/rule_refinement/prediction.hpp"
-#include "common/data/arrays.hpp"
 
+#include "common/data/arrays.hpp"
+#include "common/rule_refinement/prediction.hpp"
+#include "common/thresholds/thresholds_subset.hpp"
 
 CoverageMask::CoverageMask(uint32 numElements)
-    : array_(new uint32[numElements]{0}), numElements_(numElements), indicatorValue_(0) {
-
-}
+    : array_(new uint32[numElements] {0}), numElements_(numElements), indicatorValue_(0) {}
 
 CoverageMask::CoverageMask(const CoverageMask& coverageMask)
     : array_(new uint32[coverageMask.numElements_]), numElements_(coverageMask.numElements_),
@@ -61,22 +58,22 @@ std::unique_ptr<ICoverageState> CoverageMask::copy() const {
     return std::make_unique<CoverageMask>(*this);
 }
 
-float64 CoverageMask::evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, const SinglePartition& partition,
+Quality CoverageMask::evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, const SinglePartition& partition,
                                           const AbstractPrediction& head) const {
     return thresholdsSubset.evaluateOutOfSample(partition, *this, head);
 }
 
-float64 CoverageMask::evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, BiPartition& partition,
+Quality CoverageMask::evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, BiPartition& partition,
                                           const AbstractPrediction& head) const {
     return thresholdsSubset.evaluateOutOfSample(partition, *this, head);
 }
 
 void CoverageMask::recalculatePrediction(const IThresholdsSubset& thresholdsSubset, const SinglePartition& partition,
-                                         Refinement& refinement) const {
-    thresholdsSubset.recalculatePrediction(partition, *this, refinement);
+                                         AbstractPrediction& head) const {
+    thresholdsSubset.recalculatePrediction(partition, *this, head);
 }
 
 void CoverageMask::recalculatePrediction(const IThresholdsSubset& thresholdsSubset, BiPartition& partition,
-                                         Refinement& refinement) const {
-    thresholdsSubset.recalculatePrediction(partition, *this, refinement);
+                                         AbstractPrediction& head) const {
+    thresholdsSubset.recalculatePrediction(partition, *this, head);
 }

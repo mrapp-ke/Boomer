@@ -5,13 +5,11 @@
 
 #include "common/data/types.hpp"
 
-
 /**
  * Implements a fast random number generator using 32 bit XOR shifts (for details, see
  * http://www.jstatsoft.org/v08/i14/paper).
  */
 class RNG final {
-
     private:
 
         uint32 randomState_;
@@ -31,5 +29,4 @@ class RNG final {
          * @return      The random number that has been generated
          */
         uint32 random(uint32 min, uint32 max);
-
 };

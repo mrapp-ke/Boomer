@@ -1,6 +1,6 @@
-from mlrl.common.cython._types cimport uint8, uint32, float64
-
 from libcpp cimport bool
+
+from mlrl.common.cython._types cimport float64, uint8, uint32
 
 
 cdef extern from "common/stopping/stopping_criterion_size.hpp" nogil:
@@ -25,52 +25,81 @@ cdef extern from "common/stopping/stopping_criterion_time.hpp" nogil:
         ITimeStoppingCriterionConfig& setTimeLimit(uint32 timeLimit) except +
 
 
-cdef extern from "common/stopping/stopping_criterion_measure.hpp" nogil:
+cdef extern from "common/stopping/aggregation_function.hpp" nogil:
 
-    cpdef enum AggregationFunctionImpl"IMeasureStoppingCriterionConfig::AggregationFunction":
+    cpdef enum AggregationFunctionImpl"AggregationFunction":
 
-        MIN"IMeasureStoppingCriterionConfig::AggregationFunction::MIN" = 0
+        MIN"AggregationFunction::MIN" = 0
 
-        MAX"IMeasureStoppingCriterionConfig::AggregationFunction::MAX" = 1
+        MAX"AggregationFunction::MAX" = 1
 
-        ARITHMETIC_MEAN"IMeasureStoppingCriterionConfig::AggregationFunction::ARITHMETIC_MEAN" = 2
+        ARITHMETIC_MEAN"AggregationFunction::ARITHMETIC_MEAN" = 2
 
 
-    cdef cppclass IMeasureStoppingCriterionConfig:
+cdef extern from "common/stopping/global_pruning_pre.hpp" nogil:
+
+    cdef cppclass IPrePruningConfig:
 
         # Functions:
 
         AggregationFunctionImpl getAggregationFunction() const
 
-        IMeasureStoppingCriterionConfig& setAggregationFunction(AggregationFunctionImpl aggregationFunction) except +
+        IPrePruningConfig& setAggregationFunction(AggregationFunctionImpl aggregationFunction) except +
+
+        bool isHoldoutSetUsed() const
+
+        IPrePruningConfig& setUseHoldoutSet(bool useHoldoutSet) except +
+
+        bool isRemoveUnusedRules() const
+
+        IPrePruningConfig& setRemoveUnusedRules(bool removeUnusedRules) except +
 
         uint32 getMinRules() const
 
-        IMeasureStoppingCriterionConfig& setMinRules(uint32 minRules) except +
+        IPrePruningConfig& setMinRules(uint32 minRules) except +
 
         uint32 getUpdateInterval() const
 
-        IMeasureStoppingCriterionConfig& setUpdateInterval(uint32 updateInterval) except +
+        IPrePruningConfig& setUpdateInterval(uint32 updateInterval) except +
 
         uint32 getStopInterval() const;
 
-        IMeasureStoppingCriterionConfig& setStopInterval(uint32 stopInterval) except +
+        IPrePruningConfig& setStopInterval(uint32 stopInterval) except +
 
         uint32 getNumPast() const
 
-        IMeasureStoppingCriterionConfig& setNumPast(uint32 numPast) except +
+        IPrePruningConfig& setNumPast(uint32 numPast) except +
 
         uint32 getNumCurrent() const
 
-        IMeasureStoppingCriterionConfig& setNumCurrent(uint32 numCurrent) except +
+        IPrePruningConfig& setNumCurrent(uint32 numCurrent) except +
 
         float64 getMinImprovement() const
 
-        IMeasureStoppingCriterionConfig& setMinImprovement(float64 minImprovement) except +
+        IPrePruningConfig& setMinImprovement(float64 minImprovement) except +
 
-        bool getForceStop() const
 
-        IMeasureStoppingCriterionConfig& setForceStop(bool forceStop) except +
+cdef extern from "common/stopping/global_pruning_post.hpp" nogil:
+
+    cdef cppclass IPostPruningConfig:
+
+        # Functions:
+
+        bool isHoldoutSetUsed() const
+
+        IPostPruningConfig& setUseHoldoutSet(bool useHoldoutSet) except +
+
+        bool isRemoveUnusedRules() const
+
+        IPrePruningConfig& setRemoveUnusedRules(bool removeUnusedRules) except +
+
+        uint32 getMinRules() const
+
+        IPostPruningConfig& setMinRules(uint32 minRules) except +
+
+        uint32 getInterval() const
+
+        IPostPruningConfig& setInterval(uint32 interval) except +
 
 
 cdef class SizeStoppingCriterionConfig:
@@ -87,9 +116,15 @@ cdef class TimeStoppingCriterionConfig:
     cdef ITimeStoppingCriterionConfig* config_ptr
 
 
-cdef class MeasureStoppingCriterionConfig:
-
+cdef class PrePruningConfig:
 
     # Attributes:
 
-    cdef IMeasureStoppingCriterionConfig* config_ptr
+    cdef IPrePruningConfig* config_ptr
+
+
+cdef class PostPruningConfig:
+
+    # Attributes:
+
+    cdef IPostPruningConfig* config_ptr

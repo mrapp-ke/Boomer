@@ -3,9 +3,8 @@
  */
 #pragma once
 
-#include "common/sampling/partition_sampling.hpp"
 #include "common/macros.hpp"
-
+#include "common/sampling/partition_sampling.hpp"
 
 /**
  * Defines an interface for all classes that allow to configure a method for partitioning the available training
@@ -13,10 +12,9 @@
  * sets.
  */
 class MLRLCOMMON_API IRandomBiPartitionSamplingConfig {
-
     public:
 
-        virtual ~IRandomBiPartitionSamplingConfig() { };
+        virtual ~IRandomBiPartitionSamplingConfig() {};
 
         /**
          * Returns the fraction of examples that are included in the holdout set.
@@ -35,15 +33,14 @@ class MLRLCOMMON_API IRandomBiPartitionSamplingConfig {
          *                          into a training set and a holdout set
          */
         virtual IRandomBiPartitionSamplingConfig& setHoldoutSetSize(float32 holdoutSetSize) = 0;
-
 };
 
 /**
  * Allows to configure a method for partitioning the available training examples into a training set and a holdout set
  * that randomly splits the training examples into two mutually exclusive sets.
  */
-class RandomBiPartitionSamplingConfig final : public IPartitionSamplingConfig, public IRandomBiPartitionSamplingConfig {
-
+class RandomBiPartitionSamplingConfig final : public IPartitionSamplingConfig,
+                                              public IRandomBiPartitionSamplingConfig {
     private:
 
         float32 holdoutSetSize_;
@@ -57,5 +54,4 @@ class RandomBiPartitionSamplingConfig final : public IPartitionSamplingConfig, p
         IRandomBiPartitionSamplingConfig& setHoldoutSetSize(float32 holdoutSetSize) override;
 
         std::unique_ptr<IPartitionSamplingFactory> createPartitionSamplingFactory() const override;
-
 };

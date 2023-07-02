@@ -4,19 +4,17 @@
  */
 #pragma once
 
-#include "common/sampling/instance_sampling.hpp"
 #include "common/macros.hpp"
-
+#include "common/sampling/instance_sampling.hpp"
 
 /**
  * Defines an interface for all classes that allow to configure a method for selecting a subset of the available
  * training examples using stratification, where distinct label vectors are treated as individual classes.
  */
 class MLRLCOMMON_API IExampleWiseStratifiedInstanceSamplingConfig {
-
     public:
 
-        virtual ~IExampleWiseStratifiedInstanceSamplingConfig() { };
+        virtual ~IExampleWiseStratifiedInstanceSamplingConfig() {};
 
         /**
          * Returns the fraction of examples that are included in a sample.
@@ -34,7 +32,6 @@ class MLRLCOMMON_API IExampleWiseStratifiedInstanceSamplingConfig {
          *                      allows further configuration of the method for sampling instances
          */
         virtual IExampleWiseStratifiedInstanceSamplingConfig& setSampleSize(float32 sampleSize) = 0;
-
 };
 
 /**
@@ -43,7 +40,6 @@ class MLRLCOMMON_API IExampleWiseStratifiedInstanceSamplingConfig {
  */
 class ExampleWiseStratifiedInstanceSamplingConfig final : public IInstanceSamplingConfig,
                                                           public IExampleWiseStratifiedInstanceSamplingConfig {
-
     private:
 
         float32 sampleSize_;
@@ -57,5 +53,4 @@ class ExampleWiseStratifiedInstanceSamplingConfig final : public IInstanceSampli
         IExampleWiseStratifiedInstanceSamplingConfig& setSampleSize(float32 sampleSize) override;
 
         std::unique_ptr<IInstanceSamplingFactory> createInstanceSamplingFactory() const override;
-
 };

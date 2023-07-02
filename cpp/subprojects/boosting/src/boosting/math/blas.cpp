@@ -1,12 +1,9 @@
 #include "boosting/math/blas.hpp"
 
-
 namespace boosting {
 
     Blas::Blas(DdotFunction ddotFunction, DspmvFunction dspmvFunction)
-        : ddotFunction_(ddotFunction), dspmvFunction_(dspmvFunction) {
-
-    }
+        : ddotFunction_(ddotFunction), dspmvFunction_(dspmvFunction) {}
 
     float64 Blas::ddot(float64* x, float64* y, int n) const {
         // Storage spacing between the elements of the arrays x and y

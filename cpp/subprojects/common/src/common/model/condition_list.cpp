@@ -1,39 +1,46 @@
 #include "common/model/condition_list.hpp"
 
+ConditionList::ConditionList() : numConditionsPerComparator_({0, 0, 0, 0}) {}
+
+ConditionList::ConditionList(const ConditionList& conditionList)
+    : vector_(conditionList.vector_),
+      numConditionsPerComparator_(
+        {conditionList.numConditionsPerComparator_[0], conditionList.numConditionsPerComparator_[1],
+         conditionList.numConditionsPerComparator_[2], conditionList.numConditionsPerComparator_[3]}) {}
 
 ConditionList::const_iterator ConditionList::cbegin() const {
-    return list_.cbegin();
+    return vector_.cbegin();
 }
 
 ConditionList::const_iterator ConditionList::cend() const {
-    return list_.cend();
+    return vector_.cend();
 }
 
-ConditionList::size_type ConditionList::getNumConditions() const {
-    return list_.size();
+uint32 ConditionList::getNumConditions() const {
+    return (uint32) vector_.size();
 }
 
 void ConditionList::addCondition(const Condition& condition) {
     numConditionsPerComparator_[condition.comparator] += 1;
-    list_.emplace_back(condition);
+    vector_.emplace_back(condition);
 }
 
-void ConditionList::removeLast() {
-    Condition& condition = list_.back();
+void ConditionList::removeLastCondition() {
+    const Condition& condition = vector_.back();
     numConditionsPerComparator_[condition.comparator] -= 1;
-    list_.pop_back();
+    vector_.pop_back();
 };
 
 std::unique_ptr<ConjunctiveBody> ConditionList::createConjunctiveBody() const {
     std::unique_ptr<ConjunctiveBody> bodyPtr =
-        std::make_unique<ConjunctiveBody>(numConditionsPerComparator_[LEQ], numConditionsPerComparator_[GR],
-                                          numConditionsPerComparator_[EQ], numConditionsPerComparator_[NEQ]);
+      std::make_unique<ConjunctiveBody>(numConditionsPerComparator_[LEQ], numConditionsPerComparator_[GR],
+                                        numConditionsPerComparator_[EQ], numConditionsPerComparator_[NEQ]);
     uint32 leqIndex = 0;
     uint32 grIndex = 0;
     uint32 eqIndex = 0;
     uint32 neqIndex = 0;
 
-    for (auto it = list_.cbegin(); it != list_.cend(); it++) {
+    for (auto it = vector_.cbegin(); it != vector_.cend(); it++) {
         const Condition& condition = *it;
         uint32 featureIndex = condition.featureIndex;
         float32 threshold = condition.threshold;
@@ -63,7 +70,9 @@ std::unique_ptr<ConjunctiveBody> ConditionList::createConjunctiveBody() const {
                 neqIndex++;
                 break;
             }
-            default: { }
+            default: {
+                break;
+            }
         }
     }
 

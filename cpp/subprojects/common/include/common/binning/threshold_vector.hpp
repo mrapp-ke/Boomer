@@ -6,12 +6,10 @@
 #include "common/data/vector_dense.hpp"
 #include "common/input/missing_feature_vector.hpp"
 
-
 /**
  * An one-dimensional vector that stores thresholds that may be used by conditions.
  */
 class ThresholdVector final : public MissingFeatureVector {
-
     private:
 
         DenseVector<float32> vector_;
@@ -102,5 +100,4 @@ class ThresholdVector final : public MissingFeatureVector {
          * @param sparseBinIndex The index to be set
          */
         void setSparseBinIndex(uint32 sparseBinIndex);
-
 };

@@ -3,9 +3,8 @@
  */
 #pragma once
 
-#include "common/sampling/weight_vector_bit.hpp"
 #include "common/sampling/partition_bi.hpp"
-
+#include "common/sampling/weight_vector_bit.hpp"
 
 /**
  * Implements iterative stratified sampling for selecting a subset of the available training examples as proposed in the
@@ -21,10 +20,9 @@
  */
 template<typename LabelMatrix, typename IndexIterator>
 class LabelWiseStratification final {
-
     private:
 
-        uint32 numRows_;
+        const uint32 numRows_;
 
         uint32 numCols_;
 
@@ -41,6 +39,8 @@ class LabelWiseStratification final {
          * @param indicesEnd    An iterator to the end of the indices of the examples that should be considered
          */
         LabelWiseStratification(const LabelMatrix& labelMatrix, IndexIterator indicesBegin, IndexIterator indicesEnd);
+
+        ~LabelWiseStratification();
 
         /**
          * Randomly selects a stratified sample of the available examples and sets their weights to 1, while the
@@ -60,5 +60,4 @@ class LabelWiseStratification final {
          * @param rng       A reference to an object of type `RNG`, implementing the random number generator to be used
          */
         void sampleBiPartition(BiPartition& partition, RNG& rng) const;
-
 };

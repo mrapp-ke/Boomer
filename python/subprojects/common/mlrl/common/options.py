@@ -1,14 +1,12 @@
-#!/usr/bin/python
-
 """
 Author: Michael Rapp (michael.rapp.ml@gmail.com)
 
 Provides a data structure that allows to store and parse options that are provided as key-value pairs.
 """
 from enum import Enum
-from typing import Set
+from typing import Dict, Set, Tuple
 
-from mlrl.common.strings import format_string_set, format_enum_values
+from mlrl.common.format import format_dict_keys, format_enum_values, format_string_set
 
 
 class BooleanOption(Enum):
@@ -21,9 +19,8 @@ class BooleanOption(Enum):
             return True
         elif s == BooleanOption.FALSE.value:
             return False
-        raise ValueError(
-            'Invalid boolean value given. Must be one of ' + format_enum_values(BooleanOption) + ', but is "' + str(
-                s) + '".')
+        raise ValueError('Invalid boolean value given. Must be one of ' + format_enum_values(BooleanOption)
+                         + ', but is "' + str(s) + '".')
 
 
 class Options:
@@ -53,42 +50,42 @@ class Options:
 
         if string is not None and len(string) > 0:
             if not string.startswith('{'):
-                raise ValueError(Options.ERROR_MESSAGE_INVALID_SYNTAX + '. Must start with "{", but is "'
-                                 + string + '"')
+                raise ValueError(Options.ERROR_MESSAGE_INVALID_SYNTAX + '. Must start with "{", but is "' + string
+                                 + '"')
             if not string.endswith('}'):
                 raise ValueError(Options.ERROR_MESSAGE_INVALID_SYNTAX + '. Must end with "}", but is "' + string + '"')
 
             string = string[1:-1]
 
             if len(string) > 0:
-                for argument_index, argument in enumerate(string.split(',')):
-                    if len(argument) > 0:
-                        parts = argument.split('=')
+                for option_index, option in enumerate(string.split(',')):
+                    if len(option) > 0:
+                        parts = option.split('=')
 
                         if len(parts) != 2:
                             raise ValueError(Options.ERROR_MESSAGE_INVALID_SYNTAX + '. '
-                                             + Options.ERROR_MESSAGE_INVALID_OPTION + ', but got element "' + argument
-                                             + '" at index ' + str(argument_index))
+                                             + Options.ERROR_MESSAGE_INVALID_OPTION + ', but got element "' + option
+                                             + '" at index ' + str(option_index))
 
                         key = parts[0]
 
                         if len(key) == 0:
                             raise ValueError(Options.ERROR_MESSAGE_INVALID_SYNTAX + '. '
                                              + Options.ERROR_MESSAGE_INVALID_OPTION
-                                             + ', but key is missing from element "' + argument + '" at index '
-                                             + str(argument_index))
+                                             + ', but key is missing from element "' + option + '" at index '
+                                             + str(option_index))
 
                         if key not in allowed_keys:
                             raise ValueError('Key must be one of ' + format_string_set(allowed_keys) + ', but got key "'
-                                             + key + '" at index ' + str(argument_index))
+                                             + key + '" at index ' + str(option_index))
 
                         value = parts[1]
 
                         if len(value) == 0:
                             raise ValueError(Options.ERROR_MESSAGE_INVALID_SYNTAX + '. '
                                              + Options.ERROR_MESSAGE_INVALID_OPTION
-                                             + ', but value is missing from element "' + argument + '" at index '
-                                             + str(argument_index))
+                                             + ', but value is missing from element "' + option + '" at index '
+                                             + str(option_index))
 
                         options.dict[key] = value
 
@@ -161,3 +158,30 @@ class Options:
             return value
 
         return default_value
+
+
+def parse_param(parameter_name: str, value: str, allowed_values: Set[str]) -> str:
+    if value in allowed_values:
+        return value
+
+    raise ValueError('Invalid value given for parameter "' + parameter_name + '": Must be one of '
+                     + format_string_set(allowed_values) + ', but is "' + value + '"')
+
+
+def parse_param_and_options(parameter_name: str, value: str,
+                            allowed_values_and_options: Dict[str, Set[str]]) -> Tuple[str, Options]:
+    for allowed_value, allowed_options in allowed_values_and_options.items():
+        if value.startswith(allowed_value):
+            suffix = value[len(allowed_value):].strip()
+
+            if len(suffix) > 0:
+                try:
+                    return allowed_value, Options.create(suffix, allowed_options)
+                except ValueError as e:
+                    raise ValueError('Invalid options specified for parameter "' + parameter_name + '" with value "'
+                                     + allowed_value + '": ' + str(e))
+
+            return allowed_value, Options()
+
+    raise ValueError('Invalid value given for parameter "' + parameter_name + '": Must be one of '
+                     + format_dict_keys(allowed_values_and_options) + ', but is "' + value + '"')

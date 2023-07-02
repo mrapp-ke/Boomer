@@ -3,12 +3,11 @@
  */
 #pragma once
 
-#include "common/data/view_csc_binary.hpp"
 #include "common/data/view_c_contiguous.hpp"
+#include "common/data/view_csc_binary.hpp"
 #include "common/data/view_csr_binary.hpp"
 #include "common/indices/index_vector_complete.hpp"
 #include "common/indices/index_vector_partial.hpp"
-
 
 /**
  * Implements column-wise read-only access to the labels of individual training examples that are stored in a matrix in
@@ -19,7 +18,6 @@
  * expect the indices of the examples to be considered when copying the existing label matrix to be provided.
  */
 class CscLabelMatrix final : public BinaryCscConstView {
-
     public:
 
         /**
@@ -63,6 +61,5 @@ class CscLabelMatrix final : public BinaryCscConstView {
         CscLabelMatrix(const BinaryCsrConstView& labelMatrix, PartialIndexVector::const_iterator indicesBegin,
                        PartialIndexVector::const_iterator indicesEnd);
 
-        ~CscLabelMatrix();
-
+        ~CscLabelMatrix() override;
 };

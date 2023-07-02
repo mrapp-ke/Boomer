@@ -3,18 +3,16 @@
  */
 #pragma once
 
-#include "common/sampling/feature_sampling.hpp"
 #include "common/macros.hpp"
-
+#include "common/sampling/feature_sampling.hpp"
 
 /**
  * Defines an interface for all classes that allow to configure a method for sampling features without replacement.
  */
 class MLRLCOMMON_API IFeatureSamplingWithoutReplacementConfig {
-
     public:
 
-        virtual ~IFeatureSamplingWithoutReplacementConfig() { };
+        virtual ~IFeatureSamplingWithoutReplacementConfig() {};
 
         /**
          * Returns the fraction of features that are included in a sample.
@@ -34,6 +32,22 @@ class MLRLCOMMON_API IFeatureSamplingWithoutReplacementConfig {
          */
         virtual IFeatureSamplingWithoutReplacementConfig& setSampleSize(float32 sampleSize) = 0;
 
+        /**
+         * Returns the number of trailing features that are always included in a sample.
+         *
+         * @return The number of trailing features that are always included in a sample
+         */
+        virtual uint32 getNumRetained() const = 0;
+
+        /**
+         * Sets the number fo trailing features that should always be included in a sample.
+         *
+         * @param numRetained   The number of trailing features that should always be included in a sample. Must be at
+         *                      least 0
+         * @return              A reference to an object of type `IFeatureSamplingWithoutReplacementConfig` that allows
+         *                      further configuration of the method for sampling features
+         */
+        virtual IFeatureSamplingWithoutReplacementConfig& setNumRetained(uint32 numRetained) = 0;
 };
 
 /**
@@ -41,10 +55,11 @@ class MLRLCOMMON_API IFeatureSamplingWithoutReplacementConfig {
  */
 class FeatureSamplingWithoutReplacementConfig final : public IFeatureSamplingConfig,
                                                       public IFeatureSamplingWithoutReplacementConfig {
-
     private:
 
         float32 sampleSize_;
+
+        uint32 numRetained_;
 
     public:
 
@@ -54,7 +69,12 @@ class FeatureSamplingWithoutReplacementConfig final : public IFeatureSamplingCon
 
         IFeatureSamplingWithoutReplacementConfig& setSampleSize(float32 sampleSize) override;
 
-        std::unique_ptr<IFeatureSamplingFactory> createFeatureSamplingFactory(
-            const IFeatureMatrix& featureMatrix) const override;
+        uint32 getNumRetained() const override;
 
+        IFeatureSamplingWithoutReplacementConfig& setNumRetained(uint32 numRetained) override;
+
+        std::unique_ptr<IFeatureSamplingFactory> createFeatureSamplingFactory(
+          const IFeatureMatrix& featureMatrix) const override;
+
+        bool isSamplingUsed() const override;
 };

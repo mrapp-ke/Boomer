@@ -1,0 +1,55 @@
+INFO Starting experiment...
+INFO Using separate training and test sets...
+DEBUG Parsing meta data from file "python/subprojects/testbed/tests/res/data/emotions.xml"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions.arff"...
+INFO Fitting model to 397 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 318 milliseconds
+INFO Predicting for 196 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 0 milliseconds
+INFO Evaluation result for test data:
+
+Example-wise F1         55.58
+Example-wise Jaccard    47.58
+Example-wise Precision  76.36
+Example-wise Recall     54.85
+Hamming Accuracy        79.42
+Hamming Loss            20.58
+Macro F1                58
+Macro Jaccard           43.15
+Macro Precision         72.83
+Macro Recall            52.35
+Micro F1                63
+Micro Jaccard           45.98
+Micro Precision         73.84
+Micro Recall            54.93
+Subset 0/1 Loss         76.53
+Subset Accuracy         23.47
+
+INFO Model characteristics:
+
+┌───────────────────────────────┬─────────┬───────────────┬──────────────┬───────────────┬───────────────┐
+│ Statistics about conditions   │   Total │   <= operator │   > operator │   == operator │   != operator │
+├───────────────────────────────┼─────────┼───────────────┼──────────────┼───────────────┼───────────────┤
+│ Default rule                  │       0 │         0.00% │        0.00% │         0.00% │         0.00% │
+│ 127 local rules               │     602 │        54.65% │       45.35% │         0.00% │         0.00% │
+└───────────────────────────────┴─────────┴───────────────┴──────────────┴───────────────┴───────────────┘
+
+┌────────────────────────────────┬─────────┬────────────┬────────────┐
+│ Statistics about predictions   │   Total │   Positive │   Negative │
+├────────────────────────────────┼─────────┼────────────┼────────────┤
+│ Default rule                   │       6 │      0.00% │    100.00% │
+│ 127 local rules                │     127 │     44.88% │     55.12% │
+└────────────────────────────────┴─────────┴────────────┴────────────┘
+
+┌─────────────────────────────┬───────────┬───────────┬───────────┐
+│ Statistics per local rule   │   Minimum │   Average │   Maximum │
+├─────────────────────────────┼───────────┼───────────┼───────────┤
+│ Conditions                  │         1 │      4.74 │        13 │
+│ Predictions                 │         1 │      1    │         1 │
+└─────────────────────────────┴───────────┴───────────┴───────────┘
+
+INFO Successfully finished after 372 milliseconds

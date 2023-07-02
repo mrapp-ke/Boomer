@@ -1,14 +1,14 @@
 """
 @author Michael Rapp (michael.rapp.ml@gmail.com)
 """
-from libcpp.utility cimport move
 from libcpp.memory cimport make_unique
+from libcpp.utility cimport move
 
 from abc import abstractmethod
 
 import numpy as np
 
-SERIALIZATION_VERSION = 2
+SERIALIZATION_VERSION = 3
 
 
 cdef class EmptyBody:
@@ -143,7 +143,7 @@ cdef class RuleModel:
 
     def get_num_rules(self) -> int:
         """
-        Returns the total number of rules in the model.
+        Returns the total number of rules in the model, including the default rule, if available.
 
         :return The total number of rules in the model
         """
@@ -151,7 +151,7 @@ cdef class RuleModel:
 
     def get_num_used_rules(self) -> int:
         """
-        Returns the number of used rules in the model.
+        Returns the number of used rules in the model, including the default rule, if available.
 
         :return The number of used rules in the model
         """
@@ -159,7 +159,7 @@ cdef class RuleModel:
 
     def set_num_used_rules(self, num_used_rules: int):
         """
-        Sets the number of used rules in the model.
+        Sets the number of used rules in the model, including the default rule, if available.
 
         :param num_used_rules: The number of used rules to be set
         """
@@ -167,7 +167,17 @@ cdef class RuleModel:
 
     def visit(self, visitor: RuleModelVisitor):
         """
-        Visits the bodies and heads of the rules in the model.
+        Visits the bodies and heads of all rules that are contained in this model, including the default rule, if
+        available.
+
+        :param visitor: The `RuleModelVisitor` that should be used to access the bodies and heads
+        """
+        pass
+
+    def visit_used(self, visitor: RuleModelVisitor):
+        """
+        Visits the bodies and heads of all used rules that are contained in this model, including the default rule, if
+        available.
 
         :param visitor: The `RuleModelVisitor` that should be used to access the bodies and heads
         """
@@ -192,7 +202,8 @@ cdef class RuleList(RuleModel):
     cdef __visit_conjunctive_body(self, const ConjunctiveBodyImpl& body):
         cdef uint32 num_leq = body.getNumLeq()
         cdef const uint32[::1] leq_indices = <uint32[:num_leq]>body.leq_indices_cbegin() if num_leq > 0 else None
-        cdef const float32[::1] leq_thresholds = <float32[:num_leq]>body.leq_thresholds_cbegin() if num_leq > 0 else None
+        cdef const float32[::1] leq_thresholds = \
+            <float32[:num_leq]>body.leq_thresholds_cbegin() if num_leq > 0 else None
         cdef uint32 num_gr = body.getNumGr()
         cdef const uint32[::1] gr_indices = <uint32[:num_gr]>body.gr_indices_cbegin() if num_gr > 0 else None
         cdef const float32[::1] gr_thresholds = <float32[:num_gr]>body.gr_thresholds_cbegin() if num_gr > 0 else None
@@ -201,7 +212,8 @@ cdef class RuleList(RuleModel):
         cdef const float32[::1] eq_thresholds = <float32[:num_eq]>body.eq_thresholds_cbegin() if num_eq > 0 else None
         cdef uint32 num_neq = body.getNumNeq()
         cdef const uint32[::1] neq_indices = <uint32[:num_neq]>body.neq_indices_cbegin() if num_neq > 0 else None
-        cdef const float32[::1] neq_thresholds = <float32[:num_neq]>body.neq_thresholds_cbegin() if num_neq > 0 else None
+        cdef const float32[::1] neq_thresholds = \
+            <float32[:num_neq]>body.neq_thresholds_cbegin() if num_neq > 0 else None
         self.visitor.visit_conjunctive_body(ConjunctiveBody.__new__(ConjunctiveBody, leq_indices, leq_thresholds,
                                                                     gr_indices, gr_thresholds, eq_indices,
                                                                     eq_thresholds, neq_indices, neq_thresholds))
@@ -336,7 +348,32 @@ cdef class RuleList(RuleModel):
 
         return <unique_ptr[IHead]>move(head_ptr)
 
+    def contains_default_rule(self) -> bool:
+        """
+        Returns whether the model contains a default rule or not.
+
+        :return: True, if the model contains a default rule, False otherwise
+        """
+        return self.rule_list_ptr.get().containsDefaultRule()
+
+    def is_default_rule_taking_precedence(self) -> bool:
+        """
+        Returns whether the default rule takes precedence over the remaining rules or not.
+
+        :return: True, if the default rule takes precedence over the remaining rules, False otherwise
+        """
+        return self.rule_list_ptr.get().isDefaultRuleTakingPrecedence()
+
     def visit(self, visitor: RuleModelVisitor):
+        self.visitor = visitor
+        self.rule_list_ptr.get().visit(
+            wrapEmptyBodyVisitor(<void*>self, <EmptyBodyCythonVisitor>self.__visit_empty_body),
+            wrapConjunctiveBodyVisitor(<void*>self, <ConjunctiveBodyCythonVisitor>self.__visit_conjunctive_body),
+            wrapCompleteHeadVisitor(<void*>self, <CompleteHeadCythonVisitor>self.__visit_complete_head),
+            wrapPartialHeadVisitor(<void*>self, <PartialHeadCythonVisitor>self.__visit_partial_head))
+        self.visitor = None
+
+    def visit_used(self, visitor: RuleModelVisitor):
         self.visitor = visitor
         self.rule_list_ptr.get().visitUsed(
             wrapEmptyBodyVisitor(<void*>self, <EmptyBodyCythonVisitor>self.__visit_empty_body),
@@ -352,8 +389,9 @@ cdef class RuleList(RuleModel):
             wrapConjunctiveBodyVisitor(<void*>self, <ConjunctiveBodyCythonVisitor>self.__serialize_conjunctive_body),
             wrapCompleteHeadVisitor(<void*>self, <CompleteHeadCythonVisitor>self.__serialize_complete_head),
             wrapPartialHeadVisitor(<void*>self, <PartialHeadCythonVisitor>self.__serialize_partial_head))
+        cdef bint default_rule_takes_precedence = self.rule_list_ptr.get().isDefaultRuleTakingPrecedence()
         cdef uint32 num_used_rules = self.rule_list_ptr.get().getNumUsedRules()
-        cdef object state = (SERIALIZATION_VERSION, (self.state, num_used_rules))
+        cdef object state = (SERIALIZATION_VERSION, (self.state, default_rule_takes_precedence, num_used_rules))
         self.state = None
         return (RuleList, (), state)
 
@@ -361,13 +399,14 @@ cdef class RuleList(RuleModel):
         cdef int version = state[0]
 
         if version != SERIALIZATION_VERSION:
-            raise AssertionError(
-                'Version of the serialized model is ' + str(version) + ', expected ' + str(SERIALIZATION_VERSION))
+            raise AssertionError('Version of the serialized RuleModel is ' + str(version) + ', expected '
+                                 + str(SERIALIZATION_VERSION))
 
         cdef object model_state = state[1]
         cdef list rule_list = model_state[0]
+        cdef bint default_rule_takes_precedence = model_state[1]
         cdef uint32 num_rules = len(rule_list)
-        cdef unique_ptr[IRuleList] rule_list_ptr = createRuleList()
+        cdef unique_ptr[IRuleList] rule_list_ptr = createRuleList(default_rule_takes_precedence)
         cdef object rule_state
         cdef unique_ptr[IBody] body_ptr
         cdef unique_ptr[IHead] head_ptr
@@ -383,6 +422,6 @@ cdef class RuleList(RuleModel):
             else:
                 rule_list_ptr.get().addRule(move(body_ptr), move(head_ptr))
 
-        cdef uint32 num_used_rules = model_state[1]
+        cdef uint32 num_used_rules = model_state[2]
         rule_list_ptr.get().setNumUsedRules(num_used_rules)
         self.rule_list_ptr = move(rule_list_ptr)

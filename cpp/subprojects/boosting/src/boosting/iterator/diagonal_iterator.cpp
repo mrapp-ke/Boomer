@@ -1,14 +1,11 @@
 #include "boosting/iterator/diagonal_iterator.hpp"
-#include "boosting/math/math.hpp"
 
+#include "boosting/math/math.hpp"
 
 namespace boosting {
 
     template<typename T>
-    DiagonalConstIterator<T>::DiagonalConstIterator(const T* ptr, uint32 index)
-        : ptr_(ptr), index_(index) {
-
-    }
+    DiagonalConstIterator<T>::DiagonalConstIterator(const T* ptr, uint32 index) : ptr_(ptr), index_(index) {}
 
     template<typename T>
     typename DiagonalConstIterator<T>::reference DiagonalConstIterator<T>::operator[](uint32 index) const {
@@ -56,7 +53,7 @@ namespace boosting {
 
     template<typename T>
     typename DiagonalConstIterator<T>::difference_type DiagonalConstIterator<T>::operator-(
-            const DiagonalConstIterator<T>& rhs) const {
+      const DiagonalConstIterator<T>& rhs) const {
         return (difference_type) index_ - (difference_type) rhs.index_;
     }
 

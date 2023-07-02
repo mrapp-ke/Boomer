@@ -5,34 +5,32 @@
 
 #include "common/model/body.hpp"
 
-
 /**
  * A body that consists of a conjunction of conditions using the operators <= or > for numerical conditions, and = or !=
  * for nominal conditions, respectively.
  */
 class MLRLCOMMON_API ConjunctiveBody final : public IBody {
-
     private:
 
-        uint32 numLeq_;
+        const uint32 numLeq_;
 
         uint32* leqFeatureIndices_;
 
         float32* leqThresholds_;
 
-        uint32 numGr_;
+        const uint32 numGr_;
 
         uint32* grFeatureIndices_;
 
         float32* grThresholds_;
 
-        uint32 numEq_;
+        const uint32 numEq_;
 
         uint32* eqFeatureIndices_;
 
         float32* eqThresholds_;
 
-        uint32 numNeq_;
+        const uint32 numNeq_;
 
         uint32* neqFeatureIndices_;
 
@@ -113,8 +111,8 @@ class MLRLCOMMON_API ConjunctiveBody final : public IBody {
         threshold_const_iterator leq_thresholds_cend() const;
 
         /**
-         * Returns an `index_iterator` to the beginning of the feature indices that correspond to conditions that use the
-         * <= operator.
+         * Returns an `index_iterator` to the beginning of the feature indices that correspond to conditions that use
+         * the <= operator.
          *
          * @return An `index_iterator` to the beginning
          */
@@ -360,8 +358,8 @@ class MLRLCOMMON_API ConjunctiveBody final : public IBody {
         /**
          * @see `IBody::covers`
          */
-        bool covers(CContiguousConstView<const float32>::value_const_iterator begin,
-                    CContiguousConstView<const float32>::value_const_iterator end) const override;
+        bool covers(VectorConstView<const float32>::const_iterator begin,
+                    VectorConstView<const float32>::const_iterator end) const override;
 
         /**
          * @see `IBody::covers`
@@ -373,5 +371,4 @@ class MLRLCOMMON_API ConjunctiveBody final : public IBody {
                     uint32 n) const override;
 
         void visit(EmptyBodyVisitor emptyBodyVisitor, ConjunctiveBodyVisitor conjunctiveBodyVisitor) const override;
-
 };

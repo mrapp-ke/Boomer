@@ -4,10 +4,9 @@
  */
 #pragma once
 
-#include "common/statistics/statistics_provider.hpp"
-#include "boosting/statistics/statistics_example_wise.hpp"
 #include "boosting/losses/loss_example_wise.hpp"
-
+#include "boosting/statistics/statistics_example_wise.hpp"
+#include "common/statistics/statistics_provider.hpp"
 
 namespace boosting {
 
@@ -16,20 +15,19 @@ namespace boosting {
      * `IExampleWiseStatistics`, which uses dense data structures to store the statistics.
      */
     class DenseExampleWiseStatisticsProviderFactory final : public IStatisticsProviderFactory {
-
         private:
 
-            std::unique_ptr<IExampleWiseLossFactory> lossFactoryPtr_;
+            const std::unique_ptr<IExampleWiseLossFactory> lossFactoryPtr_;
 
-            std::unique_ptr<IEvaluationMeasureFactory> evaluationMeasureFactoryPtr_;
+            const std::unique_ptr<IEvaluationMeasureFactory> evaluationMeasureFactoryPtr_;
 
-            std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr_;
+            const std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr_;
 
-            std::unique_ptr<IExampleWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr_;
+            const std::unique_ptr<IExampleWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr_;
 
-            std::unique_ptr<IExampleWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr_;
+            const std::unique_ptr<IExampleWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr_;
 
-            uint32 numThreads_;
+            const uint32 numThreads_;
 
         public:
 
@@ -57,23 +55,22 @@ namespace boosting {
              *                                          statistics in parallel. Must be at least 1
              */
             DenseExampleWiseStatisticsProviderFactory(
-                std::unique_ptr<IExampleWiseLossFactory> lossFactoryPtr,
-                std::unique_ptr<IEvaluationMeasureFactory> evaluationMeasureFactoryPtr,
-                std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr,
-                std::unique_ptr<IExampleWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr,
-                std::unique_ptr<IExampleWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr, uint32 numThreads);
+              std::unique_ptr<IExampleWiseLossFactory> lossFactoryPtr,
+              std::unique_ptr<IEvaluationMeasureFactory> evaluationMeasureFactoryPtr,
+              std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr,
+              std::unique_ptr<IExampleWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr,
+              std::unique_ptr<IExampleWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr, uint32 numThreads);
 
             /**
              * @see `IStatisticsProviderFactory::create`
              */
             std::unique_ptr<IStatisticsProvider> create(
-                const CContiguousConstView<const uint8>& labelMatrix) const override;
+              const CContiguousConstView<const uint8>& labelMatrix) const override;
 
             /**
              * @see `IStatisticsProviderFactory::create`
              */
             std::unique_ptr<IStatisticsProvider> create(const BinaryCsrConstView& labelMatrix) const override;
-
     };
 
     /**
@@ -82,20 +79,19 @@ namespace boosting {
      * object of type `ILabelWiseStatistics`.
      */
     class DenseConvertibleExampleWiseStatisticsProviderFactory final : public IStatisticsProviderFactory {
-
         private:
 
-            std::unique_ptr<IExampleWiseLossFactory> lossFactoryPtr_;
+            const std::unique_ptr<IExampleWiseLossFactory> lossFactoryPtr_;
 
-            std::unique_ptr<IEvaluationMeasureFactory> evaluationMeasureFactoryPtr_;
+            const std::unique_ptr<IEvaluationMeasureFactory> evaluationMeasureFactoryPtr_;
 
-            std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr_;
+            const std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr_;
 
-            std::unique_ptr<ILabelWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr_;
+            const std::unique_ptr<ILabelWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr_;
 
-            std::unique_ptr<ILabelWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr_;
+            const std::unique_ptr<ILabelWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr_;
 
-            uint32 numThreads_;
+            const uint32 numThreads_;
 
         public:
 
@@ -123,23 +119,22 @@ namespace boosting {
              *                                          statistics in parallel. Must be at least 1
              */
             DenseConvertibleExampleWiseStatisticsProviderFactory(
-                std::unique_ptr<IExampleWiseLossFactory> lossFactoryPtr,
-                std::unique_ptr<IEvaluationMeasureFactory> evaluationMeasureFactoryPtr,
-                std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr,
-                std::unique_ptr<ILabelWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr,
-                std::unique_ptr<ILabelWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr, uint32 numThreads);
+              std::unique_ptr<IExampleWiseLossFactory> lossFactoryPtr,
+              std::unique_ptr<IEvaluationMeasureFactory> evaluationMeasureFactoryPtr,
+              std::unique_ptr<IExampleWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr,
+              std::unique_ptr<ILabelWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr,
+              std::unique_ptr<ILabelWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr, uint32 numThreads);
 
             /**
              * @see `IStatisticsProviderFactory::create`
              */
             std::unique_ptr<IStatisticsProvider> create(
-                const CContiguousConstView<const uint8>& labelMatrix) const override;
+              const CContiguousConstView<const uint8>& labelMatrix) const override;
 
             /**
              * @see `IStatisticsProviderFactory::create`
              */
             std::unique_ptr<IStatisticsProvider> create(const BinaryCsrConstView& labelMatrix) const override;
-
     };
 
 }

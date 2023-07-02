@@ -3,11 +3,9 @@
  */
 #pragma once
 
+#include "boosting/iterator/diagonal_iterator.hpp"
 #include "common/indices/index_vector_complete.hpp"
 #include "common/indices/index_vector_partial.hpp"
-#include "boosting/iterator/diagonal_iterator.hpp"
-#include <memory>
-
 
 namespace boosting {
 
@@ -18,12 +16,11 @@ namespace boosting {
      * as a symmetric Hessian matrix with `n` rows and columns.
      */
     class DenseExampleWiseStatisticVector final {
-
         private:
 
-            uint32 numGradients_;
+            const uint32 numGradients_;
 
-            uint32 numHessians_;
+            const uint32 numHessians_;
 
             float64* gradients_;
 
@@ -185,6 +182,58 @@ namespace boosting {
                      hessian_const_iterator hessiansBegin, hessian_const_iterator hessiansEnd, float64 weight);
 
             /**
+             * Removes all gradients and Hessians in another vector from this vector.
+             *
+             * @param gradientsBegin    A `gradient_const_iterator` to the beginning of the gradients
+             * @param gradientsEnd      A `gradient_const_iterator` to the end of the gradients
+             * @param hessiansBegin     A `hessian_const_iterator` to the beginning of the Hessians
+             * @param hessiansEnd       A `hessian_const_iterator` to the end of the Hessians
+             */
+            void remove(gradient_const_iterator gradientsBegin, gradient_const_iterator gradientsEnd,
+                        hessian_const_iterator hessiansBegin, hessian_const_iterator hessiansEnd);
+
+            /**
+             * Removes all gradients and Hessians in another vector from this vector. The gradients and Hessians to be
+             * removed are multiplied by a specific weight.
+             *
+             * @param gradientsBegin    A `gradient_const_iterator` to the beginning of the gradients
+             * @param gradientsEnd      A `gradient_const_iterator` to the end of the gradients
+             * @param hessiansBegin     A `hessian_const_iterator` to the beginning of the Hessians
+             * @param hessiansEnd       A `hessian_const_iterator` to the end of the Hessians
+             * @param weight            The weight, the gradients and Hessians should be multiplied by
+             */
+            void remove(gradient_const_iterator gradientsBegin, gradient_const_iterator gradientsEnd,
+                        hessian_const_iterator hessiansBegin, hessian_const_iterator hessiansEnd, float64 weight);
+
+            /**
+             * Adds certain gradients and Hessians in another vector, whose positions are given as a
+             * `CompleteIndexVector`, to this vector.
+             *
+             * @param gradientsBegin    A `gradient_const_iterator` to the beginning of the gradients
+             * @param gradientsEnd      A `gradient_const_iterator` to the end of the gradients
+             * @param hessiansBegin     A `hessian_const_iterator` to the beginning of the Hessians
+             * @param hessiansEnd       A `hessian_const_iterator` to the end of the Hessians
+             * @param indices           A reference to a `CompleteIndexVector' that provides access to the indices
+             */
+            void addToSubset(gradient_const_iterator gradientsBegin, gradient_const_iterator gradientsEnd,
+                             hessian_const_iterator hessiansBegin, hessian_const_iterator hessiansEnd,
+                             const CompleteIndexVector& indices);
+
+            /**
+             * Adds certain gradients and Hessians in another vector, whose positions are given as a
+             * `PartialIndexVector`, to this vector.
+             *
+             * @param gradientsBegin    A `gradient_const_iterator` to the beginning of the gradients
+             * @param gradientsEnd      A `gradient_const_iterator` to the end of the gradients
+             * @param hessiansBegin     A `hessian_const_iterator` to the beginning of the Hessians
+             * @param hessiansEnd       A `hessian_const_iterator` to the end of the Hessians
+             * @param indices           A reference to a `PartialIndexVector' that provides access to the indices
+             */
+            void addToSubset(gradient_const_iterator gradientsBegin, gradient_const_iterator gradientsEnd,
+                             hessian_const_iterator hessiansBegin, hessian_const_iterator hessiansEnd,
+                             const PartialIndexVector& indices);
+
+            /**
              * Adds certain gradients and Hessians in another vector, whose positions are given as a
              * `CompleteIndexVector`, to this vector. The gradients and Hessians to be added are multiplied by a
              * specific weight.
@@ -259,7 +308,6 @@ namespace boosting {
                             const PartialIndexVector& firstIndices, gradient_const_iterator secondGradientsBegin,
                             gradient_const_iterator secondGradientsEnd, hessian_const_iterator secondHessiansBegin,
                             hessian_const_iterator secondHessiansEnd);
-
     };
 
 }

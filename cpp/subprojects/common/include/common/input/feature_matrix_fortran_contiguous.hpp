@@ -5,17 +5,14 @@
 
 #include "common/input/feature_matrix_column_wise.hpp"
 
-
 /**
  * Defines an interface for all feature matrices that provide column-wise access to the feature values of examples that
  * are stored in a Fortran-contiguous array.
  */
 class MLRLCOMMON_API IFortranContiguousFeatureMatrix : virtual public IColumnWiseFeatureMatrix {
-
     public:
 
-        virtual ~IFortranContiguousFeatureMatrix() override { };
-
+        virtual ~IFortranContiguousFeatureMatrix() override {};
 };
 
 /**
@@ -27,4 +24,4 @@ class MLRLCOMMON_API IFortranContiguousFeatureMatrix : virtual public IColumnWis
  * @return          An unique pointer to an object of type `IFortranContiguousFeatureMatrix` that has been created
  */
 MLRLCOMMON_API std::unique_ptr<IFortranContiguousFeatureMatrix> createFortranContiguousFeatureMatrix(
-    uint32 numRows, uint32 numCols, const float32* array);
+  uint32 numRows, uint32 numCols, const float32* array);

@@ -1,12 +1,10 @@
 #include "common/data/view_vector.hpp"
-#include "common/data/indexed_value.hpp"
 
+#include "common/data/indexed_value.hpp"
+#include "common/data/tuple.hpp"
 
 template<typename T>
-VectorConstView<T>::VectorConstView(uint32 numElements, T* array)
-    : numElements_(numElements), array_(array) {
-
-}
+VectorConstView<T>::VectorConstView(uint32 numElements, T* array) : numElements_(numElements), array_(array) {}
 
 template<typename T>
 typename VectorConstView<T>::const_iterator VectorConstView<T>::cbegin() const {
@@ -40,12 +38,13 @@ template class VectorConstView<IndexedValue<uint8>>;
 template class VectorConstView<IndexedValue<uint32>>;
 template class VectorConstView<IndexedValue<float32>>;
 template class VectorConstView<IndexedValue<float64>>;
+template class VectorConstView<IndexedValue<Tuple<uint8>>>;
+template class VectorConstView<IndexedValue<Tuple<uint32>>>;
+template class VectorConstView<IndexedValue<Tuple<float32>>>;
+template class VectorConstView<IndexedValue<Tuple<float64>>>;
 
 template<typename T>
-VectorView<T>::VectorView(uint32 numElements, T* array)
-    : VectorConstView<T>(numElements, array) {
-
-}
+VectorView<T>::VectorView(uint32 numElements, T* array) : VectorConstView<T>(numElements, array) {}
 
 template<typename T>
 typename VectorView<T>::iterator VectorView<T>::begin() {
@@ -75,3 +74,7 @@ template class VectorView<IndexedValue<uint8>>;
 template class VectorView<IndexedValue<uint32>>;
 template class VectorView<IndexedValue<float32>>;
 template class VectorView<IndexedValue<float64>>;
+template class VectorView<IndexedValue<Tuple<uint8>>>;
+template class VectorView<IndexedValue<Tuple<uint32>>>;
+template class VectorView<IndexedValue<Tuple<float32>>>;
+template class VectorView<IndexedValue<Tuple<float64>>>;

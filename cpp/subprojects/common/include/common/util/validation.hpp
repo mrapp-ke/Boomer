@@ -6,9 +6,8 @@
 #include <stdexcept>
 #include <string>
 
-
 /**
- * Throws an exception if a given value is not greater than a specific threshold.
+ * Throws a `std::invalid_argument` exception if a given value is not greater than a specific threshold.
  *
  * @tparam T        The type of the value and threshold
  * @param name      The name of the parameter, the value corresponds to
@@ -24,7 +23,7 @@ static inline constexpr void assertGreater(const std::string& name, const T valu
 }
 
 /**
- * Throws an exception if a given value not greater or equal to a specific threshold.
+ * Throws a `std::invalid_argument` exception if a given value not greater or equal to a specific threshold.
  *
  * @tparam T        The type of the value and threshold
  * @param name      The name of the parameter, the value corresponds to
@@ -40,7 +39,7 @@ static inline constexpr void assertGreaterOrEqual(const std::string& name, const
 }
 
 /**
- * Throws an exception if a given value is not less than a specific threshold.
+ * Throws a `std::invalid_argument` exception if a given value is not less than a specific threshold.
  *
  * @tparam T        The type of the value and threshold
  * @param name      The name of the parameter, the value corresponds to
@@ -56,7 +55,7 @@ static inline constexpr void assertLess(const std::string& name, const T value, 
 }
 
 /**
- * Throws an exception if a given value is not less or equal to a specific threshold.
+ * Throws a `std::invalid_argument` exception if a given value is not less or equal to a specific threshold.
  *
  * @tparam T        The type of the value and threshold
  * @param name      The name of the parameter, the value corresponds to
@@ -72,7 +71,7 @@ static inline constexpr void assertLessOrEqual(const std::string& name, const T 
 }
 
 /**
- * Throws an exception if a given value is not a multiple of another value.
+ * Throws a `std::invalid_argument` exception if a given value is not a multiple of another value.
  *
  * @tparam T    The type of the values
  * @param name  The name of the parameter, the value corresponds to

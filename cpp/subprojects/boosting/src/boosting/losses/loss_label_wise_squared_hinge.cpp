@@ -1,6 +1,6 @@
 #include "boosting/losses/loss_label_wise_squared_hinge.hpp"
-#include "loss_label_wise_common.hpp"
 
+#include "loss_label_wise_sparse_common.hpp"
 
 namespace boosting {
 
@@ -43,28 +43,35 @@ namespace boosting {
      * Allows to create instances of the type `ILabelWiseLoss` that implement a multi-label variant of the squared hinge
      * loss that is applied label-wise.
      */
-    class LabelWiseSquaredHingeLossFactory final : public ILabelWiseLossFactory {
-
+    class LabelWiseSquaredHingeLossFactory final : public ISparseLabelWiseLossFactory {
         public:
 
-            std::unique_ptr<ILabelWiseLoss> createLabelWiseLoss() const override {
-                return std::make_unique<LabelWiseLoss>(&updateGradientAndHessian, &evaluatePrediction);
+            std::unique_ptr<ISparseLabelWiseLoss> createSparseLabelWiseLoss() const override {
+                return std::make_unique<SparseLabelWiseLoss>(&updateGradientAndHessian, &evaluatePrediction);
             }
-
     };
 
     LabelWiseSquaredHingeLossConfig::LabelWiseSquaredHingeLossConfig(const std::unique_ptr<IHeadConfig>& headConfigPtr)
-        : headConfigPtr_(headConfigPtr) {
-
-    }
+        : headConfigPtr_(headConfigPtr) {}
 
     std::unique_ptr<IStatisticsProviderFactory> LabelWiseSquaredHingeLossConfig::createStatisticsProviderFactory(
-            const IFeatureMatrix& featureMatrix, const ILabelMatrix& labelMatrix, const Blas& blas,
-            const Lapack& lapack) const {
-        return headConfigPtr_->createStatisticsProviderFactory(featureMatrix, labelMatrix, *this);
+      const IFeatureMatrix& featureMatrix, const IRowWiseLabelMatrix& labelMatrix, const Blas& blas,
+      const Lapack& lapack, bool preferSparseStatistics) const {
+        if (preferSparseStatistics) {
+            return headConfigPtr_->createStatisticsProviderFactory(featureMatrix, labelMatrix, *this);
+        } else {
+            return headConfigPtr_->createStatisticsProviderFactory(featureMatrix, labelMatrix,
+                                                                   static_cast<const ILabelWiseLossConfig&>(*this));
+        }
     }
 
-    std::unique_ptr<IProbabilityFunctionFactory> LabelWiseSquaredHingeLossConfig::createProbabilityFunctionFactory() const {
+    std::unique_ptr<IMarginalProbabilityFunctionFactory>
+      LabelWiseSquaredHingeLossConfig::createMarginalProbabilityFunctionFactory() const {
+        return nullptr;
+    }
+
+    std::unique_ptr<IJointProbabilityFunctionFactory>
+      LabelWiseSquaredHingeLossConfig::createJointProbabilityFunctionFactory() const {
         return nullptr;
     }
 
@@ -72,7 +79,8 @@ namespace boosting {
         return 0.5;
     }
 
-    std::unique_ptr<ILabelWiseLossFactory> LabelWiseSquaredHingeLossConfig::createLabelWiseLossFactory() const {
+    std::unique_ptr<ISparseLabelWiseLossFactory> LabelWiseSquaredHingeLossConfig::createSparseLabelWiseLossFactory()
+      const {
         return std::make_unique<LabelWiseSquaredHingeLossFactory>();
     }
 

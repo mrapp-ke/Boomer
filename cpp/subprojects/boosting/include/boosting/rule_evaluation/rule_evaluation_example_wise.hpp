@@ -3,12 +3,12 @@
  */
 #pragma once
 
-#include "common/indices/index_vector_complete.hpp"
-#include "common/indices/index_vector_partial.hpp"
 #include "boosting/data/statistic_vector_example_wise_dense.hpp"
 #include "boosting/rule_evaluation/rule_evaluation.hpp"
-#include <memory>
+#include "common/indices/index_vector_complete.hpp"
+#include "common/indices/index_vector_partial.hpp"
 
+#include <memory>
 
 namespace boosting {
 
@@ -18,10 +18,9 @@ namespace boosting {
      * loss function that is applied example-wise.
      */
     class IExampleWiseRuleEvaluationFactory {
-
         public:
 
-            virtual ~IExampleWiseRuleEvaluationFactory() { };
+            virtual ~IExampleWiseRuleEvaluationFactory() {};
 
             /**
              * Creates and returns a new object of type `IRuleEvaluation` that allows to calculate the predictions of
@@ -36,8 +35,7 @@ namespace boosting {
              * @return                  An unique pointer to an object of type `IRuleEvaluation` that has been created
              */
             virtual std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> create(
-                const DenseExampleWiseStatisticVector& statisticVector,
-                const CompleteIndexVector& indexVector) const = 0;
+              const DenseExampleWiseStatisticVector& statisticVector, const CompleteIndexVector& indexVector) const = 0;
 
             /**
              * Creates and returns a new object of type `IRuleEvaluation` that allows to calculate the predictions of
@@ -52,9 +50,7 @@ namespace boosting {
              * @return                  An unique pointer to an object of type `IRuleEvaluation` that has been created
              */
             virtual std::unique_ptr<IRuleEvaluation<DenseExampleWiseStatisticVector>> create(
-                const DenseExampleWiseStatisticVector& statisticVector,
-                const PartialIndexVector& indexVector) const = 0;
-
+              const DenseExampleWiseStatisticVector& statisticVector, const PartialIndexVector& indexVector) const = 0;
     };
 
 }

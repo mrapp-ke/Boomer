@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 """
 Author Michael Rapp (michael.rapp.ml@gmail.com)
 
@@ -8,8 +6,9 @@ Provides functions for writing and reading files.
 import os
 import os.path as path
 import xml.etree.ElementTree as XmlTree
-from csv import DictReader, DictWriter, QUOTE_MINIMAL
 
+from csv import QUOTE_MINIMAL, DictReader, DictWriter
+from typing import Optional
 from xml.dom import minidom
 
 # The delimiter used to separate the columns in a CSV file
@@ -27,11 +26,11 @@ SUFFIX_CSV = 'csv'
 # The suffix of an ARFF file
 SUFFIX_ARFF = 'arff'
 
-# The suffix of a XML file
+# The suffix of an XML file
 SUFFIX_XML = 'xml'
 
 
-def get_file_name(name: str, suffix: str):
+def get_file_name(name: str, suffix: str) -> str:
     """
     Returns a file name, including a suffix.
 
@@ -42,7 +41,7 @@ def get_file_name(name: str, suffix: str):
     return name + '.' + suffix
 
 
-def get_file_name_per_fold(name: str, suffix: str, fold: int):
+def get_file_name_per_fold(name: str, suffix: str, fold: Optional[int]) -> str:
     """
     Returns a file name, including a suffix, that corresponds to a certain fold.
 
@@ -52,10 +51,10 @@ def get_file_name_per_fold(name: str, suffix: str, fold: int):
                     specific fold
     :return:        The file name
     """
-    return get_file_name(name + '_' + ('overall' if fold is None else 'fold_' + str(fold + 1)), suffix)
+    return get_file_name(name + '_' + ('overall' if fold is None else 'fold-' + str(fold + 1)), suffix)
 
 
-def open_writable_txt_file(directory: str, file_name: str, fold: int = None, append: bool = False):
+def open_writable_txt_file(directory: str, file_name: str, fold: Optional[int] = None, append: bool = False):
     """
     Opens a text file to be written to.
 
@@ -71,7 +70,7 @@ def open_writable_txt_file(directory: str, file_name: str, fold: int = None, app
     return open(file, mode=write_mode)
 
 
-def open_readable_csv_file(directory: str, file_name: str, fold: int):
+def open_readable_csv_file(directory: str, file_name: str, fold: Optional[int] = None):
     """
     Opens a CSV file to be read from.
 
@@ -85,7 +84,7 @@ def open_readable_csv_file(directory: str, file_name: str, fold: int):
     return open(file, mode='r', newline='')
 
 
-def open_writable_csv_file(directory: str, file_name: str, fold: int = None, append: bool = False):
+def open_writable_csv_file(directory: str, file_name: str, fold: Optional[int] = None, append: bool = False):
     """
     Opens a CSV file to be written to.
 
@@ -120,7 +119,10 @@ def create_csv_dict_writer(csv_file, header) -> DictWriter:
                         directory that should be written to the file
     :return:            The `DictWriter` that has been created
     """
-    csv_writer = DictWriter(csv_file, delimiter=CSV_DELIMITER, quotechar=CSV_QUOTE_CHAR, quoting=QUOTE_MINIMAL,
+    csv_writer = DictWriter(csv_file,
+                            delimiter=CSV_DELIMITER,
+                            quotechar=CSV_QUOTE_CHAR,
+                            quoting=QUOTE_MINIMAL,
                             fieldnames=header)
 
     if csv_file.mode == 'w':
@@ -131,7 +133,7 @@ def create_csv_dict_writer(csv_file, header) -> DictWriter:
 
 def write_xml_file(xml_file, root_element: XmlTree.Element, encoding='utf-8'):
     """
-    Writes a XML structure to a file.
+    Writes an XML structure to a file.
 
     :param xml_file:        The XML file
     :param root_element:    The root element of the XML structure

@@ -4,6 +4,7 @@ project('common', 'cython', 'cpp')
 cython_dir = 'cython'
 cython_module_names = [
     'feature_binning',
+    'feature_info',
     'feature_matrix',
     'feature_sampling',
     'instance_sampling',
@@ -12,11 +13,12 @@ cython_module_names = [
     'label_space_info',
     'learner',
     'multi_threading',
-    'nominal_feature_mask',
     'partition_sampling',
+    'post_optimization',
+    'prediction',
+    'probability_calibration',
     'rule_induction',
     'rule_model',
-    'rule_model_assemblage',
     'stopping_criterion'
 ]
 

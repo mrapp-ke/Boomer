@@ -1,20 +1,20 @@
 #include "common/stopping/stopping_criterion_time.hpp"
-#include "common/util/validation.hpp"
-#include <chrono>
 
+#include "common/util/validation.hpp"
+
+#include <chrono>
 
 /**
  * An implementation of the type `IStoppingCriterion` that ensures that a certain time limit is not exceeded.
  */
 class TimeStoppingCriterion final : public IStoppingCriterion {
-
     private:
 
         typedef std::chrono::steady_clock timer;
 
         typedef std::chrono::seconds timer_unit;
 
-        timer_unit timeLimit_;
+        const timer_unit timeLimit_;
 
         std::chrono::time_point<timer> startTime_;
 
@@ -27,9 +27,7 @@ class TimeStoppingCriterion final : public IStoppingCriterion {
          */
         TimeStoppingCriterion(uint32 timeLimit)
             : timeLimit_(std::chrono::duration_cast<timer_unit>(std::chrono::seconds(timeLimit))),
-              startTime_(timer::now()), timerStarted_(false) {
-
-        }
+              startTime_(timer::now()), timerStarted_(false) {}
 
         Result test(const IStatistics& statistics, uint32 numRules) override {
             Result result;
@@ -38,41 +36,32 @@ class TimeStoppingCriterion final : public IStoppingCriterion {
                 auto currentTime = timer::now();
                 auto duration = std::chrono::duration_cast<timer_unit>(currentTime - startTime_);
 
-                if (duration < timeLimit_) {
-                    result.action = CONTINUE;
-                } else {
-                    result.action = FORCE_STOP;
-                    result.numRules = numRules;
+                if (duration >= timeLimit_) {
+                    result.stop = true;
                 }
             } else {
                 startTime_ = timer::now();
                 timerStarted_ = true;
-                result.action = CONTINUE;
             }
 
             return result;
         }
-
 };
 
 /**
  * Allows to create instances of the type `IStoppingCriterion` that ensure that a certain time limit is not exceeded.
  */
 class TimeStoppingCriterionFactory final : public IStoppingCriterionFactory {
-
     private:
 
-        uint32 timeLimit_;
+        const uint32 timeLimit_;
 
     public:
 
         /**
          * @param timeLimit The time limit in seconds. Must be at least 1
          */
-        TimeStoppingCriterionFactory(uint32 timeLimit)
-            : timeLimit_(timeLimit) {
-
-        }
+        TimeStoppingCriterionFactory(uint32 timeLimit) : timeLimit_(timeLimit) {}
 
         std::unique_ptr<IStoppingCriterion> create(const SinglePartition& partition) const override {
             return std::make_unique<TimeStoppingCriterion>(timeLimit_);
@@ -81,13 +70,9 @@ class TimeStoppingCriterionFactory final : public IStoppingCriterionFactory {
         std::unique_ptr<IStoppingCriterion> create(BiPartition& partition) const override {
             return std::make_unique<TimeStoppingCriterion>(timeLimit_);
         }
-
 };
 
-TimeStoppingCriterionConfig::TimeStoppingCriterionConfig()
-    : timeLimit_(3600) {
-
-}
+TimeStoppingCriterionConfig::TimeStoppingCriterionConfig() : timeLimit_(3600) {}
 
 uint32 TimeStoppingCriterionConfig::getTimeLimit() const {
     return timeLimit_;

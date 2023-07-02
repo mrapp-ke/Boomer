@@ -5,15 +5,13 @@
 
 #include "common/data/types.hpp"
 
-
 /**
  * An one-dimension vector that stores binary data in a space-efficient way.
  */
 class BitVector final {
-
     private:
 
-        uint32 numElements_;
+        const uint32 numElements_;
 
         uint32* array_;
 
@@ -59,5 +57,4 @@ class BitVector final {
          * Sets the values of all elements to zero.
          */
         void clear();
-
 };

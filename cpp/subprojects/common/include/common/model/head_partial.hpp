@@ -6,15 +6,13 @@
 #include "common/data/types.hpp"
 #include "common/model/head.hpp"
 
-
 /**
  * A head that contains a numerical score for a subset of the available labels.
  */
 class MLRLCOMMON_API PartialHead final : public IHead {
-
     private:
 
-        uint32 numElements_;
+        const uint32 numElements_;
 
         float64* scores_;
 
@@ -119,5 +117,4 @@ class MLRLCOMMON_API PartialHead final : public IHead {
         index_const_iterator indices_cend() const;
 
         void visit(CompleteHeadVisitor completeHeadVisitor, PartialHeadVisitor partialHeadVisitor) const override;
-
 };

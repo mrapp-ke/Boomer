@@ -3,26 +3,25 @@
  */
 #pragma once
 
-#include "common/sampling/weight_vector.hpp"
-#include "common/sampling/random.hpp"
 #include "common/input/label_matrix_c_contiguous.hpp"
 #include "common/input/label_matrix_csr.hpp"
+#include "common/sampling/random.hpp"
+#include "common/sampling/weight_vector.hpp"
 #include "common/statistics/statistics.hpp"
+
 #include <memory>
 
 // Forward declarations
 class BiPartition;
 class SinglePartition;
 
-
 /**
  * Defines an interface for all classes that implement a method for sampling training examples.
  */
 class IInstanceSampling {
-
     public:
 
-        virtual ~IInstanceSampling() { };
+        virtual ~IInstanceSampling() {};
 
         /**
          * Creates and returns a sample of the available training examples.
@@ -32,17 +31,15 @@ class IInstanceSampling {
          *                  individual training examples
          */
         virtual const IWeightVector& sample(RNG& rng) = 0;
-
 };
 
 /**
  * Defines an interface for all factories that allow to create instances of the type `IInstanceSampling`.
  */
 class IInstanceSamplingFactory {
-
     public:
 
-        virtual ~IInstanceSamplingFactory() { };
+        virtual ~IInstanceSamplingFactory() {};
 
         /**
          * Creates and returns a new object of type `IInstanceSampling`.
@@ -101,20 +98,17 @@ class IInstanceSamplingFactory {
          *                      which serve as a basis for learning rules
          * @return              An unique pointer to an object of type `IInstanceSampling` that has been created
          */
-        virtual std::unique_ptr<IInstanceSampling> create(const CsrLabelMatrix& labelMatrix,
-                                                          BiPartition& partition, IStatistics& statistics) const = 0;
-
+        virtual std::unique_ptr<IInstanceSampling> create(const CsrLabelMatrix& labelMatrix, BiPartition& partition,
+                                                          IStatistics& statistics) const = 0;
 };
-
 
 /**
  * Defines an interface for all classes that allow to configure a method for sampling instances.
  */
 class IInstanceSamplingConfig {
-
     public:
 
-        virtual ~IInstanceSamplingConfig() { };
+        virtual ~IInstanceSamplingConfig() {};
 
         /**
          * Creates and returns a new object of type `IInstanceSamplingFactory` according to the specified configuration.
@@ -122,5 +116,4 @@ class IInstanceSamplingConfig {
          * @return An unique pointer to an object of type `IInstanceSamplingFactory` that has been created
          */
         virtual std::unique_ptr<IInstanceSamplingFactory> createInstanceSamplingFactory() const = 0;
-
 };

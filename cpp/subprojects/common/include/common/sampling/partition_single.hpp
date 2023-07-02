@@ -3,19 +3,17 @@
  */
 #pragma once
 
-#include "common/sampling/partition.hpp"
 #include "common/iterator/index_iterator.hpp"
-
+#include "common/sampling/partition.hpp"
 
 /**
  * An implementation of the class `IPartition` that provides random access to the indices of elements that are included
  * in a single set.
  */
 class SinglePartition final : public IPartition {
-
     private:
 
-        uint32 numElements_;
+        const uint32 numElements_;
 
     public:
 
@@ -56,10 +54,17 @@ class SinglePartition final : public IPartition {
                                                                   const IRowWiseLabelMatrix& labelMatrix,
                                                                   IStatistics& statistics) override;
 
-        float64 evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, const ICoverageState& coverageState,
+        Quality evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, const ICoverageState& coverageState,
                                     const AbstractPrediction& head) override;
 
         void recalculatePrediction(const IThresholdsSubset& thresholdsSubset, const ICoverageState& coverageState,
-                                   Refinement& refinement) override;
+                                   AbstractPrediction& head) override;
 
+        std::unique_ptr<IMarginalProbabilityCalibrationModel> fitMarginalProbabilityCalibrationModel(
+          const IMarginalProbabilityCalibrator& probabilityCalibrator, const IRowWiseLabelMatrix& labelMatrix,
+          const IStatistics& statistics) override;
+
+        std::unique_ptr<IJointProbabilityCalibrationModel> fitJointProbabilityCalibrationModel(
+          const IJointProbabilityCalibrator& probabilityCalibrator, const IRowWiseLabelMatrix& labelMatrix,
+          const IStatistics& statistics) override;
 };

@@ -5,19 +5,17 @@
 #pragma once
 
 #include "common/binning/feature_binning.hpp"
-#include "common/multi_threading/multi_threading.hpp"
 #include "common/macros.hpp"
-
+#include "common/multi_threading/multi_threading.hpp"
 
 /**
  * Defines an interface for all classes that allow to configure a method that assigns numerical feature values to bins,
  * such that each bin contains values from equally sized value ranges.
  */
 class MLRLCOMMON_API IEqualWidthFeatureBinningConfig {
-
     public:
 
-        virtual ~IEqualWidthFeatureBinningConfig() { };
+        virtual ~IEqualWidthFeatureBinningConfig() {};
 
         /**
          * Returns the percentage that specifies how many bins are used.
@@ -69,15 +67,14 @@ class MLRLCOMMON_API IEqualWidthFeatureBinningConfig {
          *                  configuration of the method that assigns numerical feature values to bins
          */
         virtual IEqualWidthFeatureBinningConfig& setMaxBins(uint32 maxBins) = 0;
-
 };
 
 /**
  * Allows to configure a method that assigns numerical feature values to bins, such that each bin contains values from
  * equally sized value ranges.
  */
-class EqualWidthFeatureBinningConfig final : public IFeatureBinningConfig, public IEqualWidthFeatureBinningConfig {
-
+class EqualWidthFeatureBinningConfig final : public IFeatureBinningConfig,
+                                             public IEqualWidthFeatureBinningConfig {
     private:
 
         float32 binRatio_;
@@ -111,5 +108,4 @@ class EqualWidthFeatureBinningConfig final : public IFeatureBinningConfig, publi
 
         std::unique_ptr<IThresholdsFactory> createThresholdsFactory(const IFeatureMatrix& featureMatrix,
                                                                     const ILabelMatrix& labelMatrix) const override;
-
 };

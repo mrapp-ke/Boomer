@@ -4,9 +4,9 @@
 #pragma once
 
 #include "common/data/types.hpp"
+
 #include <algorithm>
 #include <thread>
-
 
 /**
  * Returns the number of threads that are available for parallelized algorithms.

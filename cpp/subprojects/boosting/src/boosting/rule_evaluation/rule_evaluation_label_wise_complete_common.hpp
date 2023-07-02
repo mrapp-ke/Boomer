@@ -3,54 +3,62 @@
  */
 #pragma once
 
-#include "boosting/data/statistic_vector_label_wise_dense.hpp"
+#include "common/rule_evaluation/score_vector_dense.hpp"
 #include "rule_evaluation_label_wise_common.hpp"
-
 
 namespace boosting {
 
     /**
-     * Calculates the optimal scores to be predicted for several labels, based on the corresponding gradients and
-     * Hessians and taking L1 and L2 regularization into account, and writes them to an iterator.
+     * Allows to calculate the predictions of complete rules, as well as their overall quality, based on the gradients
+     * and Hessians that are stored by a vector using L1 and L2 regularization.
      *
-     * @tparam ScoreIterator            The type of the iterator, the calculated scores should be written to
-     * @param statisticIterator         A `DenseLabelWiseStatisticVector::const_iterator` that provides access to the
-     *                                  gradients and Hessians
-     * @param scoreIterator             An iterator that allows to write the calculated scores
-     * @param numElements               The number of scores to be calculated
-     * @param l1RegularizationWeight    The weight of the L1 regularization
-     * @param l2RegularizationWeight    The weight of the L2 regularization
+     * @tparam StatisticVector  The type of the vector that provides access to the gradients and Hessians
+     * @tparam IndexVector      The type of the vector that provides access to the labels for which predictions should
+     *                          be calculated
      */
-    template<typename ScoreIterator>
-    static inline void calculateLabelWiseScores(DenseLabelWiseStatisticVector::const_iterator statisticIterator,
-                                                ScoreIterator scoreIterator, uint32 numElements,
-                                                float64 l1RegularizationWeight, float64 l2RegularizationWeight) {
-        for (uint32 i = 0; i < numElements; i++) {
-            const Tuple<float64>& tuple = statisticIterator[i];
-            scoreIterator[i] = calculateLabelWiseScore(tuple.first, tuple.second, l1RegularizationWeight,
-                                                       l2RegularizationWeight);
-        }
-    }
+    template<typename StatisticVector, typename IndexVector>
+    class LabelWiseCompleteRuleEvaluation final : public IRuleEvaluation<StatisticVector> {
+        private:
 
-    /**
-     * Calculates and returns a quality score that assesses the quality of the score that is predicted for a single
-     * label, taking L1 and L2 regularization into account.
-     *
-     * @param score                     The predicted score
-     * @param gradient                  The gradient
-     * @param hessian                   The Hessian
-     * @param l1RegularizationWeight    The weight of the L1 regularization
-     * @param l2RegularizationWeight    The weight of the L2 regularization
-     * @return                          The quality score that has been calculated
-     */
-    static inline float64 calculateLabelWiseQualityScore(float64 score, float64 gradient, float64 hessian,
-                                                         float64 l1RegularizationWeight,
-                                                         float64 l2RegularizationWeight) {
-        float64 scorePow = score * score;
-        float64 qualityScore =  (gradient * score) + (0.5 * hessian * scorePow);
-        float64 l1RegularizationTerm = l1RegularizationWeight * std::abs(score);
-        float64 l2RegularizationTerm = 0.5 * l2RegularizationWeight * scorePow;
-        return qualityScore + l1RegularizationTerm + l2RegularizationTerm;
-    }
+            DenseScoreVector<IndexVector> scoreVector_;
+
+            const float64 l1RegularizationWeight_;
+
+            const float64 l2RegularizationWeight_;
+
+        public:
+
+            /**
+             * @param labelIndices              A reference to an object of template type `IndexVector` that provides
+             *                                  access to the indices of the labels for which the rules may predict
+             * @param l1RegularizationWeight    The weight of the L1 regularization that is applied for calculating the
+             *                                  scores to be predicted by rules
+             * @param l2RegularizationWeight    The weight of the L2 regularization that is applied for calculating the
+             *                                  scores to be predicted by rules
+             */
+            LabelWiseCompleteRuleEvaluation(const IndexVector& labelIndices, float64 l1RegularizationWeight,
+                                            float64 l2RegularizationWeight)
+                : scoreVector_(DenseScoreVector<IndexVector>(labelIndices, true)),
+                  l1RegularizationWeight_(l1RegularizationWeight), l2RegularizationWeight_(l2RegularizationWeight) {}
+
+            const IScoreVector& calculateScores(StatisticVector& statisticVector) override {
+                uint32 numElements = statisticVector.getNumElements();
+                typename StatisticVector::const_iterator statisticIterator = statisticVector.cbegin();
+                typename DenseScoreVector<IndexVector>::score_iterator scoreIterator = scoreVector_.scores_begin();
+                float64 quality = 0;
+
+                for (uint32 i = 0; i < numElements; i++) {
+                    const Tuple<float64>& tuple = statisticIterator[i];
+                    float64 predictedScore = calculateLabelWiseScore(tuple.first, tuple.second, l1RegularizationWeight_,
+                                                                     l2RegularizationWeight_);
+                    scoreIterator[i] = predictedScore;
+                    quality += calculateLabelWiseQuality(predictedScore, tuple.first, tuple.second,
+                                                         l1RegularizationWeight_, l2RegularizationWeight_);
+                }
+
+                scoreVector_.quality = quality;
+                return scoreVector_;
+            }
+    };
 
 }

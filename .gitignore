@@ -9,6 +9,8 @@ python/**/cython/*.dylib
 python/**/cython/*.dll
 python/**/cython/*.lib
 python/**/cython/*.pyd
+python/**/tests/res/tmp/
+.cpp_files.tmp
 
 # Documentation files
 doc/_build/
@@ -25,7 +27,7 @@ venv/
 .vscode/
 
 # Experiments
-data/
-results/
-models/
-parameters/
+/data/
+/results/
+/models/
+/parameters/

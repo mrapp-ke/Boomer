@@ -3,11 +3,10 @@
  */
 #pragma once
 
+#include "boosting/binning/label_binning.hpp"
 #include "boosting/rule_evaluation/head_type.hpp"
 #include "boosting/rule_evaluation/regularization.hpp"
-#include "boosting/binning/label_binning.hpp"
 #include "common/multi_threading/multi_threading.hpp"
-
 
 namespace boosting {
 
@@ -15,7 +14,6 @@ namespace boosting {
      * Allows to configure complete rule heads that predict for all available labels.
      */
     class CompleteHeadConfig final : public IHeadConfig {
-
         private:
 
             const std::unique_ptr<ILabelBinningConfig>& labelBinningConfigPtr_;
@@ -45,13 +43,20 @@ namespace boosting {
                                const std::unique_ptr<IRegularizationConfig>& l2RegularizationConfigPtr);
 
             std::unique_ptr<IStatisticsProviderFactory> createStatisticsProviderFactory(
-                const IFeatureMatrix& featureMatrix, const ILabelMatrix& labelMatrix,
-                const ILabelWiseLossConfig& lossConfig) const override;
+              const IFeatureMatrix& featureMatrix, const IRowWiseLabelMatrix& labelMatrix,
+              const ILabelWiseLossConfig& lossConfig) const override;
 
             std::unique_ptr<IStatisticsProviderFactory> createStatisticsProviderFactory(
-                const IFeatureMatrix& featureMatrix, const ILabelMatrix& labelMatrix,
-                const IExampleWiseLossConfig& lossConfig, const Blas& blas, const Lapack& lapack) const override;
+              const IFeatureMatrix& featureMatrix, const IRowWiseLabelMatrix& labelMatrix,
+              const ISparseLabelWiseLossConfig& lossConfig) const override;
 
+            std::unique_ptr<IStatisticsProviderFactory> createStatisticsProviderFactory(
+              const IFeatureMatrix& featureMatrix, const IRowWiseLabelMatrix& labelMatrix,
+              const IExampleWiseLossConfig& lossConfig, const Blas& blas, const Lapack& lapack) const override;
+
+            bool isPartial() const override;
+
+            bool isSingleLabel() const override;
     };
 
 }

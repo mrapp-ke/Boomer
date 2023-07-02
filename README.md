@@ -1,5 +1,9 @@
 <p align="center">
-  <img alt="BOOMER - Gradient Boosted Multi-Label Classification Rules" src="https://github.com/mrapp-ke/Boomer/blob/master/logo.png" height="128"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo_dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="assets/logo_light.svg">
+    <img alt="BOOMER - Gradient Boosted Multi-Label Classification Rules" src="assets/logo_light.svg">
+  </picture>
 </p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -7,7 +11,7 @@
 [![Documentation Status](https://readthedocs.org/projects/mlrl-boomer/badge/?version=latest)](https://mlrl-boomer.readthedocs.io/en/latest/?badge=latest)
 [![Twitter URL](https://img.shields.io/twitter/url?label=Follow%20on%20Twitter&style=social&url=https%3A%2F%2Ftwitter.com%2FBOOMER_ML)](https://twitter.com/BOOMER_ML)
 
-**Important links:** [Documentation](https://mlrl-boomer.readthedocs.io) | [Issue Tracker](https://github.com/mrapp-ke/Boomer/issues) | [Changelog](https://github.com/mrapp-ke/Boomer/blob/master/CHANGELOG.md) | [Contributors](https://github.com/mrapp-ke/Boomer/blob/master/CONTRIBUTORS.md) | [Code of Conduct](https://github.com/mrapp-ke/Boomer/blob/master/CODE_OF_CONDUCT.md)
+**Important links:** [Documentation](https://mlrl-boomer.readthedocs.io) | [Issue Tracker](https://github.com/mrapp-ke/Boomer/issues) | [Changelog](CHANGELOG.md) | [Contributors](CONTRIBUTORS.md) | [Code of Conduct](CODE_OF_CONDUCT.md)
 
 This software package provides the official implementation of **BOOMER - an algorithm for learning gradient boosted multi-label classification rules** that integrates with the popular [scikit-learn](https://scikit-learn.org) machine learning framework.
 
@@ -19,30 +23,38 @@ The algorithm was first published in the following [paper](https://doi.org/10.10
 
 *Michael Rapp, Eneldo Loza Mencía, Johannes Fürnkranz Vu-Linh Nguyen and Eyke Hüllermeier. Learning Gradient Boosted Multi-label Classification Rules. In: Proceedings of the European Conference on Machine Learning and Knowledge Discovery in Databases (ECML-PKDD), 2020, Springer.*
 
-If you use the algorithm in a scientific publication, we would appreciate citations to the mentioned paper. An overview of publications that are concerned with the BOOMER algorithm, together with information on how to cite them, can be found in the section [References](https://mlrl-boomer.readthedocs.io/en/latest/references/index.html) of the documentation. 
+If you use the algorithm in a scientific publication, we would appreciate citations to the mentioned paper. An overview of publications that are concerned with the BOOMER algorithm, together with information on how to cite them, can be found in the section ["References"](https://mlrl-boomer.readthedocs.io/en/latest/references/index.html) of the documentation. 
 
-## Features
+## Functionalities
 
 The algorithm that is provided by this project currently supports the following core functionalities to learn an ensemble of boosted classification rules:
 
-* Different label-wise or example-wise loss functions can be minimized during training (optionally using L1 or L2 regularization).
-* The rules may predict for a single label or for all labels (which enables to model local label dependencies).
-* When learning a new rule, random samples of the training examples, features or labels may be used (including different techniques such as sampling with or without replacement or stratification methods).
-* The impact of individual rules on the ensemble can be controlled using shrinkage.
-* Hyper-parameters that provide fine-grained control over the specificity/generality of rules are available.
-* The conditions of rules can be pruned based on a hold-out set.
-* The algorithm can natively handle numerical, ordinal and nominal features (without the need for pre-processing techniques such as one-hot encoding).
-* The algorithm is able to deal with missing feature values, i.e., occurrences of NaN in the feature matrix.
-* Different strategies for prediction, which can be tailored to the used loss function, are available.
+* **Label-wise decomposable or non-decomposable loss functions** can be minimized in expectation.
+* **L1 and L2 regularization** can be used.
+* **Single-label, partial, or complete heads** can be used by rules, i.e., they can predict for an individual label, a subset of the available labels, or all labels. Predicting for multiple labels simultaneously enables rules to model local dependencies between labels.
+* **Various strategies for predicting regression scores, labels or probabilities** are available.
+* **Isotonic regression models can be used to calibrate marginal and joint probabilities** predicted by a model.
+* **Rules can be constructed via a greedy search or a beam search.** The latter may help to improve the quality of individual rules.
+* **Sampling techniques and stratification methods** can be used to learn new rules on a subset of the available training examples, features, or labels.
+* **Shrinkage (a.k.a. the learning rate) can be adjusted** to control the impact of individual rules on the overall ensemble.
+* **Fine-grained control over the specificity/generality of rules** is provided via hyper-parameters.
+* **Incremental reduced error pruning** can be used to remove overly specific conditions from rules and prevent overfitting.
+* **Post- and pre-pruning (a.k.a. early stopping)** allows to determine the optimal number of rules to be included in an ensemble.
+* **Sequential post-optimization** may help to improve the predictive performance of a model by reconstructing each rule in the context of the other rules.
+* **Native support for numerical, ordinal, and nominal features** eliminates the need for pre-processing techniques such as one-hot encoding.
+* **Handling of missing feature values**, i.e., occurrences of NaN in the feature matrix, is implemented by the algorithm.
+
+## Runtime and Memory Optimizations
 
 In addition, the following features that may speed up training or reduce the memory footprint are currently implemented:
 
-* Approximate methods for evaluating potential conditions of rules, based on unsupervised binning methods, can be used.
-* [Gradient-based label binning (GBLB)](https://arxiv.org/pdf/2106.11690.pdf) can be used to assign the available labels to a limited number of bins. The use of label binning may speed up training significantly when using rules that predict for multiple labels to minimize a non-decomposable loss function.
-* Dense or sparse feature matrices can be used for training and prediction. The use of sparse matrices may speed up training significantly on some data sets.
-* Dense or sparse label matrices can be used for training. The use of sparse matrices may reduce the memory footprint in case of large data sets.
-* Dense or sparse matrices can be used to store predictions. The use of sparse matrices may reduce the memory footprint in case of large data sets.
-* Multi-threading can be used to parallelize the evaluation of a rule's potential refinements across several features, to update the gradients and Hessians of individual examples in parallel, or to obtain predictions for several examples in parallel.
+* **Unsupervised feature binning** can be used to speed up the evaluation of a rule's potential conditions when dealing with numerical features.
+* **[Gradient-based label binning (GBLB)](https://arxiv.org/pdf/2106.11690.pdf)** can be used to assign the available labels to a limited number of bins. This may speed up training significantly when minimizing a non-decomposable loss function using rules with partial or complete heads.
+* **Sparse feature matrices** can be used for training and prediction. This may speed up training significantly on some data sets.
+* **Sparse label matrices** can be used for training. This may reduce the memory footprint in case of large data sets.
+* **Sparse prediction matrices** can be used to store predicted labels. This may reduce the memory footprint in case of large data sets.
+* **Sparse matrices for storing gradients and Hessians** can be used if supported by the loss function. This may speed up training significantly on data sets with many labels.
+* **Multi-threading** can be used to parallelize the evaluation of a rule's potential refinements across several features, to update the gradients and Hessians of individual examples in parallel, or to obtain predictions for several examples in parallel.
 
 ## Documentation
 
@@ -54,10 +66,10 @@ An extensive user guide, as well as an API documentation for developers, is avai
 
 A collection of benchmark datasets that are compatible with the algorithm are provided in a separate [repository](https://github.com/mrapp-ke/Boomer-Datasets).
 
-For an overview of changes and new features that have been included in past releases, please refer to the [changelog](https://github.com/mrapp-ke/Boomer/blob/master/CHANGELOG.md).
+For an overview of changes and new features that have been included in past releases, please refer to the [changelog](CHANGELOG.md).
 
 ## License
 
-This project is open source software licensed under the terms of the [MIT license](https://github.com/mrapp-ke/Boomer/blob/master/LICENSE.txt). We welcome contributions to the project to enhance its functionality and make it more accessible to a broader audience. A frequently updated list of contributors is available [here](https://github.com/mrapp-ke/Boomer/blob/master/CONTRIBUTORS.md).
+This project is open source software licensed under the terms of the [MIT license](LICENSE.md). We welcome contributions to the project to enhance its functionality and make it more accessible to a broader audience. A frequently updated list of contributors is available [here](CONTRIBUTORS.md).
 
-All contributions to the project and discussions on the [issue tracker](https://github.com/mrapp-ke/Boomer/issues) are expected to follow the [code of conduct](https://github.com/mrapp-ke/Boomer/blob/master/CODE_OF_CONDUCT.md).
+All contributions to the project and discussions on the [issue tracker](https://github.com/mrapp-ke/Boomer/issues) are expected to follow the [code of conduct](CODE_OF_CONDUCT.md).

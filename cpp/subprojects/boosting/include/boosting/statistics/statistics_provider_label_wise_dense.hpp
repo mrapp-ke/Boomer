@@ -4,10 +4,9 @@
  */
 #pragma once
 
-#include "common/statistics/statistics_provider.hpp"
-#include "boosting/statistics/statistics_label_wise.hpp"
 #include "boosting/losses/loss_label_wise.hpp"
-
+#include "boosting/statistics/statistics_label_wise.hpp"
+#include "common/statistics/statistics_provider.hpp"
 
 namespace boosting {
 
@@ -16,20 +15,19 @@ namespace boosting {
      * `ILabelWiseStatistics`, which uses dense data structures to store the statistics.
      */
     class DenseLabelWiseStatisticsProviderFactory final : public IStatisticsProviderFactory {
-
         private:
 
-            std::unique_ptr<ILabelWiseLossFactory> lossFactoryPtr_;
+            const std::unique_ptr<ILabelWiseLossFactory> lossFactoryPtr_;
 
-            std::unique_ptr<IEvaluationMeasureFactory> evaluationMeasureFactoryPtr_;
+            const std::unique_ptr<IEvaluationMeasureFactory> evaluationMeasureFactoryPtr_;
 
-            std::unique_ptr<ILabelWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr_;
+            const std::unique_ptr<ILabelWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr_;
 
-            std::unique_ptr<ILabelWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr_;
+            const std::unique_ptr<ILabelWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr_;
 
-            std::unique_ptr<ILabelWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr_;
+            const std::unique_ptr<ILabelWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr_;
 
-            uint32 numThreads_;
+            const uint32 numThreads_;
 
         public:
 
@@ -57,23 +55,22 @@ namespace boosting {
              *                                          statistics in parallel. Must be at least 1
              */
             DenseLabelWiseStatisticsProviderFactory(
-                std::unique_ptr<ILabelWiseLossFactory> lossFactoryPtr,
-                std::unique_ptr<IEvaluationMeasureFactory> evaluationMeasureFactoryPtr,
-                std::unique_ptr<ILabelWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr,
-                std::unique_ptr<ILabelWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr,
-                std::unique_ptr<ILabelWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr, uint32 numThreads);
+              std::unique_ptr<ILabelWiseLossFactory> lossFactoryPtr,
+              std::unique_ptr<IEvaluationMeasureFactory> evaluationMeasureFactoryPtr,
+              std::unique_ptr<ILabelWiseRuleEvaluationFactory> defaultRuleEvaluationFactoryPtr,
+              std::unique_ptr<ILabelWiseRuleEvaluationFactory> regularRuleEvaluationFactoryPtr,
+              std::unique_ptr<ILabelWiseRuleEvaluationFactory> pruningRuleEvaluationFactoryPtr, uint32 numThreads);
 
             /**
              * @see `IStatisticsProviderFactory::create`
              */
             std::unique_ptr<IStatisticsProvider> create(
-                const CContiguousConstView<const uint8>& labelMatrix) const override;
+              const CContiguousConstView<const uint8>& labelMatrix) const override;
 
             /**
              * @see `IStatisticsProviderFactory::create`
              */
             std::unique_ptr<IStatisticsProvider> create(const BinaryCsrConstView& labelMatrix) const override;
-
     };
 
 }

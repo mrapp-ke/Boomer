@@ -3,19 +3,17 @@
  */
 #pragma once
 
-#include "common/multi_threading/multi_threading.hpp"
 #include "common/macros.hpp"
-
+#include "common/multi_threading/multi_threading.hpp"
 
 /**
  * Defines an interface for all classes that allow to configure the multi-threading behavior of a parallelizable
  * algorithm by manually specifying the number of threads to be used.
  */
 class MLRLCOMMON_API IManualMultiThreadingConfig {
-
     public:
 
-        virtual ~IManualMultiThreadingConfig() { };
+        virtual ~IManualMultiThreadingConfig() {};
 
         /**
          * Returns the number of threads that are used.
@@ -33,15 +31,14 @@ class MLRLCOMMON_API IManualMultiThreadingConfig {
          *                      configuration of the multi-threading behavior
          */
         virtual IManualMultiThreadingConfig& setNumThreads(uint32 numThreads) = 0;
-
 };
 
 /**
  * Allows to configure the multi-threading behavior of a parallelizable algorithm by manually specifying the number of
  * threads to be used.
  */
-class ManualMultiThreadingConfig final : public IMultiThreadingConfig, public IManualMultiThreadingConfig{
-
+class ManualMultiThreadingConfig final : public IMultiThreadingConfig,
+                                         public IManualMultiThreadingConfig {
     private:
 
         uint32 numThreads_;
@@ -55,5 +52,4 @@ class ManualMultiThreadingConfig final : public IMultiThreadingConfig, public IM
         IManualMultiThreadingConfig& setNumThreads(uint32 numThreads) override;
 
         uint32 getNumThreads(const IFeatureMatrix& featureMatrix, uint32 numLabels) const override;
-
 };

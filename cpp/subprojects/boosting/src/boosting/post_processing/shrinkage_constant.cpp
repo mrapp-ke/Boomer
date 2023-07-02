@@ -1,6 +1,6 @@
 #include "boosting/post_processing/shrinkage_constant.hpp"
-#include "common/util/validation.hpp"
 
+#include "common/util/validation.hpp"
 
 namespace boosting {
 
@@ -8,20 +8,16 @@ namespace boosting {
      * Post-processes the predictions of rules by shrinking their weights by a constant shrinkage parameter.
      */
     class ConstantShrinkage final : public IPostProcessor {
-
         private:
 
-            float64 shrinkage_;
+            const float64 shrinkage_;
 
         public:
 
             /**
              * @param shrinkage The shrinkage parameter. Must be in (0, 1)
              */
-            ConstantShrinkage(float64 shrinkage)
-                : shrinkage_(shrinkage) {
-
-            }
+            ConstantShrinkage(float64 shrinkage) : shrinkage_(shrinkage) {}
 
             /**
              * @see `IPostProcessor::postProcess`
@@ -34,7 +30,6 @@ namespace boosting {
                     iterator[i] *= shrinkage_;
                 }
             }
-
     };
 
     /**
@@ -42,20 +37,16 @@ namespace boosting {
      * their weights by a constant "shrinkage" parameter.
      */
     class ConstantShrinkageFactory final : public IPostProcessorFactory {
-
         private:
 
-            float64 shrinkage_;
+            const float64 shrinkage_;
 
         public:
 
             /**
              * @param shrinkage The value of the "shrinkage" parameter. Must be in (0, 1)
              */
-            ConstantShrinkageFactory(float64 shrinkage)
-                : shrinkage_(shrinkage) {
-
-            }
+            ConstantShrinkageFactory(float64 shrinkage) : shrinkage_(shrinkage) {}
 
             /**
              * @see `IPostProcessorFactory::create`
@@ -63,13 +54,9 @@ namespace boosting {
             std::unique_ptr<IPostProcessor> create() const override {
                 return std::make_unique<ConstantShrinkage>(shrinkage_);
             }
-
     };
 
-    ConstantShrinkageConfig::ConstantShrinkageConfig()
-        : shrinkage_(0.3) {
-
-    }
+    ConstantShrinkageConfig::ConstantShrinkageConfig() : shrinkage_(0.3) {}
 
     float64 ConstantShrinkageConfig::getShrinkage() const {
         return shrinkage_;

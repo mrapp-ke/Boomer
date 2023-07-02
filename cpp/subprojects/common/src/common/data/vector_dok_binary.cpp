@@ -1,6 +1,5 @@
 #include "common/data/vector_dok_binary.hpp"
 
-
 BinaryDokVector::index_const_iterator BinaryDokVector::indices_cbegin() const {
     return data_.cbegin();
 }

@@ -5,7 +5,6 @@
 
 #include "common/data/view_two_dimensional.hpp"
 
-
 /**
  * Implements column-wise read-only access to the values that are stored in a pre-allocated Fortran-contiguous array.
  *
@@ -13,18 +12,17 @@
  */
 template<typename T>
 class FortranContiguousConstView : virtual public ITwoDimensionalView {
-
     protected:
 
         /**
          * The number of rows in the view.
          */
-        uint32 numRows_;
+        const uint32 numRows_;
 
         /**
          * The number of columns in the view.
          */
-        uint32 numCols_;
+        const uint32 numCols_;
 
         /**
          * A pointer to an array that stores the values.
@@ -41,6 +39,8 @@ class FortranContiguousConstView : virtual public ITwoDimensionalView {
          */
         FortranContiguousConstView(uint32 numRows, uint32 numCols, T* array);
 
+        virtual ~FortranContiguousConstView() override {};
+
         /**
          * An iterator that provides read-only access to the values in the view.
          */
@@ -52,7 +52,7 @@ class FortranContiguousConstView : virtual public ITwoDimensionalView {
          * @param col   The column
          * @return      A `value_const_iterator` to the beginning
          */
-        value_const_iterator column_values_cbegin(uint32 col) const;
+        value_const_iterator values_cbegin(uint32 col) const;
 
         /**
          * Returns a `value_const_iterator` to the end of a specific column.
@@ -60,7 +60,7 @@ class FortranContiguousConstView : virtual public ITwoDimensionalView {
          * @param col   The column
          * @return      A `value_const_iterator` to the end
          */
-        value_const_iterator column_values_cend(uint32 col) const;
+        value_const_iterator values_cend(uint32 col) const;
 
         /**
          * @see `ITwoDimensionalView::getNumRows`
@@ -71,7 +71,6 @@ class FortranContiguousConstView : virtual public ITwoDimensionalView {
          * @see `ITwoDimensionalView::getNumCols`
          */
         uint32 getNumCols() const override final;
-
 };
 
 /**
@@ -82,7 +81,6 @@ class FortranContiguousConstView : virtual public ITwoDimensionalView {
  */
 template<typename T>
 class FortranContiguousView : public FortranContiguousConstView<T> {
-
     public:
 
         /**
@@ -92,6 +90,8 @@ class FortranContiguousView : public FortranContiguousConstView<T> {
          *                  view provides access to
          */
         FortranContiguousView(uint32 numRows, uint32 numCols, T* array);
+
+        virtual ~FortranContiguousView() override {};
 
         /**
          * An iterator that provides access to the values in the view and allows to modify them.
@@ -104,7 +104,7 @@ class FortranContiguousView : public FortranContiguousConstView<T> {
          * @param col   The column
          * @return      A `value_iterator` to the beginning
          */
-        value_iterator column_values_begin(uint32 col);
+        value_iterator values_begin(uint32 col);
 
         /**
          * Returns a `value_iterator` to the end of a specific column.
@@ -112,6 +112,5 @@ class FortranContiguousView : public FortranContiguousConstView<T> {
          * @param col   The column
          * @return      A `value_iterator` to the end
          */
-        value_iterator column_values_end(uint32 col);
-
+        value_iterator values_end(uint32 col);
 };

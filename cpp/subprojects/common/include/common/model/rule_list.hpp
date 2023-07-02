@@ -3,24 +3,23 @@
  */
 #pragma once
 
-#include "common/model/rule_model.hpp"
 #include "common/model/body.hpp"
 #include "common/model/head.hpp"
-#include <forward_list>
-#include <iterator>
+#include "common/model/rule_model.hpp"
 
+#include <vector>
 
 /**
- * Defines an interface for all rule-based models that store several rules in an ordered list.
+ * Defines an interface for all rule-based models that store several rules in an ordered list. Optionally, the model may
+ * also contain a default rule that either takes precedence over the remaining rules or not.
  */
 class MLRLCOMMON_API IRuleList : public IRuleModel {
-
     public:
 
-        virtual ~IRuleList() override { };
+        virtual ~IRuleList() override {};
 
         /**
-         * Creates a new default rule from a given head and adds it to the end of the model.
+         * Creates a new default rule from a given head and adds it to the model.
          *
          * @param headPtr An unique pointer to an object of type `IHead` that should be used as the head of the rule
          */
@@ -42,8 +41,15 @@ class MLRLCOMMON_API IRuleList : public IRuleModel {
         virtual bool containsDefaultRule() const = 0;
 
         /**
+         * Returns whether the default rule takes precedence over the remaining rules or not.
+         *
+         * @return True, if the default rule takes precedence over the remaining rules, false otherwise
+         */
+        virtual bool isDefaultRuleTakingPrecedence() const = 0;
+
+        /**
          * Invokes some of the given visitor functions, depending on which ones are able to handle the bodies and heads
-         * of the rules that are contained in this model.
+         * of all rules that are contained in this model, including the default rule, if available.
          *
          * @param emptyBodyVisitor          The visitor function for handling objects of the type `EmptyBody`
          * @param conjunctiveBodyVisitor    The visitor function for handling objects of the type `ConjunctiveBody`
@@ -55,10 +61,9 @@ class MLRLCOMMON_API IRuleList : public IRuleModel {
                            IHead::CompleteHeadVisitor completeHeadVisitor,
                            IHead::PartialHeadVisitor partialHeadVisitor) const = 0;
 
-
         /**
          * Invokes some of the given visitor functions, depending on which ones are able to handle the bodies and heads
-         * of the used rules that are contained in this model.
+         * of all used rules that are contained in this model, including the default rule, if available.
          *
          * @param emptyBodyVisitor          The visitor function for handling objects of the type `EmptyBody`
          * @param conjunctiveBodyVisitor    The visitor function for handling objects of the type `ConjunctiveBody`
@@ -69,21 +74,19 @@ class MLRLCOMMON_API IRuleList : public IRuleModel {
                                IBody::ConjunctiveBodyVisitor conjunctiveBodyVisitor,
                                IHead::CompleteHeadVisitor completeHeadVisitor,
                                IHead::PartialHeadVisitor partialHeadVisitor) const = 0;
-
 };
 
 /**
- * An implementation of the type `IRuleList` that stores several rules in a single-linked list.
+ * An implementation of the type `IRuleList` that stores several rules in the order of their induction. Optionally, the
+ * model may also contain a default rule that either takes precedence over the remaining rules or not.
  */
 class RuleList final : public IRuleList {
-
     public:
 
         /**
          * An implementation of the type `IRule` that stores unique pointers to the body and head of a rule.
          */
         class Rule final {
-
             private:
 
                 std::unique_ptr<IBody> bodyPtr_;
@@ -125,29 +128,39 @@ class RuleList final : public IRuleList {
                            IBody::ConjunctiveBodyVisitor conjunctiveBodyVisitor,
                            IHead::CompleteHeadVisitor completeHeadVisitor,
                            IHead::PartialHeadVisitor partialHeadVisitor) const;
-
         };
 
     private:
 
         /**
-         * Allows to iterate only the used rules.
+         * A forward iterator that provides access to the rules in a model, including the default rule, if available.
          */
-        class RuleConstIterator final {
-
+        class ConstIterator final {
             private:
 
-                std::forward_list<Rule>::const_iterator iterator_;
+                const Rule* defaultRule_;
+
+                std::vector<Rule>::const_iterator iterator_;
+
+                uint32 offset_;
+
+                uint32 defaultRuleIndex_;
 
                 uint32 index_;
 
             public:
 
                 /**
-                 * @param list  A reference to the list that stores all available rules
-                 * @param index The index to start at
+                 * @param defaultRuleTakesPrecedence    True, if the default rule takes precedence over the remaining
+                 *                                      rules, false otherwise
+                 * @param defaultRule                   A pointer to an object of type `Rule` that stores the default
+                 *                                      rule or a null pointer, if no default rule is available
+                 * @param iterator                      An iterator to the beginning of the remaining rules
+                 * @param start                         The index of the rule to start at
+                 * @param end                           The index of the rule to end at (exclusive)
                  */
-                RuleConstIterator(const std::forward_list<Rule>& list, uint32 index);
+                ConstIterator(bool defaultRuleTakesPrecedence, const Rule* defaultRule,
+                              const std::vector<Rule>::const_iterator iterator, uint32 start, uint32 end);
 
                 /**
                  * The type that is used to represent the difference between two iterators.
@@ -182,18 +195,34 @@ class RuleList final : public IRuleList {
                 reference operator*() const;
 
                 /**
-                 * Returns an iterator that refers to the next element.
+                 * Returns an iterator to the next element.
                  *
                  * @return A reference to an iterator that refers to the next element
                  */
-                RuleConstIterator& operator++();
+                ConstIterator& operator++();
 
                 /**
-                 * Returns an iterator that refers to the next element.
+                 * Returns an iterator to the next element.
                  *
                  * @return A reference to an iterator that refers to the next element
                  */
-                RuleConstIterator& operator++(int n);
+                ConstIterator& operator++(int n);
+
+                /**
+                 * Returns an iterator to one of the subsequent elements.
+                 *
+                 * @param difference    The number of elements to increment the iterator by
+                 * @return              A copy of this iterator that refers to the specified element
+                 */
+                ConstIterator operator+(const uint32 difference) const;
+
+                /**
+                 * Returns an iterator to one of the subsequent elements.
+                 *
+                 * @param difference    The number of elements to increment the iterator by
+                 * @return              A reference to an iterator that refers to the specified element
+                 */
+                ConstIterator& operator+=(const uint32 difference);
 
                 /**
                  * Returns whether this iterator and another one refer to the same element.
@@ -201,7 +230,7 @@ class RuleList final : public IRuleList {
                  * @param rhs   A reference to another iterator
                  * @return      True, if the iterators do not refer to the same element, false otherwise
                  */
-                bool operator!=(const RuleConstIterator& rhs) const;
+                bool operator!=(const ConstIterator& rhs) const;
 
                 /**
                  * Returns whether this iterator and another one refer to the same element.
@@ -209,61 +238,69 @@ class RuleList final : public IRuleList {
                  * @param rhs   A reference to another iterator
                  * @return      True, if the iterators refer to the same element, false otherwise
                  */
-                bool operator==(const RuleConstIterator& rhs) const;
+                bool operator==(const ConstIterator& rhs) const;
 
+                /**
+                 * Returns the difference between this iterator and another one.
+                 *
+                 * @param rhs   A reference to another iterator
+                 * @return      The difference between the iterators
+                 */
+                difference_type operator-(const ConstIterator& rhs) const;
         };
 
-        std::forward_list<Rule> list_;
+        std::unique_ptr<Rule> defaultRulePtr_;
 
-        std::forward_list<Rule>::iterator it_;
-
-        uint32 numRules_;
+        std::vector<Rule> ruleList_;
 
         uint32 numUsedRules_;
 
-        bool containsDefaultRule_;
+        bool defaultRuleTakesPrecedence_;
 
     public:
 
-        RuleList();
-
         /**
-         * An iterator that provides read-only access to all rules.
+         * @param defaultRuleTakesPrecedence True, if the default rule should take precedence over the remaining rules,
+         *                                   false otherwise
          */
-        typedef std::forward_list<Rule>::const_iterator const_iterator;
+        RuleList(bool defaultRuleTakesPrecedence);
 
         /**
-         * An iterator that provides read-only access to the used rules.
+         * An iterator that provides read-only access to rules.
          */
-        typedef RuleConstIterator used_const_iterator;
+        typedef ConstIterator const_iterator;
 
         /**
-         * Returns a `const_iterator` to the beginning of the rules.
+         * Returns a `const_iterator` to the beginning of all rules, including the default rule, if available.
          *
-         * @return A `const_iterator` to the beginning
+         * @param maxRules  The maximum number of rules to consider or 0, if all rules should be considered
+         * @return          A `const_iterator` to the beginning
          */
-        const_iterator cbegin() const;
+        const_iterator cbegin(uint32 maxRules = 0) const;
 
         /**
-         * Returns a `const_iterator` to the end of the rules.
+         * Returns a `const_iterator` to the end of all rules, including the default rule, if available.
          *
-         * @return A `const_iterator` to the end
+         * @param maxRules  The maximum number of rules to consider or 0, if all rules should be considered
+         * @return          A `const_iterator` to the end
          */
-        const_iterator cend() const;
+        const_iterator cend(uint32 maxRules = 0) const;
 
         /**
-         * Returns an `used_const_iterator` to the beginning of the used rules.
+         * Returns a `const_iterator` to the beginning of all used rules, including the default rule, if available.
          *
-         * @return An `used_const_iterator` to the beginning
+         * @param maxRules  The maximum number of rules to consider or 0, if all rules should be considered
+         * @return          A `const_iterator` to the beginning
          */
-        used_const_iterator used_cbegin() const;
+        const_iterator used_cbegin(uint32 maxRules = 0) const;
 
         /**
-         * Returns an `used_const_iterator` to the end of the used rules.
+         * Returns a `const_iterator` to the end of all used rules, including the default rule, if available.
          *
-         * @return An `used_const_iterator` to the end
+         * @param maxRules  The maximum number of rules to consider or 0, if all used rules should be considered
+         * @return          A `const_iterator` to the end
          */
-        used_const_iterator used_cend() const;
+        const_iterator used_cend(uint32 maxRules = 0) const;
 
         uint32 getNumRules() const override;
 
@@ -277,31 +314,68 @@ class RuleList final : public IRuleList {
 
         bool containsDefaultRule() const override;
 
-        void visit(IBody::EmptyBodyVisitor emptyBodyVisitor,
-                   IBody::ConjunctiveBodyVisitor conjunctiveBodyVisitor,
+        bool isDefaultRuleTakingPrecedence() const override;
+
+        void visit(IBody::EmptyBodyVisitor emptyBodyVisitor, IBody::ConjunctiveBodyVisitor conjunctiveBodyVisitor,
                    IHead::CompleteHeadVisitor completeHeadVisitor,
                    IHead::PartialHeadVisitor partialHeadVisitor) const override;
 
-
-        void visitUsed(IBody::EmptyBodyVisitor emptyBodyVisitor,
-                       IBody::ConjunctiveBodyVisitor conjunctiveBodyVisitor,
+        void visitUsed(IBody::EmptyBodyVisitor emptyBodyVisitor, IBody::ConjunctiveBodyVisitor conjunctiveBodyVisitor,
                        IHead::CompleteHeadVisitor completeHeadVisitor,
                        IHead::PartialHeadVisitor partialHeadVisitor) const override;
 
-        std::unique_ptr<IClassificationPredictor> createClassificationPredictor(
-            const IClassificationPredictorFactory& factory, const ILabelSpaceInfo& labelSpaceInfo) const override;
+        std::unique_ptr<IBinaryPredictor> createBinaryPredictor(
+          const IBinaryPredictorFactory& factory, const CContiguousFeatureMatrix& featureMatrix,
+          const ILabelSpaceInfo& labelSpaceInfo,
+          const IMarginalProbabilityCalibrationModel& marginalProbabilityCalibrationModel,
+          const IJointProbabilityCalibrationModel& jointProbabilityCalibrationModel, uint32 numLabels) const override;
 
-        std::unique_ptr<IRegressionPredictor> createRegressionPredictor(
-            const IRegressionPredictorFactory& factory, const ILabelSpaceInfo& labelSpaceInfo) const override;
+        std::unique_ptr<IBinaryPredictor> createBinaryPredictor(
+          const IBinaryPredictorFactory& factory, const CsrFeatureMatrix& featureMatrix,
+          const ILabelSpaceInfo& labelSpaceInfo,
+          const IMarginalProbabilityCalibrationModel& marginalProbabilityCalibrationModel,
+          const IJointProbabilityCalibrationModel& jointProbabilityCalibrationModel, uint32 numLabels) const override;
+
+        std::unique_ptr<ISparseBinaryPredictor> createSparseBinaryPredictor(
+          const ISparseBinaryPredictorFactory& factory, const CContiguousFeatureMatrix& featureMatrix,
+          const ILabelSpaceInfo& labelSpaceInfo,
+          const IMarginalProbabilityCalibrationModel& marginalProbabilityCalibrationModel,
+          const IJointProbabilityCalibrationModel& jointProbabilityCalibrationModel, uint32 numLabels) const override;
+
+        std::unique_ptr<ISparseBinaryPredictor> createSparseBinaryPredictor(
+          const ISparseBinaryPredictorFactory& factory, const CsrFeatureMatrix& featureMatrix,
+          const ILabelSpaceInfo& labelSpaceInfo,
+          const IMarginalProbabilityCalibrationModel& marginalProbabilityCalibrationModel,
+          const IJointProbabilityCalibrationModel& jointProbabilityCalibrationModel, uint32 numLabels) const override;
+
+        std::unique_ptr<IScorePredictor> createScorePredictor(const IScorePredictorFactory& factory,
+                                                              const CContiguousFeatureMatrix& featureMatrix,
+                                                              const ILabelSpaceInfo& labelSpaceInfo,
+                                                              uint32 numLabels) const override;
+
+        std::unique_ptr<IScorePredictor> createScorePredictor(const IScorePredictorFactory& factory,
+                                                              const CsrFeatureMatrix& featureMatrix,
+                                                              const ILabelSpaceInfo& labelSpaceInfo,
+                                                              uint32 numLabels) const override;
 
         std::unique_ptr<IProbabilityPredictor> createProbabilityPredictor(
-            const IProbabilityPredictorFactory& factory, const ILabelSpaceInfo& labelSpaceInfo) const override;
+          const IProbabilityPredictorFactory& factory, const CContiguousFeatureMatrix& featureMatrix,
+          const ILabelSpaceInfo& labelSpaceInfo,
+          const IMarginalProbabilityCalibrationModel& marginalProbabilityCalibrationModel,
+          const IJointProbabilityCalibrationModel& jointProbabilityCalibrationModel, uint32 numLabels) const override;
 
+        std::unique_ptr<IProbabilityPredictor> createProbabilityPredictor(
+          const IProbabilityPredictorFactory& factory, const CsrFeatureMatrix& featureMatrix,
+          const ILabelSpaceInfo& labelSpaceInfo,
+          const IMarginalProbabilityCalibrationModel& marginalProbabilityCalibrationModel,
+          const IJointProbabilityCalibrationModel& jointProbabilityCalibrationModel, uint32 numLabels) const override;
 };
 
 /**
  * Creates and returns a new instance of the type `IRuleList`.
  *
- * @return An unique pointer to an object of type `IRuleList` that has been created
+ * @param defaultRuleTakesPrecedence    True, if the default rule should take precedence over the remaining rules, false
+ *                                      otherwise
+ * @return                              An unique pointer to an object of type `IRuleList` that has been created
  */
-MLRLCOMMON_API std::unique_ptr<IRuleList> createRuleList();
+MLRLCOMMON_API std::unique_ptr<IRuleList> createRuleList(bool defaultRuleTakesPrecedence);

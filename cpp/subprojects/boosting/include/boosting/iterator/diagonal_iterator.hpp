@@ -4,8 +4,8 @@
 #pragma once
 
 #include "common/data/types.hpp"
-#include <iterator>
 
+#include <iterator>
 
 namespace boosting {
 
@@ -17,7 +17,6 @@ namespace boosting {
      */
     template<typename T>
     class DiagonalConstIterator final {
-
         private:
 
             const T* ptr_;
@@ -123,7 +122,6 @@ namespace boosting {
              * @return      The difference between the iterators
              */
             difference_type operator-(const DiagonalConstIterator<T>& rhs) const;
-
     };
 
 }

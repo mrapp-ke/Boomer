@@ -5,17 +5,15 @@
 
 #include "common/sampling/partition_sampling.hpp"
 
-
 /**
  * Defines an interface for all classes that allow to configure a method for partitioning the available training
  * examples into a training set and a holdout set using stratification, where distinct label vectors are treated as
  * individual classes.
  */
 class MLRLCOMMON_API IExampleWiseStratifiedBiPartitionSamplingConfig {
-
     public:
 
-        virtual ~IExampleWiseStratifiedBiPartitionSamplingConfig() { };
+        virtual ~IExampleWiseStratifiedBiPartitionSamplingConfig() {};
 
         /**
          * Returns the fraction of examples that are included in the holdout set.
@@ -34,7 +32,6 @@ class MLRLCOMMON_API IExampleWiseStratifiedBiPartitionSamplingConfig {
          *                          training examples into a training set and a holdout set
          */
         virtual IExampleWiseStratifiedBiPartitionSamplingConfig& setHoldoutSetSize(float32 holdoutSetSize) = 0;
-
 };
 
 /**
@@ -43,7 +40,6 @@ class MLRLCOMMON_API IExampleWiseStratifiedBiPartitionSamplingConfig {
  */
 class ExampleWiseStratifiedBiPartitionSamplingConfig final : public IPartitionSamplingConfig,
                                                              public IExampleWiseStratifiedBiPartitionSamplingConfig {
-
     private:
 
         float32 holdoutSetSize_;
@@ -57,5 +53,4 @@ class ExampleWiseStratifiedBiPartitionSamplingConfig final : public IPartitionSa
         IExampleWiseStratifiedBiPartitionSamplingConfig& setHoldoutSetSize(float32 holdoutSetSize) override;
 
         std::unique_ptr<IPartitionSamplingFactory> createPartitionSamplingFactory() const override;
-
 };

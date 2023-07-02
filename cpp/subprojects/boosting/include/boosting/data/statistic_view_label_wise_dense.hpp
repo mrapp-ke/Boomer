@@ -5,7 +5,6 @@
 
 #include "common/data/tuple.hpp"
 
-
 namespace boosting {
 
     /**
@@ -13,18 +12,17 @@ namespace boosting {
      * decomposable loss function and are stored in pre-allocated C-contiguous arrays.
      */
     class DenseLabelWiseStatisticConstView {
-
         protected:
 
             /**
              * The number of rows in the view.
              */
-            uint32 numRows_;
+            const uint32 numRows_;
 
             /**
              * The number of columns in the view.
              */
-            uint32 numCols_;
+            const uint32 numCols_;
 
             /**
              * A pointer to an array that stores the gradients and Hessians.
@@ -41,6 +39,8 @@ namespace boosting {
              */
             DenseLabelWiseStatisticConstView(uint32 numRows, uint32 numCols, Tuple<float64>* statistics);
 
+            virtual ~DenseLabelWiseStatisticConstView() {};
+
             /**
              * An iterator that provides read-only access to the elements in the view.
              */
@@ -52,7 +52,7 @@ namespace boosting {
              * @param row   The row
              * @return      A `const_iterator` to the beginning
              */
-            const_iterator row_cbegin(uint32 row) const;
+            const_iterator cbegin(uint32 row) const;
 
             /**
              * Returns a `const_iterator` to the end of a specific row.
@@ -60,7 +60,7 @@ namespace boosting {
              * @param row   The row
              * @return      A `const_iterator` to the end
              */
-            const_iterator row_cend(uint32 row) const;
+            const_iterator cend(uint32 row) const;
 
             /**
              * Returns the number of rows in the view.
@@ -75,7 +75,6 @@ namespace boosting {
              * @return The number of columns
              */
             uint32 getNumCols() const;
-
     };
 
     /**
@@ -83,7 +82,6 @@ namespace boosting {
      * label-wise decomposable loss function and are stored in pre-allocated C-contiguous arrays.
      */
     class DenseLabelWiseStatisticView : public DenseLabelWiseStatisticConstView {
-
         public:
 
             /**
@@ -93,6 +91,8 @@ namespace boosting {
              *                      and Hessians, the view provides access to
              */
             DenseLabelWiseStatisticView(uint32 numRows, uint32 numCols, Tuple<float64>* statistics);
+
+            virtual ~DenseLabelWiseStatisticView() override {};
 
             /**
              * An iterator that provides access to the elements in the view and allows to modify them.
@@ -105,7 +105,7 @@ namespace boosting {
              * @param row   The row
              * @return      An `iterator` to the beginning
              */
-            iterator row_begin(uint32 row);
+            iterator begin(uint32 row);
 
             /**
              * Returns an `iterator` to the end of a specific row.
@@ -113,7 +113,7 @@ namespace boosting {
              * @param row   The row
              * @return      An `iterator` to the end
              */
-            iterator row_end(uint32 row);
+            iterator end(uint32 row);
 
             /**
              * Sets all gradients and Hessians in the matrix to zero.
@@ -130,7 +130,6 @@ namespace boosting {
              * @param weight    The weight, the gradients and Hessians should be multiplied by
              */
             void addToRow(uint32 row, const_iterator begin, const_iterator end, float64 weight);
-
     };
 
 }

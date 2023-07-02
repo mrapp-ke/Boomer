@@ -4,22 +4,20 @@
  */
 #pragma once
 
-#include "common/thresholds/thresholds.hpp"
 #include "common/binning/feature_binning.hpp"
-
+#include "common/thresholds/thresholds.hpp"
 
 /**
  * A factory that allows to create instances of the type `ApproximateThresholds`.
  */
 class ApproximateThresholdsFactory final : public IThresholdsFactory {
-
     private:
 
-        std::unique_ptr<IFeatureBinningFactory> numericalFeatureBinningFactoryPtr_;
+        const std::unique_ptr<IFeatureBinningFactory> numericalFeatureBinningFactoryPtr_;
 
-        std::unique_ptr<IFeatureBinningFactory> nominalFeatureBinningFactoryPtr_;
+        const std::unique_ptr<IFeatureBinningFactory> nominalFeatureBinningFactoryPtr_;
 
-        uint32 numThreads_;
+        const uint32 numThreads_;
 
     public:
 
@@ -38,7 +36,6 @@ class ApproximateThresholdsFactory final : public IThresholdsFactory {
                                      uint32 numThreads);
 
         std::unique_ptr<IThresholds> create(const IColumnWiseFeatureMatrix& featureMatrix,
-                                            const INominalFeatureMask& nominalFeatureMask,
+                                            const IFeatureInfo& featureInfo,
                                             IStatisticsProvider& statisticsProvider) const override;
-
 };

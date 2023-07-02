@@ -4,8 +4,9 @@
 #pragma once
 
 #include "common/data/types.hpp"
-#include <algorithm>
 
+#include <algorithm>
+#include <cstddef>
 
 /**
  * Sets all elements in an array to zero.
@@ -30,6 +31,25 @@ static inline void setArrayToZeros(T* a, uint32 numElements) {
 template<typename T>
 static inline void setArrayToValue(T* a, uint32 numElements, T value) {
     std::fill(a, a + numElements, value);
+}
+
+/**
+ * Sets the elements in an array to increasing values.
+ *
+ * @tparam T            The type of the array
+ * @param a             A pointer to an array of template type `T`
+ * @param numElements   The number of elements in the array
+ * @param start         The value to start at
+ * @param increment     The difference between the values
+ */
+template<typename T>
+static inline void setArrayToIncreasingValues(T* a, uint32 numElements, T start, T increment) {
+    T nextValue = start;
+
+    for (uint32 i = 0; i < numElements; i++) {
+        a[i] = nextValue;
+        nextValue += increment;
+    }
 }
 
 /**
@@ -99,4 +119,46 @@ static inline void setArrayToDifference(T* a, const T* b, const T* c, const uint
         uint32 index = indices[i];
         a[i] = b[index] - c[i];
     }
+}
+
+/**
+ * Calculates and returns a hash value from an array of type `uint32`.
+ *
+ * @param a             A pointer to an array of type `uint32`
+ * @param numElements   The number of elements in the array
+ * @return              The hash value
+ */
+static inline constexpr std::size_t hashArray(const uint32* a, uint32 numElements) {
+    std::size_t hashValue = (std::size_t) numElements;
+
+    for (uint32 i = 0; i < numElements; i++) {
+        hashValue ^= a[i] + 0x9e3779b9 + (hashValue << 6) + (hashValue >> 2);
+    }
+
+    return hashValue;
+}
+
+/**
+ * Returns whether two arrays are equal or not.
+ *
+ * @tparam T        The type of the arrays
+ * @param first     A pointer to an array of template type `T`
+ * @param numFirst  The number of elements in the array `first`
+ * @param second    A pointer to another array of template type `T`
+ * @param numSecond The number of elements in the array `second`
+ * @return          True, if both arrays are equal, false otherwise
+ */
+template<typename T>
+static inline constexpr bool compareArrays(const T* first, uint32 numFirst, const T* second, uint32 numSecond) {
+    if (numFirst != numSecond) {
+        return false;
+    }
+
+    for (uint32 i = 0; i < numFirst; i++) {
+        if (first[i] != second[i]) {
+            return false;
+        }
+    }
+
+    return true;
 }

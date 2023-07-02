@@ -1,10 +1,7 @@
 #include "common/data/vector_dok.hpp"
 
 template<typename T>
-DokVector<T>::DokVector(T sparseValue)
-    : sparseValue_(sparseValue) {
-
-}
+DokVector<T>::DokVector(T sparseValue) : sparseValue_(sparseValue) {}
 
 template<typename T>
 typename DokVector<T>::iterator DokVector<T>::begin() {

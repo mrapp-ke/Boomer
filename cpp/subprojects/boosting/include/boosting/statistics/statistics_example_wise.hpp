@@ -3,9 +3,8 @@
  */
 #pragma once
 
-#include "boosting/statistics/statistics_label_wise.hpp"
 #include "boosting/rule_evaluation/rule_evaluation_example_wise.hpp"
-
+#include "boosting/statistics/statistics_label_wise.hpp"
 
 namespace boosting {
 
@@ -14,21 +13,19 @@ namespace boosting {
      * differentiable loss-function that is applied example-wise.
      *
      * @tparam ExampleWiseRuleEvaluationFactory The type of the classes that may be used for calculating the
-     *                                          example-wise predictions, as well as corresponding quality scores, of
-     *                                          rules
+     *                                          example-wise predictions of rules, as well as their overall quality
      * @tparam LabelWiseRuleEvaluationFactory   The type of the classes that may be used for calculating the label-wise
-     *                                          predictions, as well as corresponding quality scores, of rules
+     *                                          predictions of rules, as well as their overall quality
      */
     template<typename ExampleWiseRuleEvaluationFactory, typename LabelWiseRuleEvaluationFactory>
-    class IExampleWiseStatistics : virtual public IStatistics {
-
+    class IExampleWiseStatistics : virtual public IBoostingStatistics {
         public:
 
-            virtual ~IExampleWiseStatistics() override { };
+            virtual ~IExampleWiseStatistics() override {};
 
             /**
              * Sets the factory that allows to create instances of the class that is used for calculating the
-             * predictions, as well as corresponding quality scores, of rules.
+             * predictions of rules, as well as their overall quality.
              *
              * @param ruleEvaluationFactory A reference to an object of template type `ExampleWiseRuleEvaluationFactory`
              *                              to be set
@@ -41,15 +38,14 @@ namespace boosting {
              *
              * @param ruleEvaluationFactory A reference to an object of template type `LabelWiseRuleEvaluationFactory`
              *                              that allows to create instances of the class that is used for calculating
-             *                              the predictions, as well as corresponding quality scores of rules
+             *                              the predictions of rules, as well as their overall quality
              * @param numThreads            The number of threads that should be used to convert the statistics for
              *                              individual examples in parallel
              * @return                      An unique pointer to an object of type `ILabelWiseStatistics` that has been
              *                              created
              */
             virtual std::unique_ptr<ILabelWiseStatistics<LabelWiseRuleEvaluationFactory>> toLabelWiseStatistics(
-                const LabelWiseRuleEvaluationFactory& ruleEvaluationFactory, uint32 numThreads) = 0;
-
+              const LabelWiseRuleEvaluationFactory& ruleEvaluationFactory, uint32 numThreads) = 0;
     };
 
 }

@@ -1,19 +1,39 @@
 #include "common/sampling/stratified_sampling_label_wise.hpp"
+
 #include "common/data/indexed_value.hpp"
 #include "common/input/label_matrix_c_contiguous.hpp"
 #include "common/input/label_matrix_csc.hpp"
 #include "common/input/label_matrix_csr.hpp"
 #include "common/sampling/partition_single.hpp"
 #include "stratified_sampling_common.hpp"
-#include <unordered_map>
-#include <set>
-#include <cmath>
 
+#include <set>
+#include <unordered_map>
+
+/**
+ * Allows to compare two objects of type `IndexedValue` according to the following strict weak ordering: If the value of
+ * the first object is smaller, it goes before the second one. If the values of both objects are equal and the index of
+ * the first object is smaller, it goes before the second one. Otherwise, the first object goes after the second one.
+ */
+struct CompareIndexedValue final {
+    public:
+
+        /**
+         * Returns whether the a given object of type `IndexedValue` should go before a second one.
+         *
+         * @param lhs   A reference to a first object of type `IndexedValue`
+         * @param rhs   A reference to a second object of type `IndexedValue`
+         * @return      True, if the first object should go before the second one, false otherwise
+         */
+        inline bool operator()(const IndexedValue<uint32>& lhs, const IndexedValue<uint32>& rhs) const {
+            return lhs.value < rhs.value || (lhs.value == rhs.value && lhs.index < rhs.index);
+        }
+};
 
 static inline void updateNumExamplesPerLabel(const CContiguousLabelMatrix& labelMatrix, uint32 exampleIndex,
                                              uint32* numExamplesPerLabel,
                                              std::unordered_map<uint32, uint32>& affectedLabelIndices) {
-    CContiguousLabelMatrix::value_const_iterator labelIterator = labelMatrix.row_values_cbegin(exampleIndex);
+    CContiguousLabelMatrix::value_const_iterator labelIterator = labelMatrix.values_cbegin(exampleIndex);
     uint32 numLabels = labelMatrix.getNumCols();
 
     for (uint32 i = 0; i < numLabels; i++) {
@@ -28,8 +48,8 @@ static inline void updateNumExamplesPerLabel(const CContiguousLabelMatrix& label
 static inline void updateNumExamplesPerLabel(const CsrLabelMatrix& labelMatrix, uint32 exampleIndex,
                                              uint32* numExamplesPerLabel,
                                              std::unordered_map<uint32, uint32>& affectedLabelIndices) {
-    CsrLabelMatrix::index_const_iterator indexIterator = labelMatrix.row_indices_cbegin(exampleIndex);
-    uint32 numLabels = labelMatrix.row_indices_cend(exampleIndex) - indexIterator;
+    CsrLabelMatrix::index_const_iterator indexIterator = labelMatrix.indices_cbegin(exampleIndex);
+    uint32 numLabels = labelMatrix.indices_cend(exampleIndex) - indexIterator;
 
     for (uint32 i = 0; i < numLabels; i++) {
         uint32 labelIndex = indexIterator[i];
@@ -51,11 +71,11 @@ LabelWiseStratification<LabelMatrix, IndexIterator>::LabelWiseStratification(con
     // a sorted map that stores all label indices in increasing order of the number of associated examples...
     uint32 numLabels = cscLabelMatrix.getNumCols();
     uint32* numExamplesPerLabel = new uint32[numLabels];
-    typedef std::set<IndexedValue<uint32>, IndexedValue<uint32>::Compare> SortedSet;
+    typedef std::set<IndexedValue<uint32>, CompareIndexedValue> SortedSet;
     SortedSet sortedLabelIndices;
 
     for (uint32 i = 0; i < numLabels; i++) {
-        uint32 numExamples = cscLabelMatrix.column_indices_cend(i) - cscLabelMatrix.column_indices_cbegin(i);
+        uint32 numExamples = cscLabelMatrix.indices_cend(i) - cscLabelMatrix.indices_cbegin(i);
         numExamplesPerLabel[i] = numExamples;
 
         if (numExamples > 0) {
@@ -96,8 +116,8 @@ LabelWiseStratification<LabelMatrix, IndexIterator>::LabelWiseStratification(con
         numCols++;
 
         // Iterate the examples that are associated with the current label, if no weight has been set yet...
-        CscLabelMatrix::index_const_iterator indexIterator = cscLabelMatrix.column_indices_cbegin(labelIndex);
-        uint32 numExamples = cscLabelMatrix.column_indices_cend(labelIndex) - indexIterator;
+        CscLabelMatrix::index_const_iterator indexIterator = cscLabelMatrix.indices_cbegin(labelIndex);
+        uint32 numExamples = cscLabelMatrix.indices_cend(labelIndex) - indexIterator;
 
         for (uint32 i = 0; i < numExamples; i++) {
             uint32 exampleIndex = indexIterator[i];
@@ -143,7 +163,7 @@ LabelWiseStratification<LabelMatrix, IndexIterator>::LabelWiseStratification(con
     if (numRemaining > 0) {
         // Adjust the size of the arrays that are used to store row and column indices...
         rowIndices_ = (uint32*) realloc(rowIndices_, (numNonZeroElements + numRemaining) * sizeof(uint32));
-        colIndices_ = (uint32*) realloc(colIndices_, (numCols + 1) * sizeof(uint32));
+        colIndices_ = (uint32*) realloc(colIndices_, (numCols + 2) * sizeof(uint32));
 
         // Add the number of non-zero labels that have been processed so far to the array of column indices...
         colIndices_[numCols] = numNonZeroElements;
@@ -160,13 +180,19 @@ LabelWiseStratification<LabelMatrix, IndexIterator>::LabelWiseStratification(con
     } else {
         // Adjust the size of the arrays that are used to store row and column indices...
         rowIndices_ = (uint32*) realloc(rowIndices_, numNonZeroElements * sizeof(uint32));
-        colIndices_ = (uint32*) realloc(colIndices_, numCols * sizeof(uint32));
+        colIndices_ = (uint32*) realloc(colIndices_, (numCols + 1) * sizeof(uint32));
     }
 
-    colIndices_[numCols - 1] = numNonZeroElements;
-    numCols_ = numCols - 1;
+    colIndices_[numCols] = numNonZeroElements;
+    numCols_ = numCols;
 
     delete[] numExamplesPerLabel;
+}
+
+template<typename LabelMatrix, typename IndexIterator>
+LabelWiseStratification<LabelMatrix, IndexIterator>::~LabelWiseStratification() {
+    free(rowIndices_);
+    free(colIndices_);
 }
 
 template<typename LabelMatrix, typename IndexIterator>
@@ -186,8 +212,9 @@ void LabelWiseStratification<LabelMatrix, IndexIterator>::sampleWeights(BitWeigh
         float32 numSamplesDecimal = sampleSize * numExamples;
         uint32 numDesiredSamples = numTotalSamples - numNonZeroWeights;
         uint32 numDesiredOutOfSamples = numTotalOutOfSamples - numZeroWeights;
-        uint32 numSamples = (uint32) (tiebreak(numDesiredSamples, numDesiredOutOfSamples, rng) ?
-                                      std::ceil(numSamplesDecimal) : std::floor(numSamplesDecimal));
+        uint32 numSamples =
+          (uint32) (tiebreak(numDesiredSamples, numDesiredOutOfSamples, rng) ? std::ceil(numSamplesDecimal)
+                                                                             : std::floor(numSamplesDecimal));
         numNonZeroWeights += numSamples;
         numZeroWeights += (numExamples - numSamples);
         uint32 j;
@@ -226,8 +253,8 @@ void LabelWiseStratification<LabelMatrix, IndexIterator>::sampleBiPartition(BiPa
 
         float32 sampleSize = (float32) numFirst / (float32) (numFirst + numSecond);
         float32 numSamplesDecimal = sampleSize * numExamples;
-        uint32 numSamples = (uint32) (tiebreak(numFirst, numSecond, rng) ? std::ceil(numSamplesDecimal)
-                                                                         : std::floor(numSamplesDecimal));
+        uint32 numSamples =
+          (uint32) (tiebreak(numFirst, numSecond, rng) ? std::ceil(numSamplesDecimal) : std::floor(numSamplesDecimal));
 
         // Ensure that we do not add too many examples to the first or second partition...
         if (numSamples > numFirst) {

@@ -3,35 +3,36 @@
  */
 #pragma once
 
-#include "common/model/condition.hpp"
 #include "common/model/body_conjunctive.hpp"
-#include <memory>
-#include <list>
-#include <array>
+#include "common/model/condition.hpp"
 
+#include <array>
+#include <memory>
+#include <vector>
 
 /**
  * A list that stores conditions in the order they have been learned.
  */
 class ConditionList final {
-
     private:
 
-        std::list<Condition> list_;
+        std::vector<Condition> vector_;
 
-        std::array<uint32, 4> numConditionsPerComparator_ = {0, 0, 0, 0};
+        std::array<uint32, 4> numConditionsPerComparator_;
 
     public:
 
+        ConditionList();
+
         /**
-         * The type that is used to store the size of the list.
+         * @param conditionList A reference to an object of type `ConditionList` to be copied
          */
-        typedef std::list<Condition>::size_type size_type;
+        ConditionList(const ConditionList& conditionList);
 
         /**
          * An iterator that provides read-only access to the conditions in the list.
          */
-        typedef std::list<Condition>::const_iterator const_iterator;
+        typedef std::vector<Condition>::const_iterator const_iterator;
 
         /**
          * Returns a `const_iterator` to the beginning of the list.
@@ -52,7 +53,7 @@ class ConditionList final {
          *
          * @return The number of conditions that are contained by the list
          */
-        size_type getNumConditions() const;
+        uint32 getNumConditions() const;
 
         /**
          * Adds a new condition to the end of the list.
@@ -64,7 +65,7 @@ class ConditionList final {
         /**
          * Removes the last condition from the list.
          */
-        void removeLast();
+        void removeLastCondition();
 
         /**
          * Creates and returns a new object of type `ConjunctiveBody` from the conditions that contained by this list.
@@ -72,5 +73,4 @@ class ConditionList final {
          * @return An unique pointer to an object of type `ConjunctiveBody` that has been created
          */
         std::unique_ptr<ConjunctiveBody> createConjunctiveBody() const;
-
 };

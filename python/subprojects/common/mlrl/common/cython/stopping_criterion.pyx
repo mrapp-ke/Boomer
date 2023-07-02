@@ -1,10 +1,10 @@
 """
 @author: Michael Rapp (michael.rapp.ml@gmail.com)
 """
-from mlrl.common.cython._validation import assert_greater_or_equal, assert_less_or_equal, assert_multiple, \
-    assert_not_none
-
 from enum import Enum
+
+from mlrl.common.cython.validation import assert_greater_or_equal, assert_less_or_equal, assert_multiple, \
+    assert_not_none
 
 
 cdef class SizeStoppingCriterionConfig:
@@ -67,18 +67,18 @@ class AggregationFunction(Enum):
     ARITHMETIC_MEAN = 2
 
 
-cdef class MeasureStoppingCriterionConfig:
+cdef class PrePruningConfig:
     """
     Allow to configure a stopping criterion that stops the induction of rules as soon as the quality of a model's
     predictions for the examples in a holdout set do not improve according to a certain measure.
 
-    This stopping criterion assesses the performance of the current model after every `update_interval` rules and stores
-    the resulting quality score in a buffer that keeps track of the last `num_current` scores. If the capacity of this
-    buffer is already reached, the oldest score is passed to a buffer of size `numPast`. Every `stopInterval` rules, it
-    is decided whether the rule induction should be stopped. For this reason, the `num_current` scores in the first
-    buffer, as well as the `num_past` scores in the second buffer are aggregated according to a certain
-    `aggregation_function`. If the percentage improvement, which results from comparing the more recent scores from the
-    first buffer to the older scores from the second buffer, is greater than a certain `min_improvement`, the rule
+    This stopping criterion assesses the performance of the current model after every `updateInterval` rules and stores
+    its quality in a buffer that keeps track of the last `numCurrent` iterations. If the capacity of this buffer is
+    already reached, the oldest quality is passed to a buffer of size `numPast`. Every `stopInterval` rules, it is
+    decided whether the rule induction should be stopped. For this reason, the `numCurrent` qualities in the first
+    buffer, as well as the `numPast` qualities in the second buffer are aggregated according to a certain
+    `aggregation_function`. If the percentage improvement, which results from comparing the more recent qualities from
+    the first buffer to the older qualities from the second buffer, is greater than a certain `minImprovement`, the rule
     induction is continued, otherwise it is stopped.
     """
 
@@ -92,7 +92,7 @@ cdef class MeasureStoppingCriterionConfig:
         cdef uint8 enum_value = self.config_ptr.getAggregationFunction()
         return AggregationFunction(enum_value)
 
-    def set_aggregation_function(self, aggregation_function: AggregationFunction) -> MeasureStoppingCriterionConfig:
+    def set_aggregation_function(self, aggregation_function: AggregationFunction) -> PrePruningConfig:
         """
         Sets the type of the aggregation function that should be used to aggregate the values that are stored in a
         buffer.
@@ -100,12 +100,51 @@ cdef class MeasureStoppingCriterionConfig:
         :param aggregation_function:    A value of the enum `AggregationFunction` that specifies the type of the
                                         aggregation function that should be used to aggregate the values that are stored
                                         in a buffer
-        :return:                        A reference to an object of type `MeasureStoppingCriterionConfig` that allows
-                                        further configuration of the stopping criterion
+        :return:                        A `PrePruningConfig` that allows further configuration of the stopping criterion
         """
         assert_not_none('aggregation_function', aggregation_function)
         cdef uint8 enum_value = aggregation_function.value
         self.config_ptr.setAggregationFunction(<AggregationFunctionImpl>enum_value)
+        return self
+
+    def is_holdout_set_used(self) -> bool:
+        """
+        Returns whether the quality of the current model's predictions is measured on the holdout set, if available, or
+        if the training set is used instead.
+
+        :return: True, if the quality of the current model's predictions is measured on the holdout set, if available,
+                 False, if the training set is used instead
+        """
+        return self.config_ptr.isHoldoutSetUsed()
+
+    def set_use_holdout_set(self, use_holdout_set: bool) -> PrePruningConfig:
+        """
+        Sets whether the quality of he current model's predictions should be measured on the holdout set, if available,
+        or if the training set should be used instead.
+
+        :param use_holdout_set: True, if the quality of the current model's predictions should be measured on the
+                                holdout set, if available, False, if the training set should be used instead
+        :return:                A `PrePruningConfig` that allows further configuration of the stopping criterion
+        """
+        self.config_ptr.setUseHoldoutSet(use_holdout_set)
+        return self
+
+    def is_remove_unused_rules(self) -> bool:
+        """
+        Returns whether rules that have been induced, but are not used, should be removed from the final model or not.
+
+        :return: True, if unused rules should be removed from the model, False otherwise
+        """
+        return self.config_ptr.isRemoveUnusedRules()
+
+    def set_remove_unused_rules(self, remove_unused_rules: bool) -> PrePruningConfig:
+        """
+        Sets whether rules that have been induced, but are not used, should be removed from the final model or not.
+
+        :param remove_unused_rules: True, if unused rules should be removed from the model, false otherwise
+        :return:                    A `PrePruningConfig` that allows further configuration of the stopping criterion
+        """
+        self.config_ptr.setRemoveUnusedRules(remove_unused_rules)
         return self
 
     def get_min_rules(self) -> int:
@@ -116,14 +155,13 @@ cdef class MeasureStoppingCriterionConfig:
         """
         return self.config_ptr.getMinRules()
 
-    def set_min_rules(self, min_rules: int) -> MeasureStoppingCriterionConfig:
+    def set_min_rules(self, min_rules: int) -> PrePruningConfig:
         """
         Sets the minimum number of rules that must have been learned until the induction of rules might be stopped.
 
         :param min_rules:   The minimum number of rules that must have been learned until the induction of rules might
                             be stopped. Must be at least 1
-        :return:            A `MeasureStoppingCriterionConfig` that allows further configuration of the stopping
-                            criterion
+        :return:            A `PrePruningConfig` that allows further configuration of the stopping criterion
         """
         assert_greater_or_equal('min_rules', min_rules, 1)
         self.config_ptr.setMinRules(min_rules)
@@ -137,14 +175,13 @@ cdef class MeasureStoppingCriterionConfig:
         """
         return self.config_ptr.getUpdateInterval()
 
-    def set_update_interval(self, update_interval: int) -> MeasureStoppingCriterionConfig:
+    def set_update_interval(self, update_interval: int) -> PrePruningConfig:
         """
         Sets the interval that should be used to update the quality of the current model.
 
         :param update_interval: The interval that should be used to update the quality of the current model, e.g., a
          *                      value of 5 means that the model quality is assessed every 5 rules. Must be at least 1
-        :return:                A `MeasureStoppingCriterionConfig` that allows further configuration of the stopping
-                                criterion
+        :return:                A `PrePruningConfig` that allows further configuration of the stopping criterion
         """
         assert_greater_or_equal('update_interval', update_interval, 1)
         self.config_ptr.setUpdateInterval(update_interval)
@@ -158,15 +195,14 @@ cdef class MeasureStoppingCriterionConfig:
         """
         return self.config_ptr.getStopInterval()
 
-    def set_stop_interval(self, stop_interval: int) -> MeasureStoppingCriterionConfig:
+    def set_stop_interval(self, stop_interval: int) -> PrePruningConfig:
         """
         Sets the interval that should be used to decide whether the induction of rules should be stopped.
 
         :param stop_interval:   The interval that should be used to decide whether the induction of rules should be
                                 stopped, e.g., a value of 10 means that the rule induction might be stopped after 10,
                                 20, ... rules. Must be a multiple of the update interval
-        :return:                A `MeasureStoppingCriterionConfig` that allows further configuration of the stopping
-                                criterion
+        :return:                A `PrePruningConfig` that allows further configuration of the stopping criterion
         """
         assert_multiple('stop_interval', stop_interval, self.config_ptr.getUpdateInterval())
         self.config_ptr.setStopInterval(stop_interval)
@@ -180,14 +216,12 @@ cdef class MeasureStoppingCriterionConfig:
         """
         return self.config_ptr.getNumPast()
 
-    def set_num_past(self, num_past: int) -> MeasureStoppingCriterionConfig:
+    def set_num_past(self, num_past: int) -> PrePruningConfig:
         """
-        Sets the number of quality scores of past iterations that should be stored in a buffer.
+        Sets the number of past iterations that should be stored in a buffer.
 
-        :param num_past:    The number of quality scores of past iterations that should be be stored in a buffer. Must
-                            be at least 1
-        :return:            A `MeasureStoppingCriterionConfig` that allows further configuration of the stopping
-                            criterion
+        :param num_past:    The number of past iterations that should be be stored in a buffer. Must be at least 1
+        :return:            A `PrePruningConfig` that allows further configuration of the stopping criterion
         """
         assert_greater_or_equal('num_past', num_past, 1)
         self.config_ptr.setNumPast(num_past)
@@ -195,20 +229,19 @@ cdef class MeasureStoppingCriterionConfig:
 
     def get_num_current(self) -> int:
         """
-        Returns the number of quality scores of the most recent iterations that are stored in a buffer.
+        Returns the number of the most recent iterations that are stored in a buffer.
 
-        :return: The number of quality scores of the most recent iterations that are stored in a buffer
+        :return: The number of the most recent iterations that are stored in a buffer
         """
         return self.config_ptr.getNumCurrent()
 
-    def set_num_current(self, num_current: int) -> MeasureStoppingCriterionConfig:
+    def set_num_current(self, num_current: int) -> PrePruningConfig:
         """
-        Sets the number of quality scores of the most recent iterations that should be stored in a buffer.
+        Sets the number of the most recent iterations that should be stored in a buffer.
 
-        :param num_current: The number of quality scores of the most recent iterations that should be stored in a
-                            buffer. Must be at least 1
-        :return:            A `MeasureStoppingCriterionConfig` that allows further configuration of the stopping
-                            criterion
+        :param num_current: The number of the most recent iterations that should be stored in a buffer. Must be at least
+                            1
+        :return:            A `PrePruningConfig` that allows further configuration of the stopping criterion
         """
         assert_greater_or_equal('num_current', num_current, 1)
         self.config_ptr.setNumCurrent(num_current)
@@ -222,37 +255,106 @@ cdef class MeasureStoppingCriterionConfig:
         """
         return self.config_ptr.getMinImprovement()
 
-    def set_min_improvement(self, min_improvement: float) -> MeasureStoppingCriterionConfig:
+    def set_min_improvement(self, min_improvement: float) -> PrePruningConfig:
         """
         Sets the minimum improvement that must be reached for the rule induction to be continued.
 
         :param min_improvement: The minimum improvement in percent that must be reached for the rule induction to be
                                 continued. Must be in [0, 1]
-        :return:                A `MeasureStoppingCriterionConfig` that allows further configuration of the stopping
-                                criterion
+        :return:                A `PrePruningConfig` that allows further configuration of the stopping criterion
         """
         assert_greater_or_equal('min_improvement', min_improvement, 0)
         assert_less_or_equal('min_improvement', min_improvement, 1)
         self.config_ptr.setMinImprovement(min_improvement)
         return self
 
-    def get_force_stop(self) -> bool:
-        """
-        Returns whether the induction of rules is forced to be stopped, if the stopping criterion is met.
 
-        :return: True, if the induction of rules is forced to be stopped, if the stopping criterion is met, False, if
-                 only the time of stopping is stored
-        """
-        return self.config_ptr.getForceStop()
+cdef class PostPruningConfig:
+    """
+    Defines an interface for all classes that allow to configure a stopping criterion that keeps track of the number of
+    rules in a model that perform best with respect to the examples in the training or holdout set according to a
+    certain measure.
 
-    def set_force_stop(self, force_stop: bool) -> MeasureStoppingCriterionConfig:
-        """
-        Sets whether the induction of rules should be forced to be stopped, if the stopping criterion is met.
+    This stopping criterion assesses the performance of the current model after every `interval` rules and stores and
+    checks whether the current model is the best one evaluated so far.
+    """
 
-        :param force_stop:  True, if the induction of rules should be forced to be stopped, if the stopping criterion is
-                            met, False, if only the time of stopping should be stored
-        :return:            A `MeasureStoppingCriterionConfig` that allows further configuration of the stopping
-                            criterion
+    def is_holdout_set_used(self) -> bool:
         """
-        self.config_ptr.setForceStop(force_stop)
+        Returns whether the quality of the current model's predictions is measured on the holdout set, if available, or
+        if the training set is used instead.
+
+        :return: True, if the quality of the current model's predictions is measured on the holdout set, if available,
+                 False, if the training set is used instead
+        """
+        return self.config_ptr.isHoldoutSetUsed()
+
+    def set_use_holdout_set(self, use_holdout_set: bool) -> PostPruningConfig:
+        """
+        Sets whether the quality of he current model's predictions should be measured on the holdout set, if available,
+        or if the training set should be used instead.
+
+        :param use_holdout_set: True, if the quality of the current model's predictions should be measured on the
+                                holdout set, if available, False, if the training set should be used instead
+        :return:                A `PostPruningConfig` that allows further configuration of the stopping criterion
+        """
+        self.config_ptr.setUseHoldoutSet(use_holdout_set)
+        return self
+
+    def is_remove_unused_rules(self) -> bool:
+        """
+        Returns whether rules that have been induced, but are not used, should be removed from the final model or not.
+
+        :return: True, if unused rules should be removed from the model, False otherwise
+        """
+        return self.config_ptr.isRemoveUnusedRules()
+
+    def set_remove_unused_rules(self, remove_unused_rules: bool) -> PostPruningConfig:
+        """
+        Sets whether rules that have been induced, but are not used, should be removed from the final model or not.
+
+        :param remove_unused_rules: True, if unused rules should be removed from the model, false otherwise
+        :return:                    A `PostPruningConfig` that allows further configuration of the stopping criterion
+        """
+        self.config_ptr.setRemoveUnusedRules(remove_unused_rules)
+        return self
+
+    def get_min_rules(self) -> int:
+        """
+        Returns the minimum number of rules that must be included in a model.
+
+        :return: The minimum number of rules that must be included in a model
+        """
+        return self.config_ptr.getMinRules()
+
+    def set_min_rules(self, min_rules: int) -> PostPruningConfig:
+        """
+        Sets the minimum number of rules that must be included in a model.
+
+        :param min_rules:   The minimum number of rules that must be included in a model. Must be at least 1
+        :return:            A `PostPruningConfig` that allows further configuration of the stopping criterion
+        """
+        assert_greater_or_equal('min_rules', min_rules, 1)
+        self.config_ptr.setMinRules(min_rules)
+        return self
+
+    def get_interval(self) -> int:
+        """
+        Returns the interval that is used to check whether the current model is the best one evaluated so far.
+
+        :return: The interval that is used to check whether the current model is the best one evaluated so far
+        """
+        return self.config_ptr.getInterval()
+
+    def set_interval(self, interval: int) -> PostPruningConfig:
+        """
+        Sets the interval that should be used to check whether the current model is the best one evaluated so far.
+
+        :param interval:    The interval that should be used to check whether the current model is the best one
+                            evaluated so far, e.g., a value of 10 means that the best model may include 10, 20, ...
+                            rules
+        :return:            A `PostPruningConfig` that allows further configuration of the stopping criterion
+        """
+        assert_greater_or_equal('interval', interval, 1)
+        self.config_ptr.setInterval(interval)
         return self

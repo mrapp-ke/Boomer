@@ -1,14 +1,12 @@
 #include "boosting/rule_evaluation/regularization_manual.hpp"
-#include "common/util/validation.hpp"
-#include <iostream>
 
+#include "common/util/validation.hpp"
+
+#include <iostream>
 
 namespace boosting {
 
-    ManualRegularizationConfig::ManualRegularizationConfig()
-        : regularizationWeight_(1) {
-
-    }
+    ManualRegularizationConfig::ManualRegularizationConfig() : regularizationWeight_(1) {}
 
     float64 ManualRegularizationConfig::getRegularizationWeight() const {
         return regularizationWeight_;

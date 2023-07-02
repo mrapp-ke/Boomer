@@ -1,10 +1,10 @@
 #include "common/sampling/instance_sampling_without_replacement.hpp"
+
 #include "common/iterator/index_iterator.hpp"
 #include "common/sampling/partition_bi.hpp"
 #include "common/sampling/partition_single.hpp"
 #include "common/sampling/weight_sampling.hpp"
 #include "common/util/validation.hpp"
-
 
 static inline void sampleInternally(const SinglePartition& partition, float32 sampleSize, BitWeightVector& weightVector,
                                     RNG& rng) {
@@ -30,12 +30,11 @@ static inline void sampleInternally(BiPartition& partition, float32 sampleSize, 
  */
 template<typename Partition>
 class InstanceSamplingWithoutReplacement final : public IInstanceSampling {
-
     private:
 
         Partition& partition_;
 
-        float32 sampleSize_;
+        const float32 sampleSize_;
 
         BitWeightVector weightVector_;
 
@@ -49,15 +48,12 @@ class InstanceSamplingWithoutReplacement final : public IInstanceSampling {
          */
         InstanceSamplingWithoutReplacement(Partition& partition, float32 sampleSize)
             : partition_(partition), sampleSize_(sampleSize),
-              weightVector_(BitWeightVector(partition.getNumElements())) {
-
-        }
+              weightVector_(BitWeightVector(partition.getNumElements())) {}
 
         const IWeightVector& sample(RNG& rng) override {
             sampleInternally(partition_, sampleSize_, weightVector_, rng);
             return weightVector_;
         }
-
 };
 
 /**
@@ -65,10 +61,9 @@ class InstanceSamplingWithoutReplacement final : public IInstanceSampling {
  * examples without replacement.
  */
 class InstanceSamplingWithoutReplacementFactory final : public IInstanceSamplingFactory {
-
     private:
 
-        float32 sampleSize_;
+        const float32 sampleSize_;
 
     public:
 
@@ -76,10 +71,7 @@ class InstanceSamplingWithoutReplacementFactory final : public IInstanceSampling
          * @param sampleSize The fraction of examples to be included in the sample (e.g. a value of 0.6 corresponds to
          *                   60 % of the available examples). Must be in (0, 1)
          */
-        InstanceSamplingWithoutReplacementFactory(float32 sampleSize)
-            : sampleSize_(sampleSize) {
-
-        }
+        InstanceSamplingWithoutReplacementFactory(float32 sampleSize) : sampleSize_(sampleSize) {}
 
         std::unique_ptr<IInstanceSampling> create(const CContiguousLabelMatrix& labelMatrix,
                                                   const SinglePartition& partition,
@@ -101,13 +93,9 @@ class InstanceSamplingWithoutReplacementFactory final : public IInstanceSampling
                                                   IStatistics& statistics) const override {
             return std::make_unique<InstanceSamplingWithoutReplacement<BiPartition>>(partition, sampleSize_);
         }
-
 };
 
-InstanceSamplingWithoutReplacementConfig::InstanceSamplingWithoutReplacementConfig()
-    : sampleSize_(0.66f) {
-
-}
+InstanceSamplingWithoutReplacementConfig::InstanceSamplingWithoutReplacementConfig() : sampleSize_(0.66f) {}
 
 float32 InstanceSamplingWithoutReplacementConfig::getSampleSize() const {
     return sampleSize_;
@@ -120,6 +108,7 @@ IInstanceSamplingWithoutReplacementConfig& InstanceSamplingWithoutReplacementCon
     return *this;
 }
 
-std::unique_ptr<IInstanceSamplingFactory> InstanceSamplingWithoutReplacementConfig::createInstanceSamplingFactory() const {
+std::unique_ptr<IInstanceSamplingFactory> InstanceSamplingWithoutReplacementConfig::createInstanceSamplingFactory()
+  const {
     return std::make_unique<InstanceSamplingWithoutReplacementFactory>(sampleSize_);
 }

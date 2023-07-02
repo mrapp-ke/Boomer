@@ -3,23 +3,30 @@
  */
 #pragma once
 
-#include "common/data/vector_dense.hpp"
 #include "common/data/vector_binned_dense.hpp"
+#include "common/data/vector_dense.hpp"
 #include "common/indices/index_vector.hpp"
+#include "common/sampling/weight_vector_bit.hpp"
+#include "common/sampling/weight_vector_dense.hpp"
+#include "common/sampling/weight_vector_equal.hpp"
+#include "common/sampling/weight_vector_out_of_sample.hpp"
+
 #include <memory>
 
 // Forward declarations
 class IStatistics;
+class IStatisticsSubset;
 class IHead;
-
 
 /**
  * An abstract base class for all classes that store the scores that are predicted by a rule.
  */
 class AbstractPrediction : public IIndexVector {
+    protected:
 
-    private:
-
+        /**
+         * A vector that stores the predicted scores.
+         */
         DenseVector<float64> predictedScoreVector_;
 
     public:
@@ -92,6 +99,20 @@ class AbstractPrediction : public IIndexVector {
         virtual void apply(IStatistics& statistics, uint32 statisticIndex) const = 0;
 
         /**
+         * Updates the given statistics by reverting this prediction.
+         *
+         * @param statistics        A reference to an object of type `IStatistics` to be updated
+         * @param statisticIndex    The index of the statistic to be updated
+         */
+        virtual void revert(IStatistics& statistics, uint32 statisticIndex) const = 0;
+
+        /**
+         * Sorts the scores that stored by this prediction in increasing order by the the indices of the labels they
+         * correspond to.
+         */
+        virtual void sort() = 0;
+
+        /**
          * Creates and returns a head that contains the scores that are stored by this prediction.
          *
          * @return An unique pointer to an object of type `IHead` that has been created
@@ -99,13 +120,76 @@ class AbstractPrediction : public IIndexVector {
         virtual std::unique_ptr<IHead> createHead() const = 0;
 
         /**
-         * Sets the number of labels for which the rule predict.
+         * Creates and returns a new subset of the given statistics that only contains the labels whose indices are
+         * stored in this vector.
          *
-         * @param numElements   The number of labels to be set
-         * @param freeMemory    True, if unused memory should be freed if possible, false otherwise
+         * @param statistics    A reference to an object of type `IStatistics` that should be used to create the subset
+         * @param weights       A reference to an object of type `EqualWeightVector` that provides access to the weights
+         *                      of individual training examples
+         * @return              An unique pointer to an object of type `IStatisticsSubset` that has been created
          */
-        virtual void setNumElements(uint32 numElements, bool freeMemory);
+        virtual std::unique_ptr<IStatisticsSubset> createStatisticsSubset(const IStatistics& statistics,
+                                                                          const EqualWeightVector& weights) const = 0;
+
+        /**
+         * Creates and returns a new subset of the given statistics that only contains the labels whose indices are
+         * stored in this vector.
+         *
+         * @param statistics    A reference to an object of type `IStatistics` that should be used to create the subset
+         * @param weights       A reference to an object of type `BitWeightVector` that provides access to the weights
+         *                      of individual training examples
+         * @return              An unique pointer to an object of type `IStatisticsSubset` that has been created
+         */
+        virtual std::unique_ptr<IStatisticsSubset> createStatisticsSubset(const IStatistics& statistics,
+                                                                          const BitWeightVector& weights) const = 0;
+
+        /**
+         * Creates and returns a new subset of the given statistics that only contains the labels whose indices are
+         * stored in this vector.
+         *
+         * @param statistics    A reference to an object of type `IStatistics` that should be used to create the subset
+         * @param weights       A reference to an object of type `DenseWeightVector<uint32>` that provides access to the
+         *                      weights of individual training examples
+         * @return              An unique pointer to an object of type `IStatisticsSubset` that has been created
+         */
+        virtual std::unique_ptr<IStatisticsSubset> createStatisticsSubset(
+          const IStatistics& statistics, const DenseWeightVector<uint32>& weights) const = 0;
+
+        /**
+         * Creates and returns a new subset of the given statistics that only contains the labels whose indices are
+         * stored in this vector.
+         *
+         * @param statistics    A reference to an object of type `IStatistics` that should be used to create the subset
+         * @param weights       A reference to an object of type `OutOfSampleWeightVector<EqualWeightVector>` that
+         *                      provides access to the weights of individual training examples
+         * @return              An unique pointer to an object of type `IStatisticsSubset` that has been created
+         */
+        virtual std::unique_ptr<IStatisticsSubset> createStatisticsSubset(
+          const IStatistics& statistics, const OutOfSampleWeightVector<EqualWeightVector>& weights) const = 0;
+
+        /**
+         * Creates and returns a new subset of the given statistics that only contains the labels whose indices are
+         * stored in this vector.
+         *
+         * @param statistics    A reference to an object of type `IStatistics` that should be used to create the subset
+         * @param weights       A reference to an object of type `OutOfSampleWeightVector<BitWeightVector>` that
+         *                      provides access to the weights of individual training examples
+         * @return              An unique pointer to an object of type `IStatisticsSubset` that has been created
+         */
+        virtual std::unique_ptr<IStatisticsSubset> createStatisticsSubset(
+          const IStatistics& statistics, const OutOfSampleWeightVector<BitWeightVector>& weights) const = 0;
+
+        /**
+         * Creates and returns a new subset of the given statistics that only contains the labels whose indices are
+         * stored in this vector.
+         *
+         * @param statistics    A reference to an object of type `IStatistics` that should be used to create the subset
+         * @param weights       A reference to an object of type `OutOfSampleWeightVector<DenseWeightVector<uint32>>`
+         *                      that provides access to the weights of individual training examples
+         * @return              An unique pointer to an object of type `IStatisticsSubset` that has been created
+         */
+        virtual std::unique_ptr<IStatisticsSubset> createStatisticsSubset(
+          const IStatistics& statistics, const OutOfSampleWeightVector<DenseWeightVector<uint32>>& weights) const = 0;
 
         uint32 getNumElements() const override;
-
 };

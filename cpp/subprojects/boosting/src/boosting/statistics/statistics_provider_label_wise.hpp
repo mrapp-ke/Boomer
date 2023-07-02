@@ -3,28 +3,26 @@
  */
 #pragma once
 
-#include "common/statistics/statistics_provider.hpp"
 #include "boosting/statistics/statistics_label_wise.hpp"
-
+#include "common/statistics/statistics_provider.hpp"
 
 namespace boosting {
 
     /**
      * Provides access to an object of type `ILabelWiseStatistics`.
      *
-     * @tparam RuleEvaluationFactory The type of the classes that may be used for calculating the predictions, as well
-     *                               as corresponding quality scores, of rules
+     * @tparam RuleEvaluationFactory The type of the classes that may be used for calculating the predictions of rules,
+     *                               as well as their overall quality
      */
     template<typename RuleEvaluationFactory>
     class LabelWiseStatisticsProvider final : public IStatisticsProvider {
-
         private:
 
             const RuleEvaluationFactory& regularRuleEvaluationFactory_;
 
             const RuleEvaluationFactory& pruningRuleEvaluationFactory_;
 
-            std::unique_ptr<ILabelWiseStatistics<RuleEvaluationFactory>> statisticsPtr_;
+            const std::unique_ptr<ILabelWiseStatistics<RuleEvaluationFactory>> statisticsPtr_;
 
         public:
 
@@ -41,9 +39,7 @@ namespace boosting {
                                         std::unique_ptr<ILabelWiseStatistics<RuleEvaluationFactory>> statisticsPtr)
                 : regularRuleEvaluationFactory_(regularRuleEvaluationFactory),
                   pruningRuleEvaluationFactory_(pruningRuleEvaluationFactory),
-                  statisticsPtr_(std::move(statisticsPtr)) {
-
-            }
+                  statisticsPtr_(std::move(statisticsPtr)) {}
 
             /**
              * @see `IStatisticsProvider::get`
@@ -65,7 +61,6 @@ namespace boosting {
             void switchToPruningRuleEvaluation() override {
                 statisticsPtr_->setRuleEvaluationFactory(pruningRuleEvaluationFactory_);
             }
-
     };
 
 }

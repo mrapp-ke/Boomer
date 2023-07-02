@@ -3,12 +3,12 @@
  */
 #pragma once
 
-#include "common/sampling/weight_vector_bit.hpp"
 #include "common/sampling/partition_bi.hpp"
+#include "common/sampling/weight_vector_bit.hpp"
+
+#include <functional>
 #include <unordered_map>
 #include <vector>
-#include <functional>
-
 
 /**
  * Implements stratified sampling, where distinct label vectors are treated as individual classes.
@@ -20,10 +20,9 @@
  */
 template<typename LabelMatrix, typename IndexIterator>
 class ExampleWiseStratification final {
-
     private:
 
-        uint32 numTotal_;
+        const uint32 numTotal_;
 
         typedef typename LabelMatrix::view_type Key;
 
@@ -63,5 +62,4 @@ class ExampleWiseStratification final {
          * @param rng       A reference to an object of type `RNG`, implementing the random number generator to be used
          */
         void sampleBiPartition(BiPartition& partition, RNG& rng) const;
-
 };

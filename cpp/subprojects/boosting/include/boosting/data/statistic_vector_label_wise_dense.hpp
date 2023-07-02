@@ -3,24 +3,21 @@
  */
 #pragma once
 
+#include "boosting/data/statistic_view_label_wise_dense.hpp"
 #include "common/indices/index_vector_complete.hpp"
 #include "common/indices/index_vector_partial.hpp"
-#include "boosting/data/statistic_view_label_wise_dense.hpp"
-#include <memory>
-
 
 namespace boosting {
 
     /**
-     * An one-dimensional vector that stores gradients and Hessians that have been calculated using a label-wise
-     * decomposable loss function in C-contiguous arrays. For each element in the vector a single gradient and Hessian
-     * is stored.
+     * An one-dimensional vector that stores aggregated gradients and Hessians that have been calculated using a
+     * label-wise decomposable loss function in a C-contiguous array. For each element in the vector a single gradient
+     * and Hessian is stored.
      */
     class DenseLabelWiseStatisticVector final {
-
         private:
 
-            uint32 numElements_;
+            const uint32 numElements_;
 
             Tuple<float64>* statistics_;
 
@@ -124,6 +121,51 @@ namespace boosting {
             void add(const DenseLabelWiseStatisticConstView& view, uint32 row, float64 weight);
 
             /**
+             * Removes all gradients and Hessians in a single row of a `DenseLabelWiseStatisticConstView` from this
+             * vector.
+             *
+             * @param view  A reference to an object of type `DenseLabelWiseStatisticConstView` that stores the
+             *              gradients and Hessians to be removed from this vector
+             * @param row   The index of the row to be removed from this vector
+             */
+            void remove(const DenseLabelWiseStatisticConstView& view, uint32 row);
+
+            /**
+             * Removes all gradients and Hessians in a single row of a `DenseLabelWiseStatisticConstView` from this
+             * vector. The gradients and Hessians to be removed are multiplied by a specific weight.
+             *
+             * @param view      A reference to an object of type `DenseLabelWiseStatisticConstView` that stores the
+             *                  gradients and Hessians to be removed from this vector
+             * @param row       The index of the row to be removed from this vector
+             * @param weight    The weight, the gradients and Hessians should be multiplied by
+             */
+            void remove(const DenseLabelWiseStatisticConstView& view, uint32 row, float64 weight);
+
+            /**
+             * Adds certain gradients and Hessians in a single row of a `DenseLabelWiseStatisticConstView`, whose
+             * positions are given as a `CompleteIndexVector`, to this vector.
+             *
+             * @param view      A reference to an object of type `DenseLabelWiseStatisticConstView` that stores the
+             *                  gradients and Hessians to be added to this vector
+             * @param row       The index of the row to be added to this vector
+             * @param indices   A reference to a `CompleteIndexVector' that provides access to the indices
+             */
+            void addToSubset(const DenseLabelWiseStatisticConstView& view, uint32 row,
+                             const CompleteIndexVector& indices);
+
+            /**
+             * Adds certain gradients and Hessians in single row of a `DenseLabelWiseStatisticConstView`, whose
+             * positions are given as a `PartialIndexVector`, to this vector.
+             *
+             * @param view      A reference to an object of type `DenseLabelWiseStatisticConstView` that stores the
+             *                  gradients and Hessians to be added to this vector
+             * @param row       The index of the row to be added to this vector
+             * @param indices   A reference to a `PartialIndexVector' that provides access to the indices
+             */
+            void addToSubset(const DenseLabelWiseStatisticConstView& view, uint32 row,
+                             const PartialIndexVector& indices);
+
+            /**
              * Adds certain gradients and Hessians in a single row of a `DenseLabelWiseStatisticConstView`, whose
              * positions are given as a `CompleteIndexVector`, to this vector. The gradients and Hessians to be added
              * are multiplied by a specific weight.
@@ -180,7 +222,6 @@ namespace boosting {
              */
             void difference(const DenseLabelWiseStatisticVector& first, const PartialIndexVector& firstIndices,
                             const DenseLabelWiseStatisticVector& second);
-
     };
 
 }

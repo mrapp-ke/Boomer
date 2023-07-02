@@ -3,11 +3,10 @@
  */
 #pragma once
 
-#include "common/multi_threading/multi_threading.hpp"
-#include "common/sampling/feature_sampling.hpp"
 #include "boosting/losses/loss.hpp"
 #include "boosting/rule_evaluation/head_type.hpp"
-
+#include "common/multi_threading/multi_threading.hpp"
+#include "common/sampling/feature_sampling.hpp"
 
 namespace boosting {
 
@@ -16,7 +15,6 @@ namespace boosting {
      * automatically deciding for the number of threads to be used.
      */
     class AutoParallelRuleRefinementConfig final : public IMultiThreadingConfig {
-
         private:
 
             const std::unique_ptr<ILossConfig>& lossConfigPtr_;
@@ -43,7 +41,6 @@ namespace boosting {
              * @see `IMultiThreadingConfig::getNumThreads`
              */
             uint32 getNumThreads(const IFeatureMatrix& featureMatrix, uint32 numLabels) const override;
-
     };
 
 }

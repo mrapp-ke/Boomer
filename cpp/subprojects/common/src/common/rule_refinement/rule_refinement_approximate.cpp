@@ -1,133 +1,150 @@
 #include "common/rule_refinement/rule_refinement_approximate.hpp"
-#include "common/rule_refinement/score_processor.hpp"
-#include "rule_refinement_common.hpp"
 
+#include <iostream>
 
-template<typename T>
-ApproximateRuleRefinement<T>::ApproximateRuleRefinement(
-        const T& labelIndices, uint32 featureIndex, bool nominal, const IWeightVector& weights,
-        std::unique_ptr<IRuleRefinementCallback<ThresholdVector, BinWeightVector>> callbackPtr)
-    : labelIndices_(labelIndices), featureIndex_(featureIndex), nominal_(nominal), weights_(weights),
-      callbackPtr_(std::move(callbackPtr)) {
-
-}
-
-template<typename T>
-void ApproximateRuleRefinement<T>::findRefinement(const AbstractEvaluatedPrediction* currentHead) {
-    std::unique_ptr<Refinement> refinementPtr = std::make_unique<Refinement>();
-    refinementPtr->featureIndex = featureIndex_;
-    const AbstractEvaluatedPrediction* bestHead = currentHead;
-    ScoreProcessor scoreProcessor;
+template<typename IndexVector, typename RefinementComparator>
+static inline void findRefinementInternally(const IndexVector& labelIndices, uint32 numExamples, uint32 featureIndex,
+                                            bool nominal, uint32 minCoverage,
+                                            IRuleRefinementCallback<IHistogram, ThresholdVector>& callback,
+                                            RefinementComparator& comparator) {
+    Refinement refinement;
+    refinement.featureIndex = featureIndex;
 
     // Invoke the callback...
-    std::unique_ptr<IRuleRefinementCallback<ThresholdVector, BinWeightVector>::Result> callbackResultPtr =
-        callbackPtr_->get();
-    const IImmutableStatistics& statistics = callbackResultPtr->statistics_;
-    const BinWeightVector& weights = callbackResultPtr->weights_;
-    const ThresholdVector& thresholdVector = callbackResultPtr->vector_;
+    IRuleRefinementCallback<IHistogram, ThresholdVector>::Result callbackResult = callback.get();
+    const IHistogram& statistics = callbackResult.statistics;
+    const ThresholdVector& thresholdVector = callbackResult.vector;
     ThresholdVector::const_iterator thresholdIterator = thresholdVector.cbegin();
     uint32 numBins = thresholdVector.getNumElements();
     uint32 sparseBinIndex = thresholdVector.getSparseBinIndex();
-    bool sparse = sparseBinIndex < numBins && weights[sparseBinIndex];
+    bool sparse = sparseBinIndex < numBins;
 
     // Create a new, empty subset of the statistics...
-    std::unique_ptr<IStatisticsSubset> statisticsSubsetPtr = labelIndices_.createSubset(statistics);
+    std::unique_ptr<IWeightedStatisticsSubset> statisticsSubsetPtr = statistics.createSubset(labelIndices);
 
     for (auto it = thresholdVector.missing_indices_cbegin(); it != thresholdVector.missing_indices_cend(); it++) {
         uint32 i = *it;
-        float64 weight = weights_.getWeight(i);
-        statisticsSubsetPtr->addToMissing(i, weight);
+        statisticsSubsetPtr->addToMissing(i);
     }
 
     // In the following, we start by processing the bins in range [0, sparseBinIndex)...
-    bool subsetModified = false;
+    uint32 numCovered = 0;
     int64 firstR = 0;
     int64 r;
 
-    // Traverse bins in ascending order until the first bin with weight > 0 is encountered...
+    // Traverse bins in ascending order until the first bin with non-zero weight is encountered...
     for (r = 0; r < sparseBinIndex; r++) {
-        if (weights[r]) {
+        uint32 weight = statistics.getBinWeight(r);
+
+        if (weight > 0) {
             // Add the bin to the subset to mark it as covered by upcoming refinements...
-            statisticsSubsetPtr->addToSubset(r, 1);
-            subsetModified = true;
+            statisticsSubsetPtr->addToSubset(r);
+            numCovered += weight;
             break;
         }
     }
 
-    // Traverse the remaining bins in ascending order...
-    if (subsetModified) {
-        for (r = r + 1; r < sparseBinIndex; r++) {
-            // Do only consider bins that are not empty...
-            if (weights[r]) {
-                // Find and evaluate the best head for the current refinement, if a condition that uses the <= operator
-                // (or the == operator in case of a nominal feature) is used...
-                const IScoreVector& scoreVector = statisticsSubsetPtr->calculatePrediction(false, false);
+    uint32 numAccumulated = numCovered;
 
-                // If the refinement is better than the current rule...
-                if (isBetterThanBestHead(scoreVector, bestHead)) {
-                    bestHead = scoreProcessor.processScores(scoreVector);
-                    refinementPtr->start = firstR;
-                    refinementPtr->end = r;
-                    refinementPtr->covered = true;
-                    refinementPtr->threshold = thresholdIterator[r - 1];
-                    refinementPtr->comparator = nominal_ ? EQ : LEQ;
+    // Traverse the remaining bins in ascending order...
+    if (numCovered > 0) {
+        for (r = r + 1; r < sparseBinIndex; r++) {
+            uint32 weight = statistics.getBinWeight(r);
+
+            // Do only consider bins that are not empty...
+            if (weight > 0) {
+                // Check if a condition that uses the <= operator (or the == operator in case of a nominal feature)
+                // covers at least `minCoverage` examples...
+                if (numCovered >= minCoverage) {
+                    // Determine the best prediction for the covered examples...
+                    const IScoreVector& scoreVector = statisticsSubsetPtr->calculateScores();
+
+                    // Check if the quality of the prediction is better than the quality of the current rule...
+                    if (comparator.isImprovement(scoreVector)) {
+                        refinement.start = firstR;
+                        refinement.end = r;
+                        refinement.numCovered = numCovered;
+                        refinement.covered = true;
+                        refinement.threshold = thresholdIterator[r - 1];
+                        refinement.comparator = nominal ? EQ : LEQ;
+                        comparator.pushRefinement(refinement, scoreVector);
+                    }
                 }
 
-                // Find and evaluate the best head for the current refinement, if a condition that uses the > operator
-                // (or the != operator in case of a nominal feature) is used...
-                const IScoreVector& scoreVector2 = statisticsSubsetPtr->calculatePrediction(true, false);
+                // Check if a condition that uses the > operator (or the != operator in case of a nominal feature)
+                // covers at least `minCoverage` examples...
+                uint32 coverage = numExamples - numCovered;
 
-                // If the refinement is better than the current rule...
-                if (isBetterThanBestHead(scoreVector2, bestHead)) {
-                    bestHead = scoreProcessor.processScores(scoreVector2);
-                    refinementPtr->start = firstR;
-                    refinementPtr->end = r;
-                    refinementPtr->covered = false;
-                    refinementPtr->threshold = thresholdIterator[r - 1];
-                    refinementPtr->comparator = nominal_ ? NEQ : GR;
+                if (coverage >= minCoverage) {
+                    // Determine the best prediction for the covered examples...
+                    const IScoreVector& scoreVector = statisticsSubsetPtr->calculateScoresUncovered();
+
+                    // Check if the quality of the prediction is better than the quality of the current rule...
+                    if (comparator.isImprovement(scoreVector)) {
+                        refinement.start = firstR;
+                        refinement.end = r;
+                        refinement.numCovered = coverage;
+                        refinement.covered = false;
+                        refinement.threshold = thresholdIterator[r - 1];
+                        refinement.comparator = nominal ? NEQ : GR;
+                        comparator.pushRefinement(refinement, scoreVector);
+                    }
                 }
 
                 // Reset the subset in case of a nominal feature, as the previous bins will not be covered by the next
                 // condition...
-                if (nominal_) {
+                if (nominal) {
                     statisticsSubsetPtr->resetSubset();
+                    numCovered = 0;
                     firstR = r;
                 }
 
                 // Add the bin to the subset to mark it as covered by upcoming refinements...
-                statisticsSubsetPtr->addToSubset(r, 1);
+                statisticsSubsetPtr->addToSubset(r);
+                numCovered += weight;
+                numAccumulated += weight;
             }
         }
 
         // If any bins have been processed so far and if there is a sparse bin, we must evaluate additional conditions
         // that separate the bins that have been iterated from the remaining ones (including the sparse bin)...
-        if (subsetModified && sparse) {
-            // Find and evaluate the best head for the current refinement, if a condition that uses the <= operator (or
-            // the == operator in case of nominal feature) is used...
-            const IScoreVector& scoreVector = statisticsSubsetPtr->calculatePrediction(false, false);
+        if (numCovered > 0 && sparse) {
+            // Check if a condition that uses the <= operator (or the == operator in case of a nominal feature) covers
+            // at least `minCoverage` examples...
+            if (numCovered >= minCoverage) {
+                // Determine the best prediction for the covered examples...
+                const IScoreVector& scoreVector = statisticsSubsetPtr->calculateScores();
 
-            // If the refinement is better than the current rule...
-            if (isBetterThanBestHead(scoreVector, bestHead)) {
-                bestHead = scoreProcessor.processScores(scoreVector);
-                refinementPtr->start = firstR;
-                refinementPtr->end = sparseBinIndex;
-                refinementPtr->covered = true;
-                refinementPtr->threshold = thresholdIterator[sparseBinIndex - 1];
-                refinementPtr->comparator = nominal_ ? EQ : LEQ;
+                // Check if the quality of the prediction is better than the quality of the current rule...
+                if (comparator.isImprovement(scoreVector)) {
+                    refinement.start = firstR;
+                    refinement.end = sparseBinIndex;
+                    refinement.numCovered = numCovered;
+                    refinement.covered = true;
+                    refinement.threshold = thresholdIterator[sparseBinIndex - 1];
+                    refinement.comparator = nominal ? EQ : LEQ;
+                    comparator.pushRefinement(refinement, scoreVector);
+                }
             }
 
-            // Find and evaluate the best head for the current refinement, if a condition that uses the > operator (or
-            // the != operator in case of a nominal feature) is used...
-            const IScoreVector& scoreVector2 = statisticsSubsetPtr->calculatePrediction(true, false);
+            // Check if a condition that uses the > operator (or the != operator in case of a nominal feature) covers at
+            // least `minCoverage` examples...
+            uint32 coverage = numExamples - numCovered;
 
-            // If the refinement is better than the current rule...
-            if (isBetterThanBestHead(scoreVector2, bestHead)) {
-                bestHead = scoreProcessor.processScores(scoreVector2);
-                refinementPtr->start = firstR;
-                refinementPtr->end = sparseBinIndex;
-                refinementPtr->covered = false;
-                refinementPtr->threshold = thresholdIterator[sparseBinIndex - 1];
-                refinementPtr->comparator = nominal_ ? NEQ : GR;
+            if (coverage >= minCoverage) {
+                // Determine the best prediction for the covered examples...
+                const IScoreVector& scoreVector = statisticsSubsetPtr->calculateScoresUncovered();
+
+                // Check if the quality of the prediction is better than the quality of the current rule...
+                if (comparator.isImprovement(scoreVector)) {
+                    refinement.start = firstR;
+                    refinement.end = sparseBinIndex;
+                    refinement.numCovered = coverage;
+                    refinement.covered = false;
+                    refinement.threshold = thresholdIterator[sparseBinIndex - 1];
+                    refinement.comparator = nominal ? NEQ : GR;
+                    comparator.pushRefinement(refinement, scoreVector);
+                }
             }
         }
 
@@ -135,166 +152,224 @@ void ApproximateRuleRefinement<T>::findRefinement(const AbstractEvaluatedPredict
         statisticsSubsetPtr->resetSubset();
     }
 
-    bool subsetModifiedPrevious = subsetModified;
+    uint32 numAccumulatedPrevious = numAccumulated;
 
     // We continue by processing the bins in range (sparseBinIndex, numBins)...
-    subsetModified = false;
+    numCovered = 0;
     firstR = ((int64) numBins) - 1;
 
-    // Traverse bins in descending order until the first bin with weight > 0 is encountered...
+    // Traverse bins in descending order until the first bin with non-zero weight is encountered...
     for (r = firstR; r > sparseBinIndex; r--) {
-        if (weights[r]) {
+        uint32 weight = statistics.getBinWeight(r);
+
+        if (weight > 0) {
             // Add the bin to the subset to mark it as covered by upcoming refinements...
-            statisticsSubsetPtr->addToSubset(r, 1);
-            subsetModified = true;
+            statisticsSubsetPtr->addToSubset(r);
+            numCovered += weight;
             break;
         }
     }
 
+    numAccumulated = numCovered;
+
     // Traverse the remaining bins in descending order...
-    if (subsetModified) {
+    if (numCovered > 0) {
         for (r = r - 1; r > sparseBinIndex; r--) {
+            uint32 weight = statistics.getBinWeight(r);
+
             // Do only consider bins that are not empty...
-            if (weights[r]) {
-                // Find and evaluate the best head for the current refinement, if a condition that uses the > operator
-                // (or the == operator in case of a nominal feature) is used..
-                const IScoreVector& scoreVector = statisticsSubsetPtr->calculatePrediction(false, false);
+            if (weight > 0) {
+                // Check if a condition that uses the > operator (or the == operator in case of a nominal feature)
+                // covers at least `minCoverage` examples...
+                if (numCovered >= minCoverage) {
+                    // Determine the best prediction for the covered examples...
+                    const IScoreVector& scoreVector = statisticsSubsetPtr->calculateScores();
 
-                // If the refinement is better than the current rule...
-                if (isBetterThanBestHead(scoreVector, bestHead)) {
-                    bestHead = scoreProcessor.processScores(scoreVector);
-                    refinementPtr->start = firstR;
-                    refinementPtr->end = r;
-                    refinementPtr->covered = true;
+                    // Check if the quality of the prediction is better than the quality of the current rule...
+                    if (comparator.isImprovement(scoreVector)) {
+                        refinement.start = firstR;
+                        refinement.end = r;
+                        refinement.numCovered = numCovered;
+                        refinement.covered = true;
 
-                    if (nominal_) {
-                        refinementPtr->threshold = thresholdIterator[firstR];
-                        refinementPtr->comparator = EQ;
-                    } else {
-                        refinementPtr->threshold = thresholdIterator[r];
-                        refinementPtr->comparator = GR;
+                        if (nominal) {
+                            refinement.threshold = thresholdIterator[firstR];
+                            refinement.comparator = EQ;
+                        } else {
+                            refinement.threshold = thresholdIterator[r];
+                            refinement.comparator = GR;
+                        }
+
+                        comparator.pushRefinement(refinement, scoreVector);
                     }
                 }
 
-                // Find and evaluate the best head for the current refinement, if a condition that uses the <= operator
-                // (or the != operator in case of a nominal feature) is used...
-                const IScoreVector& scoreVector2 = statisticsSubsetPtr->calculatePrediction(true, false);
+                // Check if a condition that uses the <= operator (or the != operator in case of a nominal feature)
+                // covers at least `minCoverage` examples...
+                uint32 coverage = numExamples - numCovered;
 
-                // If the refinement is better than the current rule...
-                if (isBetterThanBestHead(scoreVector2, bestHead)) {
-                    bestHead = scoreProcessor.processScores(scoreVector2);
-                    refinementPtr->start = firstR;
-                    refinementPtr->end = r;
-                    refinementPtr->covered = false;
+                if (coverage >= minCoverage) {
+                    // Determine the best prediction for the covered examples...
+                    const IScoreVector& scoreVector = statisticsSubsetPtr->calculateScoresUncovered();
 
-                    if (nominal_) {
-                        refinementPtr->threshold = thresholdIterator[firstR];
-                        refinementPtr->comparator = NEQ;
-                    } else {
-                        refinementPtr->threshold = thresholdIterator[r];
-                        refinementPtr->comparator = LEQ;
+                    // Check if the quality of the prediction is better than the quality of the current rule...
+                    if (comparator.isImprovement(scoreVector)) {
+                        refinement.start = firstR;
+                        refinement.end = r;
+                        refinement.numCovered = coverage;
+                        refinement.covered = false;
+
+                        if (nominal) {
+                            refinement.threshold = thresholdIterator[firstR];
+                            refinement.comparator = NEQ;
+                        } else {
+                            refinement.threshold = thresholdIterator[r];
+                            refinement.comparator = LEQ;
+                        }
+
+                        comparator.pushRefinement(refinement, scoreVector);
                     }
-
                 }
 
                 // Reset the subset in case of a nominal feature, as the previous bins will not be covered by the next
                 // condition...
-                if (nominal_) {
+                if (nominal) {
                     statisticsSubsetPtr->resetSubset();
+                    numCovered = 0;
                     firstR = r;
                 }
 
                 // Add the bin to the subset to mark it as covered by upcoming refinements...
-                statisticsSubsetPtr->addToSubset(r, 1);
+                statisticsSubsetPtr->addToSubset(r);
+                numCovered += weight;
+                numAccumulated += weight;
             }
         }
 
         // If there is a sparse bin, we must evaluate additional conditions that separate the bins in range
         // (sparseBinIndex, numBins) from the remaining ones...
         if (sparse) {
-            // Find and evaluate the best head for the current refinement, if
-            const IScoreVector& scoreVector = statisticsSubsetPtr->calculatePrediction(false, false);
+            // Check if a condition that uses the > operator (or the == operator in case of a nominal feature) covers at
+            // least `minCoverage` examples...
+            if (numCovered >= minCoverage) {
+                // Determine the best prediction for the covered examples...
+                const IScoreVector& scoreVector = statisticsSubsetPtr->calculateScores();
 
-            // If the refinement is better than the current rule...
-            if (isBetterThanBestHead(scoreVector, bestHead)) {
-                bestHead = scoreProcessor.processScores(scoreVector);
-                refinementPtr->start = firstR;
-                refinementPtr->end = sparseBinIndex;
-                refinementPtr->covered = true;
+                // Check if the quality of the prediction is better than the quality of the current rule...
+                if (comparator.isImprovement(scoreVector)) {
+                    refinement.start = firstR;
+                    refinement.end = sparseBinIndex;
+                    refinement.numCovered = numCovered;
+                    refinement.covered = true;
 
-                if (nominal_) {
-                    refinementPtr->threshold = thresholdIterator[firstR];
-                    refinementPtr->comparator = EQ;
-                } else {
-                    refinementPtr->threshold = thresholdIterator[sparseBinIndex];
-                    refinementPtr->comparator = GR;
+                    if (nominal) {
+                        refinement.threshold = thresholdIterator[firstR];
+                        refinement.comparator = EQ;
+                    } else {
+                        refinement.threshold = thresholdIterator[sparseBinIndex];
+                        refinement.comparator = GR;
+                    }
+
+                    comparator.pushRefinement(refinement, scoreVector);
                 }
             }
 
-            // Find and evaluate the best head for the current refinement, if
-            const IScoreVector& scoreVector2 = statisticsSubsetPtr->calculatePrediction(true, false);
+            // Check if a condition that uses the <= operator (or the != operator in case of a nominal feature) covers
+            // at least `minCoverage` examples...
+            uint32 coverage = numExamples - numCovered;
 
-            // If the refinement is better than the current rule...
-            if (isBetterThanBestHead(scoreVector2, bestHead)) {
-                bestHead = scoreProcessor.processScores(scoreVector2);
-                refinementPtr->start = firstR;
-                refinementPtr->end = sparseBinIndex;
-                refinementPtr->covered = false;
+            if (coverage >= minCoverage) {
+                // Determine the best prediction for the covered examples...
+                const IScoreVector& scoreVector = statisticsSubsetPtr->calculateScoresUncovered();
 
-                if (nominal_) {
-                    refinementPtr->threshold = thresholdIterator[firstR];
-                    refinementPtr->comparator = NEQ;
-                } else {
-                    refinementPtr->threshold = thresholdIterator[sparseBinIndex];
-                    refinementPtr->comparator = LEQ;
+                // Check if the quality of the prediction is better than the quality of the current rule...
+                if (comparator.isImprovement(scoreVector)) {
+                    refinement.start = firstR;
+                    refinement.end = sparseBinIndex;
+                    refinement.numCovered = coverage;
+                    refinement.covered = false;
+
+                    if (nominal) {
+                        refinement.threshold = thresholdIterator[firstR];
+                        refinement.comparator = NEQ;
+                    } else {
+                        refinement.threshold = thresholdIterator[sparseBinIndex];
+                        refinement.comparator = LEQ;
+                    }
+
+                    comparator.pushRefinement(refinement, scoreVector);
                 }
             }
 
             // If the feature is nominal and if any bins in the range [0, sparseBinIndex) have been processed earlier,
             // we must test additional conditions that separate the sparse bin from the remaining bins...
-            if (nominal_ && subsetModifiedPrevious) {
+            if (nominal && numAccumulatedPrevious > 0) {
                 // Reset the subset once again to ensure that the accumulated state includes all bins that have been
                 // processed so far...
                 statisticsSubsetPtr->resetSubset();
 
-                // Find and evaluate the best head for the current refinement, if the condition
-                // `f != thresholdIterator[sparseBinIndex]` is used...
-                const IScoreVector& scoreVector = statisticsSubsetPtr->calculatePrediction(false, true);
+                // Check if the condition `f != thresholdIterator[sparseBinIndex]` covers at least `minCoverage`
+                // examples...
+                uint32 coverage = numExamples - numAccumulated - numAccumulatedPrevious;
 
-                // If the refinement is better than the current rule...
-                if (isBetterThanBestHead(scoreVector, bestHead)) {
-                    bestHead = scoreProcessor.processScores(scoreVector);
-                    refinementPtr->start = sparseBinIndex;
-                    refinementPtr->end = sparseBinIndex + 1;
-                    refinementPtr->covered = false;
-                    refinementPtr->threshold = thresholdIterator[sparseBinIndex];
-                    refinementPtr->comparator = NEQ;
+                if (coverage >= minCoverage) {
+                    // Determine the best prediction for the covered examples...
+                    const IScoreVector& scoreVector = statisticsSubsetPtr->calculateScoresAccumulated();
+
+                    // Check if the quality of the prediction is better than the quality of the current rule...
+                    if (comparator.isImprovement(scoreVector)) {
+                        refinement.start = sparseBinIndex;
+                        refinement.end = sparseBinIndex + 1;
+                        refinement.numCovered = coverage;
+                        refinement.covered = false;
+                        refinement.threshold = thresholdIterator[sparseBinIndex];
+                        refinement.comparator = NEQ;
+                        comparator.pushRefinement(refinement, scoreVector);
+                    }
                 }
 
-                // Find and evaluate the best head for the current refinement, if the condition
-                // `f == thresholdIterator[sparseBinIndex]` is used...
-                const IScoreVector& scoreVector2 = statisticsSubsetPtr->calculatePrediction(true, true);
+                // Check if the condition `f == thresholdIterator[sparseBinIndex]` covers at least `minCoverage`
+                // examples...
+                coverage = numAccumulated + numAccumulatedPrevious;
 
-                // If the refinement is better than the current rule...
-                if (isBetterThanBestHead(scoreVector2, bestHead)) {
-                    bestHead = scoreProcessor.processScores(scoreVector2);
-                    refinementPtr->start = sparseBinIndex;
-                    refinementPtr->end = sparseBinIndex + 1;
-                    refinementPtr->covered = true;
-                    refinementPtr->threshold = thresholdIterator[sparseBinIndex];
-                    refinementPtr->comparator = EQ;
+                if (coverage >= minCoverage) {
+                    // Determine the best prediction for the covered examples...
+                    const IScoreVector& scoreVector = statisticsSubsetPtr->calculateScoresUncoveredAccumulated();
+
+                    // Check if the quality of the prediction is better than the quality of the current rule...
+                    if (comparator.isImprovement(scoreVector)) {
+                        refinement.start = sparseBinIndex;
+                        refinement.end = sparseBinIndex + 1;
+                        refinement.numCovered = coverage;
+                        refinement.covered = true;
+                        refinement.threshold = thresholdIterator[sparseBinIndex];
+                        refinement.comparator = EQ;
+                        comparator.pushRefinement(refinement, scoreVector);
+                    }
                 }
             }
         }
     }
-
-    refinementPtr->headPtr = scoreProcessor.pollHead();
-    refinementPtr_ = std::move(refinementPtr);
 }
 
-template<typename T>
-std::unique_ptr<Refinement> ApproximateRuleRefinement<T>::pollRefinement() {
-    return std::move(refinementPtr_);
+template<typename IndexVector>
+ApproximateRuleRefinement<IndexVector>::ApproximateRuleRefinement(const IndexVector& labelIndices, uint32 numExamples,
+                                                                  uint32 featureIndex, bool nominal,
+                                                                  std::unique_ptr<Callback> callbackPtr)
+    : labelIndices_(labelIndices), numExamples_(numExamples), featureIndex_(featureIndex), nominal_(nominal),
+      callbackPtr_(std::move(callbackPtr)) {}
+
+template<typename IndexVector>
+void ApproximateRuleRefinement<IndexVector>::findRefinement(SingleRefinementComparator& comparator,
+                                                            uint32 minCoverage) {
+    findRefinementInternally(labelIndices_, numExamples_, featureIndex_, nominal_, minCoverage, *callbackPtr_,
+                             comparator);
+}
+
+template<typename IndexVector>
+void ApproximateRuleRefinement<IndexVector>::findRefinement(FixedRefinementComparator& comparator, uint32 minCoverage) {
+    findRefinementInternally(labelIndices_, numExamples_, featureIndex_, nominal_, minCoverage, *callbackPtr_,
+                             comparator);
 }
 
 template class ApproximateRuleRefinement<CompleteIndexVector>;

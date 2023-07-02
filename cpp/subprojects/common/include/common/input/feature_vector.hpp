@@ -6,13 +6,11 @@
 #include "common/data/vector_sparse_array.hpp"
 #include "common/input/missing_feature_vector.hpp"
 
-
 /**
  * An one-dimensional sparse vector that stores the values of training examples for a certain feature, as well as the
  * indices of examples with missing feature values.
  */
 class FeatureVector final : public MissingFeatureVector {
-
     private:
 
         SparseArrayVector<float32> vector_;
@@ -81,5 +79,4 @@ class FeatureVector final : public MissingFeatureVector {
          * Sorts the elements in the vector in ascending order based on their values.
          */
         void sortByValues();
-
 };

@@ -12,29 +12,63 @@ The library serves as the basis for the implementation of the following rule lea
 
 * **BOOMER (Gradient Boosted Multi-label Classification Rules)**: A state-of-the art algorithm that uses [gradient boosting](https://en.wikipedia.org/wiki/Gradient_boosting) to learn an ensemble of rules that is built with respect to a given multivariate loss function.
 
-## Features
+## Functionalities
 
-This package follows a unified and modular framework for the implementation of different types of MLRL algorithms. An instantiation of the framework consists of the following modules:
+This package follows a unified and modular framework for the implementation of different types of MLRL algorithms. In the following, we provide an overview of the individual modules an instantiation of the framework must implement.
 
-* A module for **rule induction** that is responsible for the construction of individual rules. Each rule consists of a *body* and a *head*. The former specifies the region of the input space to which the rule applies. The latter provides predictions for one or several labels.  
-* A strategy for the **assemblage of a rule model** that consists of several rules.
-* A notion of **(label space) statistics** that serve as the basis for assessing the quality of potential rules and determining their predictions.
-* Implementations of **pruning** techniques that can optionally be applied to a rule after its construction to improve the generalization to unseen data.
-* **Post-processing** techniques that may alter the predictions of a rule after it has been learned.
-* One or several **stopping criteria** that are used to decide whether more rules should be added to a model.
-* Optional **sampling techniques** that may be used to obtain a subset of the available training examples, features or labels.
-* An algorithm for the **aggregation of predictions** that are provided by the rules in a model for previously unseen *test examples*.
+### Rule Induction
 
-This library defines APIs for all the aforementioned modules and provides default implementations for the following ones:
+A module for rule induction that is responsible for the construction of individual rules. Currently, the following modules of this kind are implemented:
 
-* **Top-down hill climbing** for the greedy induction of rules. It supports numerical, ordinal and nominal features, as well as missing feature values. Optionally, a **histogram-based algorithm**, where training examples with similar feature values are assigned to bins, can be used to reduce the complexity of training. Both types of algorithms support the use of **multi-threading**.
-* A strategy for the **sequential assemblage of rule models**, where one rule is learned after the other.
-* **Incremental reduced error pruning (IREP)**, where conditions are removed from a rule's body if this results in increased performance as measured on a holdout set of the training data.
-* **Simple stopping criteria** that stop the induction of rules after a certain amount of time or when a predefined number of rules has been reached, as well as an **early stopping mechanism** that allows to terminate training as soon as the performance of a model on a holdout set stagnates or declines.
-* Methods for **sampling with or without replacement**, as well as **stratified sampling** techniques.
+* A module for **greedy rule induction** that conducts a top-down search, where rules are constructed by adding one condition after the other and adjusting its prediction accordingly. 
+* Rule induction based on a **beam search**, where a top-down search is conducted as described above. However, instead of focusing on the best solution at each step, the algorithm keeps track of a predefined number of promising solutions and picks the best one at the end.
 
-Furthermore, the library provides classes for the representation of individual rules, as well as dense and sparse data structures that may be used to store the feature values and ground truth labels of training and test examples.
+All of the above modules support **numerical, ordinal, and nominal features** and can handle **missing feature values**. They can also be combined with methods for **unsupervised feature binning**, where training examples with similar features values are assigned to bins in order to reduce the training complexity. Moreover, **multi-threading** can be used to speed up training.
+
+### Model Assemblage
+
+A module for the assemblage of a rule model that consists of several rules. Currently, the following strategies can be used for constructing a model:
+
+* **Sequential assemblage of rule models**, where one rule is learned after the other.
+
+### Sampling Methods
+
+A wide variety of sampling methods, including **sampling with and without replacement**, as well as **stratified sampling techniques**, is provided by this package. They can be used to learn new rules on a subset of the available training examples, features, or labels.
+
+### (Label Space) Statistics
+
+So-called label space statistics serve as the basis for assessing the quality of potential rules and determining their predictions. The notion of the statistics heavily depend on the rule learning algorithm at hand. For this reason, no particular implementation is currently included in this package.
+
+### Post-Processing
+
+Post-processing methods can be used to alter the predictions of a rule after it has been learned. Whether this is desirable or not heavily depends on the rule learning algorithm at hand. For this reason, no post-processing methods are currently provided by this package.
+
+### Pruning Methods
+
+Rule pruning techniques can optionally be applied to a rule after its construction to improve its generalization to unseen data and prevent overfitting. The following pruning techniques are currently supported by this package:
+
+* **Incremental reduced error pruning (IREP)** removes overly specific conditions from a rule if this results in an increase of predictive performance (measured on a holdout set of the training data).
+
+### Stopping Criteria
+
+One or several stopping criteria can be used to decide whether additional rules should be added to a model or not. Currently, the following criteria are provided out-of-the-box:
+
+* A **size-based stopping criterion** that ensures that a certain number of rules is not exceeded.
+* A **time-based stopping criterion** that stops training as soon as a predefined runtime was exceeded.
+* **Pre-pruning (a.k.a. early stopping)** aims at terminating the training process as soon as the performance of a model stagnates or declines (measured on a holdout set of the training data).
+
+### Post-Optimization
+
+Post-optimization methods can be employed to further improve the predictive performance of a model after it has been assembled. Currently, the following post-optimization techniques can be used:
+
+* **Sequential post-optimization** reconstructs each rule in a model in the context of the other rules.
+
+* **Post-pruning** may remove trailing rules from a model in this increases the models performance (as measured on a holdout set of the training data).
+
+### Prediction algorithm
+
+A prediction algorithm is needed to derive predictions from the rules in a previously assembled model. As prediction methods heavily depend on the rule learning algorithm at hand, no implementation is provided by this package out-of-the-box. However, it defines interfaces for the prediction of **regression scores, binary predictions, or probability estimates.**
 
 ## License
 
-This project is open source software licensed under the terms of the [MIT license](https://github.com/mrapp-ke/Boomer/blob/master/LICENSE.txt). We welcome contributions to the project to enhance its functionality and make it more accessible to a broader audience. A frequently updated list of contributors is available [here](https://github.com/mrapp-ke/Boomer/blob/master/CONTRIBUTORS.md). 
+This project is open source software licensed under the terms of the [MIT license](../../../LICENSE.md). We welcome contributions to the project to enhance its functionality and make it more accessible to a broader audience. A frequently updated list of contributors is available [here](../../../CONTRIBUTORS.md). 

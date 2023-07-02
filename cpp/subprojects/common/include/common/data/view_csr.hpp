@@ -5,7 +5,6 @@
 
 #include "common/data/view_two_dimensional.hpp"
 
-
 /**
  * Implements row-wise read-only access to the values that are stored in a pre-allocated matrix in the compressed sparse
  * row (CSR) format.
@@ -14,18 +13,17 @@
  */
 template<typename T>
 class CsrConstView : virtual public ITwoDimensionalView {
-
     protected:
 
         /**
          * The number of rows in the view.
          */
-        uint32 numRows_;
+        const uint32 numRows_;
 
         /**
          * The number of columns in the view.
          */
-        uint32 numCols_;
+        const uint32 numCols_;
 
         /**
          * A pointer to an array that stores all non-zero values.
@@ -58,6 +56,8 @@ class CsrConstView : virtual public ITwoDimensionalView {
          */
         CsrConstView(uint32 numRows, uint32 numCols, T* data, uint32* rowIndices, uint32* colIndices);
 
+        virtual ~CsrConstView() override {};
+
         /**
          * An iterator that provides read-only access to the values in the view.
          */
@@ -74,7 +74,7 @@ class CsrConstView : virtual public ITwoDimensionalView {
          * @param row   The row
          * @return      A `value_const_iterator` to the beginning of the values
          */
-        value_const_iterator row_values_cbegin(uint32 row) const;
+        value_const_iterator values_cbegin(uint32 row) const;
 
         /**
          * Returns a `value_const_iterator` to the end of the values at a specific row.
@@ -82,7 +82,7 @@ class CsrConstView : virtual public ITwoDimensionalView {
          * @param row   The row
          * @return      A `value_const_iterator` to the end of the values
          */
-        value_const_iterator row_values_cend(uint32 row) const;
+        value_const_iterator values_cend(uint32 row) const;
 
         /**
          * Returns an `index_const_iterator` to the beginning of the indices at a specific row.
@@ -90,7 +90,7 @@ class CsrConstView : virtual public ITwoDimensionalView {
          * @param row   The row
          * @return      An `index_const_iterator` to the beginning of the indices
          */
-        index_const_iterator row_indices_cbegin(uint32 row) const;
+        index_const_iterator indices_cbegin(uint32 row) const;
 
         /**
          * Returns an `index_const_iterator` to the end of the indices at a specific row.
@@ -98,7 +98,7 @@ class CsrConstView : virtual public ITwoDimensionalView {
          * @param row   The row
          * @return      An `index_const_iterator` to the end of the indices
          */
-        index_const_iterator row_indices_cend(uint32 row) const;
+        index_const_iterator indices_cend(uint32 row) const;
 
         /**
          * Returns the number of non-zero elements in the view.
@@ -116,7 +116,6 @@ class CsrConstView : virtual public ITwoDimensionalView {
          * @see `ITwoDimensionalView::getNumCols`
          */
         uint32 getNumCols() const override final;
-
 };
 
 /**
@@ -127,7 +126,6 @@ class CsrConstView : virtual public ITwoDimensionalView {
  */
 template<typename T>
 class CsrView : public CsrConstView<T> {
-
     public:
 
         /**
@@ -142,6 +140,8 @@ class CsrView : public CsrConstView<T> {
          *                      column-indices, the values in `data` correspond to
          */
         CsrView(uint32 numRows, uint32 numCols, T* data, uint32* rowIndices, uint32* colIndices);
+
+        virtual ~CsrView() override {};
 
         /**
          * An iterator that provides access to the values in the view and allows to modify them.
@@ -159,7 +159,7 @@ class CsrView : public CsrConstView<T> {
          * @param row   The row
          * @return      A `value_iterator` to the beginning of the values
          */
-        value_iterator row_values_begin(uint32 row);
+        value_iterator values_begin(uint32 row);
 
         /**
          * Returns a `value_iterator` to the end of the values at a specific row.
@@ -167,7 +167,7 @@ class CsrView : public CsrConstView<T> {
          * @param row   The row
          * @return      A `value_iterator` to the end of the values
          */
-        value_iterator row_values_end(uint32 row);
+        value_iterator values_end(uint32 row);
 
         /**
          * Returns an `index_iterator` to the beginning of the indices at a specific row.
@@ -175,7 +175,7 @@ class CsrView : public CsrConstView<T> {
          * @param row   The row
          * @return      An `index_iterator` to the beginning of the indices
          */
-        index_iterator row_indices_begin(uint32 row);
+        index_iterator indices_begin(uint32 row);
 
         /**
          * Returns an `index_iterator` to the end of the indices at a specific row.
@@ -183,6 +183,5 @@ class CsrView : public CsrConstView<T> {
          * @param row   The row
          * @return      An `index_iterator` to the end of the indices
          */
-        index_iterator row_indices_end(uint32 row);
-
+        index_iterator indices_end(uint32 row);
 };

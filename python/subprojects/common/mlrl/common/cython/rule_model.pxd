@@ -1,9 +1,10 @@
-from mlrl.common.cython._types cimport uint32, float32, float64
+cimport numpy as npc
 
+from libcpp cimport bool
 from libcpp.cast cimport dynamic_cast
 from libcpp.memory cimport unique_ptr
 
-cimport numpy as npc
+from mlrl.common.cython._types cimport float32, float64, uint32
 
 
 cdef extern from "common/model/body.hpp" nogil:
@@ -157,6 +158,10 @@ cdef extern from "common/model/rule_list.hpp" nogil:
 
         void addRule(unique_ptr[IBody] bodyPtr, unique_ptr[IHead] headPtr)
 
+        bool containsDefaultRule() const
+
+        bool isDefaultRuleTakingPrecedence() const
+
         void visit(EmptyBodyVisitor emptyBodyVisitor, ConjunctiveBodyVisitor conjunctiveBodyVisitor,
                    CompleteHeadVisitor completeHeadVisitor, PartialHeadVisitor partialHeadVisitor) const
 
@@ -164,7 +169,7 @@ cdef extern from "common/model/rule_list.hpp" nogil:
                        CompleteHeadVisitor completeHeadVisitor, PartialHeadVisitor partialHeadVisitor) const
 
 
-    unique_ptr[IRuleList] createRuleList()
+    unique_ptr[IRuleList] createRuleList(bool defaultRuleTakesPrecedence)
 
 
 ctypedef IRuleList* RuleListPtr
@@ -325,4 +330,4 @@ cdef inline RuleModel create_rule_model(unique_ptr[IRuleModel] rule_model_ptr):
         return rule_list
     else:
         del ptr
-        raise RuntimeError('Encountered unknown model type')
+        raise RuntimeError('Encountered unsupported IRuleModel object')

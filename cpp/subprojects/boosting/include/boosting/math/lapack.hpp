@@ -5,24 +5,23 @@
 
 #include "common/data/types.hpp"
 
-
 namespace boosting {
 
     /**
      * Allows to execute LAPACK routines.
      */
     class Lapack final {
-
         public:
 
             /**
              * A function pointer to LAPACK'S DSYSV routine.
              */
-            typedef void (*DsysvFunction)(char* uplo, int* n, int* nrhs, double* a, int* lda, int* ipiv, double* b, int* ldb, double* work, int* lwork, int* info);
+            typedef void (*DsysvFunction)(char* uplo, int* n, int* nrhs, double* a, int* lda, int* ipiv, double* b,
+                                          int* ldb, double* work, int* lwork, int* info);
 
         private:
 
-            DsysvFunction dsysvFunction_;
+            const DsysvFunction dsysvFunction_;
 
         public:
 
@@ -49,8 +48,8 @@ namespace boosting {
             int queryDsysvLworkParameter(float64* tmpArray1, float64* output, int n) const;
 
             /**
-             * Computes and returns the solution to a system of linear equations A * X = B using LAPACK's DSYSV solver
-             * (see http://www.netlib.org/lapack/explore-html/d6/d0e/group__double_s_ysolve_ga9995c47692c9885ed5d6a6b431686f41.html).
+             * Computes and returns the solution to a linear system A * X = B using LAPACK's DSYSV solver (see
+             * http://www.netlib.org/lapack/explore-html/d6/d0e/group__double_s_ysolve_ga9995c47692c9885ed5d6a6b431686f41.html).
              *
              * The function `queryDsysvLworkParameter` must be run beforehand to determine the optimal value for the
              * parameter "lwork" and to allocate a temporary array depending on this value.
@@ -86,7 +85,6 @@ namespace boosting {
              *                                  Must have been determined using the function `queryDsysvLworkParameter`
              */
             void dsysv(float64* tmpArray1, int* tmpArray2, double* tmpArray3, float64* output, int n, int lwork) const;
-
     };
 
 }

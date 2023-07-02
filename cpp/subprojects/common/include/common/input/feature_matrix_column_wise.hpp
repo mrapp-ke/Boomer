@@ -5,17 +5,16 @@
 
 #include "common/input/feature_matrix.hpp"
 #include "common/input/feature_vector.hpp"
-#include <memory>
 
+#include <memory>
 
 /**
  * Defines an interface for all feature matrices that provide column-wise access to the feature values of examples.
  */
 class MLRLCOMMON_API IColumnWiseFeatureMatrix : virtual public IFeatureMatrix {
-
     public:
 
-        virtual ~IColumnWiseFeatureMatrix() override { };
+        virtual ~IColumnWiseFeatureMatrix() override {};
 
         /**
          * Fetches a feature vector that stores the indices of the training examples, as well as their feature values,
@@ -27,5 +26,4 @@ class MLRLCOMMON_API IColumnWiseFeatureMatrix : virtual public IFeatureMatrix {
          */
         virtual void fetchFeatureVector(uint32 featureIndex,
                                         std::unique_ptr<FeatureVector>& featureVectorPtr) const = 0;
-
 };

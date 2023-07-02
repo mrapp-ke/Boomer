@@ -5,19 +5,17 @@
 
 #include "common/thresholds/coverage_state.hpp"
 
-
 /**
  * Allows to check whether individual examples are covered by a rule or not. For each example, an integer is stored in a
  * C-contiguous array that may be updated when the rule is refined. If the value that corresponds to a certain example
  * is equal to the "indicator value", it is considered to be covered.
  */
 class CoverageMask final : public ICoverageState {
-
     private:
 
         uint32* array_;
 
-        uint32 numElements_;
+        const uint32 numElements_;
 
         uint32 indicatorValue_;
 
@@ -109,16 +107,15 @@ class CoverageMask final : public ICoverageState {
 
         std::unique_ptr<ICoverageState> copy() const override;
 
-        float64 evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, const SinglePartition& partition,
+        Quality evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, const SinglePartition& partition,
                                     const AbstractPrediction& head) const override;
 
-        float64 evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, BiPartition& partition,
+        Quality evaluateOutOfSample(const IThresholdsSubset& thresholdsSubset, BiPartition& partition,
                                     const AbstractPrediction& head) const override;
 
         void recalculatePrediction(const IThresholdsSubset& thresholdsSubset, const SinglePartition& partition,
-                                   Refinement& refinement) const override;
+                                   AbstractPrediction& head) const override;
 
         void recalculatePrediction(const IThresholdsSubset& thresholdsSubset, BiPartition& partition,
-                                   Refinement& refinement) const override;
-
+                                   AbstractPrediction& head) const override;
 };

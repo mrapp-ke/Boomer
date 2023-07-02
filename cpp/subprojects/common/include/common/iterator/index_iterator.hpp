@@ -4,14 +4,13 @@
 #pragma once
 
 #include "common/data/types.hpp"
-#include <iterator>
 
+#include <iterator>
 
 /**
  * An iterator that provides random read-only access to the indices in a continuous range.
  */
 class IndexIterator final {
-
     private:
 
         uint32 index_;
@@ -116,5 +115,4 @@ class IndexIterator final {
          * @return      The difference between the iterators
          */
         difference_type operator-(const IndexIterator& rhs) const;
-
 };

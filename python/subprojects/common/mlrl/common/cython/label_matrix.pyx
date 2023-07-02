@@ -44,7 +44,7 @@ cdef class RowWiseLabelMatrix(LabelMatrix):
     cdef IRowWiseLabelMatrix* get_row_wise_label_matrix_ptr(self):
         pass
 
-    def calculate_label_cardinality(self) -> int:
+    def calculate_label_cardinality(self) -> float:
         return self.get_row_wise_label_matrix_ptr().calculateLabelCardinality()
 
 

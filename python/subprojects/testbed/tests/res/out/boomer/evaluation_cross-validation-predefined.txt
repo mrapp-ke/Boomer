@@ -1,0 +1,313 @@
+INFO Starting experiment...
+INFO Performing full 10-fold cross validation...
+DEBUG Parsing meta data from file "python/subprojects/testbed/tests/res/data/emotions-predefined.xml"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions-predefined_fold-1.arff"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions-predefined_fold-2.arff"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions-predefined_fold-3.arff"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions-predefined_fold-4.arff"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions-predefined_fold-5.arff"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions-predefined_fold-6.arff"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions-predefined_fold-7.arff"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions-predefined_fold-8.arff"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions-predefined_fold-9.arff"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/emotions-predefined_fold-10.arff"...
+INFO Fold 1 / 10:
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 348 milliseconds
+INFO Predicting for 59 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 2 milliseconds
+INFO Evaluation result for test data (Fold 1):
+
+Example-wise F1         63.67
+Example-wise Jaccard    54.38
+Example-wise Precision  82.2
+Example-wise Recall     65.25
+Hamming Accuracy        82.49
+Hamming Loss            17.51
+Macro F1                68.71
+Macro Jaccard           52.82
+Macro Precision         78.78
+Macro Recall            62.08
+Micro F1                69.31
+Micro Jaccard           53.03
+Micro Precision         76.92
+Micro Recall            63.06
+Subset 0/1 Loss         72.88
+Subset Accuracy         27.12
+
+INFO Fold 2 / 10:
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 374 milliseconds
+INFO Predicting for 59 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 2 milliseconds
+INFO Evaluation result for test data (Fold 2):
+
+Example-wise F1         59.55
+Example-wise Jaccard    54.24
+Example-wise Precision  77.97
+Example-wise Recall     59.32
+Hamming Accuracy        81.64
+Hamming Loss            18.36
+Macro F1                64.16
+Macro Jaccard           48.59
+Macro Precision         77.46
+Macro Recall            56.63
+Micro F1                66.67
+Micro Jaccard           50
+Micro Precision         76.47
+Micro Recall            59.09
+Subset 0/1 Loss         62.71
+Subset Accuracy         37.29
+
+INFO Fold 3 / 10:
+INFO Fitting model to 533 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 338 milliseconds
+INFO Predicting for 60 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 2 milliseconds
+INFO Evaluation result for test data (Fold 3):
+
+Example-wise F1         58.06
+Example-wise Jaccard    49.03
+Example-wise Precision  82.78
+Example-wise Recall     57.22
+Hamming Accuracy        81.11
+Hamming Loss            18.89
+Macro F1                63.39
+Macro Jaccard           48.19
+Macro Precision         75.13
+Macro Recall            56.06
+Micro F1                66
+Micro Jaccard           49.25
+Micro Precision         75.86
+Micro Recall            58.41
+Subset 0/1 Loss         78.33
+Subset Accuracy         21.67
+
+INFO Fold 4 / 10:
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 399 milliseconds
+INFO Predicting for 59 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 2 milliseconds
+INFO Evaluation result for test data (Fold 4):
+
+Example-wise F1         61.98
+Example-wise Jaccard    55.08
+Example-wise Precision  77.68
+Example-wise Recall     62.99
+Hamming Accuracy        83.33
+Hamming Loss            16.67
+Macro F1                67.2
+Macro Jaccard           54
+Macro Precision         74.69
+Macro Recall            62.9
+Micro F1                70.94
+Micro Jaccard           54.96
+Micro Precision         77.42
+Micro Recall            65.45
+Subset 0/1 Loss         67.8
+Subset Accuracy         32.2
+
+INFO Fold 5 / 10:
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 402 milliseconds
+INFO Predicting for 59 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 2 milliseconds
+INFO Evaluation result for test data (Fold 5):
+
+Example-wise F1         63.67
+Example-wise Jaccard    56.78
+Example-wise Precision  77.68
+Example-wise Recall     63.28
+Hamming Accuracy        83.33
+Hamming Loss            16.67
+Macro F1                66.8
+Macro Jaccard           53.81
+Macro Precision         75.88
+Macro Recall            63.03
+Micro F1                70.65
+Micro Jaccard           54.62
+Micro Precision         77.17
+Micro Recall            65.14
+Subset 0/1 Loss         64.41
+Subset Accuracy         35.59
+
+INFO Fold 6 / 10:
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 397 milliseconds
+INFO Predicting for 59 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 2 milliseconds
+INFO Evaluation result for test data (Fold 6):
+
+Example-wise F1         64.97
+Example-wise Jaccard    57.06
+Example-wise Precision  72.03
+Example-wise Recall     68.08
+Hamming Accuracy        81.36
+Hamming Loss            18.64
+Macro F1                66.85
+Macro Jaccard           51.8
+Macro Precision         71.41
+Macro Recall            65.3
+Micro F1                69.16
+Micro Jaccard           52.86
+Micro Precision         71.15
+Micro Recall            67.27
+Subset 0/1 Loss         69.49
+Subset Accuracy         30.51
+
+INFO Fold 7 / 10:
+INFO Fitting model to 533 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 346 milliseconds
+INFO Predicting for 60 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 2 milliseconds
+INFO Evaluation result for test data (Fold 7):
+
+Example-wise F1         60.5
+Example-wise Jaccard    52.78
+Example-wise Precision  74.72
+Example-wise Recall     60.83
+Hamming Accuracy        80
+Hamming Loss            20
+Macro F1                63.23
+Macro Jaccard           47.49
+Macro Precision         72.04
+Macro Recall            57.54
+Micro F1                65.05
+Micro Jaccard           48.2
+Micro Precision         72.04
+Micro Recall            59.29
+Subset 0/1 Loss         70
+Subset Accuracy         30
+
+INFO Fold 8 / 10:
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 378 milliseconds
+INFO Predicting for 59 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 2 milliseconds
+INFO Evaluation result for test data (Fold 8):
+
+Example-wise F1         62.6
+Example-wise Jaccard    54.1
+Example-wise Precision  73.45
+Example-wise Recall     66.67
+Hamming Accuracy        81.92
+Hamming Loss            18.08
+Macro F1                68.22
+Macro Jaccard           53.24
+Macro Precision         74
+Macro Recall            64.44
+Micro F1                68.93
+Micro Jaccard           52.59
+Micro Precision         73.2
+Micro Recall            65.14
+Subset 0/1 Loss         74.58
+Subset Accuracy         25.42
+
+INFO Fold 9 / 10:
+INFO Fitting model to 534 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 413 milliseconds
+INFO Predicting for 59 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 2 milliseconds
+INFO Evaluation result for test data (Fold 9):
+
+Example-wise F1         55.82
+Example-wise Jaccard    48.02
+Example-wise Precision  77.4
+Example-wise Recall     57.91
+Hamming Accuracy        79.66
+Hamming Loss            20.34
+Macro F1                61.38
+Macro Jaccard           45.84
+Macro Precision         70.84
+Macro Recall            56.46
+Micro F1                64
+Micro Jaccard           47.06
+Micro Precision         71.11
+Micro Recall            58.18
+Subset 0/1 Loss         76.27
+Subset Accuracy         23.73
+
+INFO Fold 10 / 10:
+INFO Fitting model to 533 training examples...
+DEBUG A dense matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 358 milliseconds
+INFO Predicting for 60 test examples...
+DEBUG A dense matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 2 milliseconds
+INFO Evaluation result for test data (Fold 10):
+
+Example-wise F1         57.39
+Example-wise Jaccard    49.31
+Example-wise Precision  70.28
+Example-wise Recall     58.06
+Hamming Accuracy        78.61
+Hamming Loss            21.39
+Macro F1                59.03
+Macro Jaccard           44.49
+Macro Precision         64.33
+Macro Recall            58.02
+Micro F1                63.85
+Micro Jaccard           46.9
+Micro Precision         68
+Micro Recall            60.18
+Subset 0/1 Loss         75
+Subset Accuracy         25
+
+INFO Evaluation result for test data (Average across 10 folds):
+
+Example-wise F1         60.82  ±2.90
+Example-wise Jaccard    53.08  ±3.07
+Example-wise Precision  76.62  ±3.86
+Example-wise Recall     61.96  ±3.68
+Hamming Accuracy        81.35  ±1.48
+Hamming Loss            18.65  ±1.48
+Macro F1                64.9   ±3.01
+Macro Jaccard           50.03  ±3.34
+Macro Precision         73.46  ±3.89
+Macro Recall            60.25  ±3.44
+Micro F1                67.45  ±2.54
+Micro Jaccard           50.95  ±2.88
+Micro Precision         73.94  ±3.11
+Micro Recall            62.12  ±3.27
+Subset 0/1 Loss         71.15  ±4.89
+Subset Accuracy         28.85  ±4.89
+
+INFO Successfully finished after 4 seconds and 129 milliseconds

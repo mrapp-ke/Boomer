@@ -5,14 +5,12 @@
 
 #include "common/data/types.hpp"
 
-
 namespace boosting {
 
     /**
      * Allows to execute BLAS routines.
      */
     class Blas final {
-
         public:
 
             /**
@@ -23,13 +21,14 @@ namespace boosting {
             /**
              * A function pointer to BLAS' DSPMV routine.
              */
-            typedef void (*DspmvFunction)(char* uplo, int* n, double* alpha, double* ap, double* x, int* incx, double* beta, double* y, int* incy);
+            typedef void (*DspmvFunction)(char* uplo, int* n, double* alpha, double* ap, double* x, int* incx,
+                                          double* beta, double* y, int* incy);
 
         private:
 
-            DdotFunction ddotFunction_;
+            const DdotFunction ddotFunction_;
 
-            DspmvFunction dspmvFunction_;
+            const DspmvFunction dspmvFunction_;
 
         public:
 
@@ -67,7 +66,6 @@ namespace boosting {
              * @param n         The number of elements in the arrays `a` and `x`
              */
             void dspmv(float64* a, float64* x, float64* output, int n) const;
-
     };
 
 }

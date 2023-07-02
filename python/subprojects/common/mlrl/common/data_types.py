@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 """
 Author: Michael Rapp (michael.rapp.ml@gmail.com)
 
@@ -7,7 +5,7 @@ Provides type definitions.
 """
 import numpy as np
 
-DTYPE_INT64 = np.long
+DTYPE_INT64 = np.int64
 
 DTYPE_UINT8 = np.uint8
 

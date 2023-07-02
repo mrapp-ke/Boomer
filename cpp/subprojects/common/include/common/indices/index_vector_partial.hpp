@@ -3,15 +3,13 @@
  */
 #pragma once
 
-#include "common/indices/index_vector.hpp"
 #include "common/data/vector_dense.hpp"
-
+#include "common/indices/index_vector.hpp"
 
 /**
  * Provides random access to a fixed number of indices stored in a C-contiguous array.
  */
 class PartialIndexVector final : public IIndexVector {
-
     private:
 
         DenseVector<uint32> vector_;
@@ -81,9 +79,6 @@ class PartialIndexVector final : public IIndexVector {
 
         uint32 getIndex(uint32 pos) const override;
 
-        std::unique_ptr<IStatisticsSubset> createSubset(const IImmutableStatistics& statistics) const override;
-
         std::unique_ptr<IRuleRefinement> createRuleRefinement(IThresholdsSubset& thresholdsSubset,
                                                               uint32 featureIndex) const override;
-
 };

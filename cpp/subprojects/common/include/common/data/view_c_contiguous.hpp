@@ -5,7 +5,6 @@
 
 #include "common/data/view_two_dimensional.hpp"
 
-
 /**
  * Implements row-wise read-only access to the values that are stored in a pre-allocated C-contiguous array.
  *
@@ -13,18 +12,17 @@
  */
 template<typename T>
 class MLRLCOMMON_API CContiguousConstView : virtual public ITwoDimensionalView {
-
     protected:
 
         /**
          * The number of rows in the view.
          */
-        uint32 numRows_;
+        const uint32 numRows_;
 
         /**
          * The number of columns in the view.
          */
-        uint32 numCols_;
+        const uint32 numCols_;
 
         /**
          * A pointer to the array that stores the values, the view provides access to.
@@ -41,6 +39,8 @@ class MLRLCOMMON_API CContiguousConstView : virtual public ITwoDimensionalView {
          */
         CContiguousConstView(uint32 numRows, uint32 numCols, T* array);
 
+        virtual ~CContiguousConstView() override {};
+
         /**
          * An iterator that provides read-only access to the elements in the view.
          */
@@ -52,7 +52,7 @@ class MLRLCOMMON_API CContiguousConstView : virtual public ITwoDimensionalView {
          * @param row   The row
          * @return      A `value_const_iterator` to the beginning of the given row
          */
-        value_const_iterator row_values_cbegin(uint32 row) const;
+        value_const_iterator values_cbegin(uint32 row) const;
 
         /**
          * Returns a `value_const_iterator` to the end of a specific row.
@@ -60,7 +60,7 @@ class MLRLCOMMON_API CContiguousConstView : virtual public ITwoDimensionalView {
          * @param row   The row
          * @return      A `value_const_iterator` to the end of the given row
          */
-        value_const_iterator row_values_cend(uint32 row) const;
+        value_const_iterator values_cend(uint32 row) const;
 
         /**
          * @see `ITwoDimensionalView::getNumRows`
@@ -71,7 +71,6 @@ class MLRLCOMMON_API CContiguousConstView : virtual public ITwoDimensionalView {
          * @see `ITwoDimensionalView::getNumCols`
          */
         uint32 getNumCols() const override final;
-
 };
 
 /**
@@ -81,7 +80,6 @@ class MLRLCOMMON_API CContiguousConstView : virtual public ITwoDimensionalView {
  */
 template<typename T>
 class MLRLCOMMON_API CContiguousView : public CContiguousConstView<T> {
-
     public:
 
         /**
@@ -91,6 +89,8 @@ class MLRLCOMMON_API CContiguousView : public CContiguousConstView<T> {
          *                  provides access to
          */
         CContiguousView(uint32 numRows, uint32 numCols, T* array);
+
+        virtual ~CContiguousView() override {};
 
         /**
          * An iterator that provides access to the elements in the view and allows to modify them.
@@ -103,7 +103,7 @@ class MLRLCOMMON_API CContiguousView : public CContiguousConstView<T> {
          * @param row   The row
          * @return      A `value_iterator` to the beginning of the given row
          */
-        value_iterator row_values_begin(uint32 row);
+        value_iterator values_begin(uint32 row);
 
         /**
          * Returns a `value_iterator` to the end of a specific row.
@@ -111,6 +111,5 @@ class MLRLCOMMON_API CContiguousView : public CContiguousConstView<T> {
          * @param row   The row
          * @return      A `value_iterator` to the end of the given row
          */
-        value_iterator row_values_end(uint32 row);
-
+        value_iterator values_end(uint32 row);
 };

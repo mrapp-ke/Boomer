@@ -3,21 +3,16 @@
  */
 #pragma once
 
-#include "common/rule_refinement/prediction_evaluated.hpp"
 #include "common/indices/index_vector_complete.hpp"
-
-// Forward declarations
-class IImmutableStatistics;
-
+#include "common/rule_refinement/prediction_evaluated.hpp"
 
 /**
  * Stores the scores that are predicted by a rule that predicts for all available labels.
  */
 class CompletePrediction final : public AbstractEvaluatedPrediction {
-
     private:
 
-        CompleteIndexVector indexVector_;
+        const CompleteIndexVector indexVector_;
 
     public:
 
@@ -45,19 +40,37 @@ class CompletePrediction final : public AbstractEvaluatedPrediction {
          */
         index_const_iterator indices_cend() const;
 
-        void setNumElements(uint32 numElements, bool freeMemory) override;
-
         bool isPartial() const override;
 
         uint32 getIndex(uint32 pos) const override;
 
-        std::unique_ptr<IStatisticsSubset> createSubset(const IImmutableStatistics& statistics) const override;
+        std::unique_ptr<IStatisticsSubset> createStatisticsSubset(const IStatistics& statistics,
+                                                                  const EqualWeightVector& weights) const override;
+
+        std::unique_ptr<IStatisticsSubset> createStatisticsSubset(const IStatistics& statistics,
+                                                                  const BitWeightVector& weights) const override;
+
+        std::unique_ptr<IStatisticsSubset> createStatisticsSubset(
+          const IStatistics& statistics, const DenseWeightVector<uint32>& weights) const override;
+
+        std::unique_ptr<IStatisticsSubset> createStatisticsSubset(
+          const IStatistics& statistics, const OutOfSampleWeightVector<EqualWeightVector>& weights) const override;
+
+        std::unique_ptr<IStatisticsSubset> createStatisticsSubset(
+          const IStatistics& statistics, const OutOfSampleWeightVector<BitWeightVector>& weights) const override;
+
+        std::unique_ptr<IStatisticsSubset> createStatisticsSubset(
+          const IStatistics& statistics,
+          const OutOfSampleWeightVector<DenseWeightVector<uint32>>& weights) const override;
 
         std::unique_ptr<IRuleRefinement> createRuleRefinement(IThresholdsSubset& thresholdsSubset,
                                                               uint32 featureIndex) const override;
 
         void apply(IStatistics& statistics, uint32 statisticIndex) const override;
 
-        std::unique_ptr<IHead> createHead() const override;
+        void revert(IStatistics& statistics, uint32 statisticIndex) const override;
 
+        void sort() override;
+
+        std::unique_ptr<IHead> createHead() const override;
 };

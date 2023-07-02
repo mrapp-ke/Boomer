@@ -1,0 +1,32 @@
+INFO Starting experiment...
+INFO Using separate training and test sets...
+DEBUG Parsing meta data from file "python/subprojects/testbed/tests/res/data/weather.xml"...
+DEBUG Loading data set from file "python/subprojects/testbed/tests/res/data/weather.arff"...
+INFO Fitting model to 9 training examples...
+DEBUG A sparse matrix is used to store the feature values of the training examples
+DEBUG A dense matrix is used to store the labels of the training examples
+INFO Successfully fit model in 19 milliseconds
+INFO Predicting for 5 test examples...
+DEBUG A sparse matrix is used to store the feature values of the query examples
+DEBUG A dense matrix is used to store the predicted labels
+INFO Successfully predicted in 0 milliseconds
+INFO Evaluation result for test data:
+
+Example-wise F1          40
+Example-wise Jaccard     30
+Example-wise Precision   60
+Example-wise Recall      30
+Hamming Accuracy         53.33
+Hamming Loss             46.67
+Macro F1                 25
+Macro Jaccard            20
+Macro Precision          58.33
+Macro Recall             25
+Micro F1                 46.15
+Micro Jaccard            30
+Micro Precision          60
+Micro Recall             37.5
+Subset 0/1 Loss         100
+Subset Accuracy           0
+
+INFO Successfully finished after 41 milliseconds

@@ -3,24 +3,22 @@
  */
 #pragma once
 
+#include "boosting/data/matrix_c_contiguous_numeric.hpp"
 #include "boosting/data/statistic_vector_label_wise_dense.hpp"
 #include "boosting/data/statistic_view_label_wise_dense.hpp"
-#include "boosting/data/matrix_dense_numeric.hpp"
 #include "boosting/losses/loss_label_wise.hpp"
 #include "common/measures/measure_evaluation.hpp"
 #include "statistics_label_wise_common.hpp"
+
 #include <cstdlib>
 
-
 namespace boosting {
-
 
     /**
      * A matrix that stores gradients and Hessians that have been calculated using a label-wise decomposable loss
      * function using C-contiguous arrays.
      */
     class DenseLabelWiseStatisticMatrix final : public DenseLabelWiseStatisticView {
-
         public:
 
             /**
@@ -29,14 +27,11 @@ namespace boosting {
              */
             DenseLabelWiseStatisticMatrix(uint32 numRows, uint32 numCols)
                 : DenseLabelWiseStatisticView(numRows, numCols,
-                                              (Tuple<float64>*) malloc(numRows * numCols * sizeof(Tuple<float64>))) {
+                                              (Tuple<float64>*) malloc(numRows * numCols * sizeof(Tuple<float64>))) {}
 
-            }
-
-            ~DenseLabelWiseStatisticMatrix() {
+            ~DenseLabelWiseStatisticMatrix() override {
                 free(statistics_);
             }
-
     };
 
     /**
@@ -46,14 +41,10 @@ namespace boosting {
      * @tparam LabelMatrix The type of the matrix that provides access to the labels of the training examples
      */
     template<typename LabelMatrix>
-    class DenseLabelWiseStatistics final : public AbstractLabelWiseStatistics<LabelMatrix,
-                                                                              DenseLabelWiseStatisticVector,
-                                                                              DenseLabelWiseStatisticView,
-                                                                              DenseLabelWiseStatisticMatrix,
-                                                                              NumericDenseMatrix<float64>,
-                                                                              ILabelWiseLoss, IEvaluationMeasure,
-                                                                              ILabelWiseRuleEvaluationFactory> {
-
+    class DenseLabelWiseStatistics final
+        : public AbstractLabelWiseStatistics<LabelMatrix, DenseLabelWiseStatisticVector, DenseLabelWiseStatisticView,
+                                             DenseLabelWiseStatisticMatrix, NumericCContiguousMatrix<float64>,
+                                             ILabelWiseLoss, IEvaluationMeasure, ILabelWiseRuleEvaluationFactory> {
         public:
 
             /**
@@ -64,28 +55,33 @@ namespace boosting {
              *                              predictions for a specific statistic
              * @param ruleEvaluationFactory A reference to an object of type `ILabelWiseRuleEvaluationFactory`, that
              *                              allows to create instances of the class that is used for calculating the
-             *                              predictions, as well as corresponding quality scores, of rules
+             *                              predictions of rules, as well as their overall quality
              * @param labelMatrix           A reference to an object of template type `LabelMatrix` that provides access
              *                              to the labels of the training examples
              * @param statisticViewPtr      An unique pointer to an object of type `DenseLabelWiseStatisticView` that
              *                              provides access to the gradients and Hessians
-             * @param scoreMatrixPtr        An unique pointer to an object of type `NumericDenseMatrix` that stores the
-             *                              currently predicted scores
+             * @param scoreMatrixPtr        An unique pointer to an object of type `NumericCContiguousMatrix` that
+             *                              stores the currently predicted scores
              */
             DenseLabelWiseStatistics(std::unique_ptr<ILabelWiseLoss> lossPtr,
                                      std::unique_ptr<IEvaluationMeasure> evaluationMeasurePtr,
                                      const ILabelWiseRuleEvaluationFactory& ruleEvaluationFactory,
                                      const LabelMatrix& labelMatrix,
                                      std::unique_ptr<DenseLabelWiseStatisticView> statisticViewPtr,
-                                     std::unique_ptr<NumericDenseMatrix<float64>> scoreMatrixPtr)
+                                     std::unique_ptr<NumericCContiguousMatrix<float64>> scoreMatrixPtr)
                 : AbstractLabelWiseStatistics<LabelMatrix, DenseLabelWiseStatisticVector, DenseLabelWiseStatisticView,
-                                              DenseLabelWiseStatisticMatrix, NumericDenseMatrix<float64>,
+                                              DenseLabelWiseStatisticMatrix, NumericCContiguousMatrix<float64>,
                                               ILabelWiseLoss, IEvaluationMeasure, ILabelWiseRuleEvaluationFactory>(
-                      std::move(lossPtr), std::move(evaluationMeasurePtr), ruleEvaluationFactory, labelMatrix,
-                      std::move(statisticViewPtr), std::move(scoreMatrixPtr)) {
+                  std::move(lossPtr), std::move(evaluationMeasurePtr), ruleEvaluationFactory, labelMatrix,
+                  std::move(statisticViewPtr), std::move(scoreMatrixPtr)) {}
 
+            /**
+             * @see `IBoostingStatistics::visitScoreMatrix`
+             */
+            void visitScoreMatrix(IBoostingStatistics::DenseScoreMatrixVisitor denseVisitor,
+                                  IBoostingStatistics::SparseScoreMatrixVisitor sparseVisitor) const override {
+                denseVisitor(*this->scoreMatrixPtr_);
             }
-
     };
 
 }

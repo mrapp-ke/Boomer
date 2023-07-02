@@ -1,8 +1,7 @@
 #include "common/model/body_empty.hpp"
 
-
-bool EmptyBody::covers(CContiguousConstView<const float32>::value_const_iterator begin,
-                       CContiguousConstView<const float32>::value_const_iterator end) const {
+bool EmptyBody::covers(VectorConstView<const float32>::const_iterator begin,
+                       VectorConstView<const float32>::const_iterator end) const {
     return true;
 }
 

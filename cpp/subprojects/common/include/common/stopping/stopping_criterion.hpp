@@ -7,44 +7,34 @@
 #include "common/sampling/partition_single.hpp"
 #include "common/statistics/statistics.hpp"
 
-
 /**
  * Defines an interface for all stopping criteria that allow to decide whether additional rules should be induced or
  * not.
  */
 class IStoppingCriterion {
-
     public:
-
-        /**
-         * An enum that specifies all possible actions that may be executed, based on the result that is returned by a
-         * stopping criterion.
-         */
-        enum Action : uint32 {
-            CONTINUE = 0,
-            STORE_STOP = 1,
-            FORCE_STOP = 2
-        };
 
         /**
          * The result that is returned by a stopping criterion. It consists of the action to be executed, as well as the
          * number of rules to be used, if the action is not `CONTINUE`.
          */
-        struct Result {
+        struct Result final {
+            public:
 
-            /**
-             * The action to be executed.
-             */
-            Action action;
+                Result() : stop(false), numUsedRules(0) {};
 
-            /**
-             * The number of rules to be used.
-             */
-            uint32 numRules;
+                /**
+                 True, if the induction of rules should be stopped, false otherwise.
+                 */
+                bool stop;
 
+                /**
+                 * The number of rules to be used.
+                 */
+                uint32 numUsedRules;
         };
 
-        virtual ~IStoppingCriterion() { };
+        virtual ~IStoppingCriterion() {};
 
         /**
          * Checks whether additional rules should be induced or not.
@@ -58,17 +48,15 @@ class IStoppingCriterion {
          *                      induction of rules should be forced to be stopped (`FORCE_STOP`)
          */
         virtual Result test(const IStatistics& statistics, uint32 numRules) = 0;
-
 };
 
 /**
  * Defines an interface for all factories that allow to create instances of the type `IStoppingCriterion`.
  */
 class IStoppingCriterionFactory {
-
     public:
 
-        virtual ~IStoppingCriterionFactory() { };
+        virtual ~IStoppingCriterionFactory() {};
 
         /**
          * Creates and returns a new object of type `IStoppingCriterion`.
@@ -88,19 +76,16 @@ class IStoppingCriterionFactory {
          * @return              An unique pointer to an object of type `IStoppingCriterion` that has been created
          */
         virtual std::unique_ptr<IStoppingCriterion> create(BiPartition& partition) const = 0;
-
 };
-
 
 /**
  * Defines an interface for all classes that allow to configure a stopping criterion that allows to decide whether
  * additional rules should be induced or not.
  */
 class IStoppingCriterionConfig {
-
     public:
 
-        virtual ~IStoppingCriterionConfig() { };
+        virtual ~IStoppingCriterionConfig() {};
 
         /**
          * Creates and returns a new object of type `IStoppingCriterionFactory` according to the specified
@@ -109,5 +94,4 @@ class IStoppingCriterionConfig {
          * @return An unique pointer to an object of type `IStoppingCriterionFactory` that has been created
          */
         virtual std::unique_ptr<IStoppingCriterionFactory> createStoppingCriterionFactory() const = 0;
-
 };

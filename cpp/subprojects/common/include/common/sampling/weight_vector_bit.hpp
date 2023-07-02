@@ -6,12 +6,10 @@
 #include "common/data/vector_bit.hpp"
 #include "common/sampling/weight_vector.hpp"
 
-
 /**
  * An one-dimensional vector that provides random access to a fixed number of binary weights stored in a `BitVector`.
  */
 class BitWeightVector final : public IWeightVector {
-
     private:
 
         BitVector vector_;
@@ -39,6 +37,14 @@ class BitWeightVector final : public IWeightVector {
         uint32 getNumElements() const;
 
         /**
+         * Returns the weight at a specific position.
+         *
+         * @param pos   The position
+         * @return      The weight at the specified position
+         */
+        bool operator[](uint32 pos) const;
+
+        /**
          * Sets the weight at a specific position.
          *
          * @param pos       The position
@@ -52,16 +58,20 @@ class BitWeightVector final : public IWeightVector {
         void clear();
 
         /**
+         * Returns the number of non-zero weights.
+         *
+         * @return The number of non-zero weights
+         */
+        uint32 getNumNonZeroWeights() const;
+
+        /**
          * Sets the number of non-zero weights.
          *
          * @param numNonZeroWeights The number of non-zero weights to be set
          */
         void setNumNonZeroWeights(uint32 numNonZeroWeights);
 
-        uint32 getNumNonZeroWeights() const override;
-
         bool hasZeroWeights() const override;
 
-        float64 getWeight(uint32 pos) const override;
-
+        std::unique_ptr<IThresholdsSubset> createThresholdsSubset(IThresholds& thresholds) const override;
 };

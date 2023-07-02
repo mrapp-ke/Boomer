@@ -3,33 +3,32 @@
  */
 #pragma once
 
-#include "common/rule_refinement/refinement.hpp"
-#include <memory>
-
+#include "common/rule_refinement/refinement_comparator_fixed.hpp"
+#include "common/rule_refinement/refinement_comparator_single.hpp"
 
 /**
  * Defines an interface for all classes that allow to find the best refinement of existing rules.
  */
 class IRuleRefinement {
-
     public:
 
-        virtual ~IRuleRefinement() { };
+        virtual ~IRuleRefinement() {};
 
         /**
          * Finds the best refinement of an existing rule.
          *
-         * @param currentHead A pointer to an object of type `AbstractEvaluatedPrediction`, representing the head of the
-         *                    existing rule or a null pointer, if no rule exists yet
+         * @param comparator    A reference to an object of type `SingleRefinementComparator` that is used to compare
+         *                      the potential refinements
+         * @param minCoverage   The minimum number of examples that must be covered by the refinement
          */
-        virtual void findRefinement(const AbstractEvaluatedPrediction* currentHead) = 0;
+        virtual void findRefinement(SingleRefinementComparator& comparator, uint32 minCoverage) = 0;
 
         /**
-         * Returns the best refinement that has been found by the function `findRefinement`.
+         * Finds the best refinements of an existing rule.
          *
-         * @return An unique pointer to an object of type `Refinement` that stores information about the best refinement
-         *         that has been found
+         * @param comparator    A reference to an object of type `MultiRefinementComparator` that is used to compare the
+         *                      potential refinements
+         * @param minCoverage   The minimum number of examples that must be covered by the refinements
          */
-        virtual std::unique_ptr<Refinement> pollRefinement() = 0;
-
+        virtual void findRefinement(FixedRefinementComparator& comparator, uint32 minCoverage) = 0;
 };

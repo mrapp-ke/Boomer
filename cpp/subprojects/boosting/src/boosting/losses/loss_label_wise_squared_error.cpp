@@ -1,6 +1,6 @@
 #include "boosting/losses/loss_label_wise_squared_error.hpp"
-#include "loss_label_wise_common.hpp"
 
+#include "loss_label_wise_common.hpp"
 
 namespace boosting {
 
@@ -22,27 +22,29 @@ namespace boosting {
      * loss that is applied label-wise.
      */
     class LabelWiseSquaredErrorLossFactory final : public ILabelWiseLossFactory {
-
         public:
 
             std::unique_ptr<ILabelWiseLoss> createLabelWiseLoss() const override {
                 return std::make_unique<LabelWiseLoss>(&updateGradientAndHessian, &evaluatePrediction);
             }
-
     };
 
     LabelWiseSquaredErrorLossConfig::LabelWiseSquaredErrorLossConfig(const std::unique_ptr<IHeadConfig>& headConfigPtr)
-        : headConfigPtr_(headConfigPtr) {
-
-    }
+        : headConfigPtr_(headConfigPtr) {}
 
     std::unique_ptr<IStatisticsProviderFactory> LabelWiseSquaredErrorLossConfig::createStatisticsProviderFactory(
-            const IFeatureMatrix& featureMatrix, const ILabelMatrix& labelMatrix, const Blas& blas,
-            const Lapack& lapack) const {
+      const IFeatureMatrix& featureMatrix, const IRowWiseLabelMatrix& labelMatrix, const Blas& blas,
+      const Lapack& lapack, bool preferSparseStatistics) const {
         return headConfigPtr_->createStatisticsProviderFactory(featureMatrix, labelMatrix, *this);
     }
 
-    std::unique_ptr<IProbabilityFunctionFactory> LabelWiseSquaredErrorLossConfig::createProbabilityFunctionFactory() const {
+    std::unique_ptr<IMarginalProbabilityFunctionFactory>
+      LabelWiseSquaredErrorLossConfig::createMarginalProbabilityFunctionFactory() const {
+        return nullptr;
+    }
+
+    std::unique_ptr<IJointProbabilityFunctionFactory>
+      LabelWiseSquaredErrorLossConfig::createJointProbabilityFunctionFactory() const {
         return nullptr;
     }
 

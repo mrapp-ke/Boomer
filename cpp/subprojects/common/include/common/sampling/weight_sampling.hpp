@@ -4,8 +4,8 @@
 #pragma once
 
 #include "common/sampling/weight_vector_bit.hpp"
-#include <unordered_set>
 
+#include <unordered_set>
 
 /**
  * Randomly selects `numSamples` out of `numTotal` elements and sets their weights to 1, while the remaining weights are
